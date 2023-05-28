@@ -24,11 +24,29 @@
         border-radius: 5px;
         cursor: pointer;
         transition: transform 0.1s ease;
+        overflow: hidden;  /* Add this to contain the moving text */
+    }
+    #playButton span {
+        display: inline-block;
+        transition: transform 0.1s ease;
     }
     #playButton:active {
         transform: translate(-50%, -50%) scale(0.95);
     }
+    #playButton:active span {
+        animation: moveText 0.1s infinite; /* Add this to animate the text */
+    }
+
+    /* Keyframes for moving text animation */
+    @keyframes moveText {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(5%); }
+        100% { transform: translateX(-5%); }
+    }
 </style>
+<body>
+    <button id="playButton"><span>Play Random Chunk</span></button>
+</body>
 
 </head>
 <body>
