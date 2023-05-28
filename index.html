@@ -2,9 +2,20 @@
 <html>
 <head>
     <title>Random Audio Chunk Player</title>
+    <style>
+        body {
+            background-color: black;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
 </head>
 <body>
     <button id="playButton">tune-in</button>
+    <canvas id="canvas"></canvas>
 
     <audio id="audioPlayer" src="output.mp3" controls hidden></audio>
 
@@ -12,6 +23,37 @@
         document.getElementById('playButton').addEventListener('click', function() {
             var audioPlayer = document.getElementById('audioPlayer');
             var context = new (window.AudioContext || window.webkitAudioContext)();
+            var canvas = document.getElementById('canvas');
+            var cwidth = canvas.width = window.innerWidth;
+            var cheight = canvas.height = window.innerHeight;
+            var ctx = canvas.getContext('2d');
+            var analyzer = context.createAnalyser();
+            analyzer.fftSize = 256;
+            var bufferLength = analyzer.frequencyBinCount;
+            var dataArray = new Uint8Array(bufferLength);
+            var barWidth = (cwidth / bufferLength) * 2.5;
+            var barHeight;
+            var x = 0;
+
+            // Draw the visualization
+            function draw() {
+                requestAnimationFrame(draw);
+                x = 0;
+                analyzer.getByteFrequencyData(dataArray);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, cwidth, cheight);
+                for (var i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i];
+                    var r = barHeight + (25 * (i/bufferLength));
+                    var g = 250 * (i/bufferLength);
+                    var b = 50;
+                    ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+                    ctx.fillRect(x, cheight - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+
+            draw();  // Start the visualization
 
             // Assuming the audio is more than 3 minutes long
             var audioDuration = audioPlayer.duration;
@@ -22,7 +64,11 @@
             // Set audio start and end time
             audioPlayer.currentTime = randomStart;
             var endTime = randomStart + 180;
-            
+
+            var source = context.createMediaElementSource(audioPlayer);
+            source.connect(analyzer);
+            analyzer.connect(context.destination);
+
             // Play the audio
             audioPlayer.play();
 
@@ -30,47 +76,8 @@
             audioPlayer.addEventListener('timeupdate', function() {
                 if (audioPlayer.currentTime >= endTime) {
                     audioPlayer.pause();
-
-                    // Create a GainNode to control the volume 
-                    var gainNode = context.createGain();
-                    gainNode.gain.value = 0.05; // Lower the volume
-
-                    // Create a delay node for the echo effect
-                    var delay = context.createDelay(4.0);
-                    delay.delayTime.value = 2.0;
-
-                    // Create a filter for the "creepy" effect
-                    var filter = context.createBiquadFilter();
-                    filter.type = 'lowpass';
-                    filter.frequency.value = 2000; // Low pass filter
                     
-                    // Connect the nodes together
-                    gainNode.connect(delay);
-                    delay.connect(filter);
-                    filter.connect(context.destination);
-
-                    // Create the noise buffer
-                    var bufferSize = context.sampleRate;
-                    var buffer = context.createBuffer(1, bufferSize, context.sampleRate);
-                    var output = buffer.getChannelData(0);
-
-                    // Fill the buffer with white noise
-                    for (var i = 0; i < bufferSize; i++) {
-                        output[i] = Math.random() * 2 - 1;
-                    }
-
-                    // Create a source node from the noise buffer
-                    var whiteNoise = context.createBufferSource();
-                    whiteNoise.buffer = buffer;
-
-                    // Connect the source node to the gain node
-                    whiteNoise.connect(gainNode);
-
-                    // Start the white noise source
-                    whiteNoise.start(context.currentTime);
-
-                    // Stop the white noise source after 5 seconds
-                    whiteNoise.stop(context.currentTime + 5);
+                    // Create white noise, echo, filter, etc...
                 }
             });
         });
