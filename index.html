@@ -24,30 +24,31 @@
         border-radius: 5px;
         cursor: pointer;
         transition: transform 0.1s ease;
-        overflow: hidden;  /* Add this to contain the moving text */
+        overflow: hidden; /* To contain the moving text */
+    }
+    #playButton:active {
+        transform: translate(-50%, -50%) scale(0.95);
     }
     #playButton span {
         display: inline-block;
         transition: transform 0.1s ease;
     }
-    #playButton:active {
-        transform: translate(-50%, -50%) scale(0.95);
-    }
     #playButton:active span {
-        animation: moveText 0.1s infinite; /* Add this to animate the text */
+        animation: moveText 0.1s infinite linear; /* Add this to animate the text */
     }
 
     /* Keyframes for moving text animation */
     @keyframes moveText {
-        0% { transform: translateX(0); }
-        50% { transform: translateX(50%); }
-        100% { transform: translateX(-50%); }
+        0% { transform: translateX(0px); }
+        25% { transform: translateX(2px); }
+        75% { transform: translateX(-2px); }
+        100% { transform: translateX(0px); }
     }
 </style>
 
 </head>
 <body>
-    <button id="playButton">Random_Chunk</button>
+    <button id="playButton">random_chunk</button>
 
     <audio id="audioPlayer" src="output.mp3" controls hidden></audio>
 
