@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Random Audio Chunk Player</title>
+</head>
+<body>
+    <button id="playButton">Play Random Chunk</button>
+
+    <audio id="audioPlayer" src="output.mp3" controls hidden></audio>
+    <audio id="whiteNoisePlayer" src="whiteNoise.mp3" hidden></audio>
+
+    <script>
+        document.getElementById('playButton').addEventListener('click', function() {
+            var audioPlayer = document.getElementById('audioPlayer');
+            var whiteNoisePlayer = document.getElementById('whiteNoisePlayer');
+
+            // Assuming the audio is more than 3 minutes long
+            var audioDuration = audioPlayer.duration;
+
+            // Generate random start time between 0 and audioDuration - 3 minutes
+            var randomStart = Math.random() * (audioDuration - 180);
+            
+            // Set audio start and end time
+            audioPlayer.currentTime = randomStart;
+            var endTime = randomStart + 180;
+            
+            // Play the audio
+            audioPlayer.play();
+
+            // Play white noise after the audio chunk finishes
+            audioPlayer.addEventListener('timeupdate', function() {
+                if (audioPlayer.currentTime >= endTime) {
+                    audioPlayer.pause();
+
+                    // Add fade effect (this will only work if the whiteNoisePlayer audio duration is longer than 5 seconds)
+                    whiteNoisePlayer.volume = 0;
+                    whiteNoisePlayer.play();
+
+                    // Fade in white noise over 2.5 seconds
+                    var fadePoint = setInterval(function() {
+                        if (whiteNoisePlayer.volume < 1.0) {
+                            whiteNoisePlayer.volume += 0.02; // increase volume by 2% every 100ms
+                        } else {
+                            clearInterval(fadePoint);
+                        }
+                    }, 100);
+
+                    // After 2.5 seconds, start fading out
+                    setTimeout(function() {
+                        var fadeOutPoint = setInterval(function() {
+                            if (whiteNoisePlayer.volume > 0) {
+                                whiteNoisePlayer.volume -= 0.02; // decrease volume by 2% every 100ms
+                            } else {
+                                clearInterval(fadeOutPoint);
+                            }
+                        }, 100);
+                    }, 2500);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
