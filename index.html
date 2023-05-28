@@ -24,11 +24,14 @@
     </style>
 </head>
 <body>
-    <button id="playButton">random_chunk</button>
+    <button id="playButton">Play Random Chunk</button>
 
     <audio id="audioPlayer" src="output.mp3" controls hidden></audio>
 
     <script>
+        let whiteNoise = null;
+        let whiteNoise2 = null;
+
         function createWhiteNoise(context) {
             // Create a GainNode to control the volume 
             var gainNode = context.createGain();
@@ -72,13 +75,24 @@
             var audioPlayer = document.getElementById('audioPlayer');
             var context = new (window.AudioContext || window.webkitAudioContext)();
 
-            var whiteNoise = createWhiteNoise(context);
+            // Stop any previously playing white noise
+            if (whiteNoise) {
+                whiteNoise.stop();
+                whiteNoise = null;
+            }
 
-            // Start the white noise source
+            if (whiteNoise2) {
+                whiteNoise2.stop();
+                whiteNoise2 = null;
+            }
+
+            // Stop any previously playing audio
+            audioPlayer.pause();
+
+            // Create and play white noise
+            whiteNoise = createWhiteNoise(context);
             whiteNoise.start(context.currentTime);
-
-            // Fade out the white noise over 5 seconds
-            context.createGain().gain.linearRampToValueAtTime(0, context.currentTime + 5);
+            whiteNoise.stop(context.currentTime + 5);
 
             // Assuming the audio is more than 3 minutes long
             var audioDuration = audioPlayer.duration;
@@ -92,8 +106,6 @@
 
             // Play the audio after the white noise finishes
             setTimeout(function() {
-                // Fade in the audio over 5 seconds
-                context.createGain().gain.linearRampToValueAtTime(1, context.currentTime + 5);
                 audioPlayer.play();
             }, 5000);
 
@@ -102,13 +114,10 @@
                 if (audioPlayer.currentTime >= endTime) {
                     audioPlayer.pause();
 
-                    var whiteNoise = createWhiteNoise(context);
-
-                    // Start the white noise source
-                    whiteNoise.start(context.currentTime);
-
-                    // Fade out the white noise over 5 seconds
-                    context.createGain().gain.linearRampToValueAtTime(0, context.currentTime + 5);
+                    // Create and play more white noise
+                    whiteNoise2 = createWhiteNoise(context);
+                    whiteNoise2.start(context.currentTime);
+                    whiteNoise2.stop(context.currentTime + 5);
                 }
             });
         });
