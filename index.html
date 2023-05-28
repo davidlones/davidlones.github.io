@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Random Chunk</title>
+    
 <style>
     body {
         background-color: black;
@@ -22,9 +23,12 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
+        transition: transform 0.1s ease;
+    }
+    #playButton:active {
+        transform: translate(-50%, -50%) scale(0.95);
     }
 </style>
-
 
 </head>
 <body>
