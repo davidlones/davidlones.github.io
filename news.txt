@@ -1,0 +1,83 @@
+Title: The Current State of Computing: A Journey from Classical to Quantum
+
+Here are some recent scientific papers related to space and AI:
+
+1. [Everyone Can Be Picasso? A Computational Framework into the Myth of Human versus AI Painting](http://arxiv.org/abs/2304.07999v1) by Yilin Ye, Rong Huang, Kang Zhang, Wei Zeng. Published on Mon, 17 Apr 2023. The paper discusses the advances of AI technology in generating content, particularly in the field of painting. It presents a computational framework that investigates the difference between human and AI paintings, using neural latent space and aesthetics features.
+
+2. [Mapping the Design Space of Interactions in Human-AI Text Co-creation Tasks](http://arxiv.org/abs/2303.06430v2) by Zijian Ding, Joel Chan. Published on Sat, 11 Mar 2023. This paper presents a spectrum of content generation tasks and their corresponding human-AI interaction patterns. It encourages the generative AI and HCI research communities to focus on more complex and interdependent tasks, which require greater levels of human involvement.
+
+3. [Federated AI lets a team imagine together: Federated Learning of GANs](http://arxiv.org/abs/1906.03595v1) by Rajagopal. A, Nirmala. V. Published on Sun, 09 Jun 2019. The paper proposes a design for a creative and collaborative intelligence by employing a form of distributed machine learning approach called Federated Learning along with fusion on Generative Adversarial Networks, GAN.
+
+4. [AI-Native Network Slicing for 6G Networks](http://arxiv.org/abs/2105.08576v2) by Wen Wu, Conghao Zhou, Mushu Li, Huaqing Wu, Haibo Zhou, Ning Zhang, Xuemin, Shen, Weihua Zhuang. Published on Tue, 18 May 2021. The paper presents an artificial intelligence (AI)-native network slicing architecture for 6G networks to enable the synergy of AI and network slicing, thereby facilitating intelligent network management and supporting emerging AI services.
+
+5. [AI Model Utilization Measurements For Finding Class Encoding Patterns](http://arxiv.org/abs/2212.06576v1) by Peter Bajcsy, Antonio Cardone, Chenyi Ling, Philippe Dessauw, Michael Majurski, Tim Blattner, Derek Juba, Walid Keyrouz. Published on Mon, 12 Dec 2022. The paper addresses the problems of designing utilization measurements of trained artificial intelligence (AI) models and explaining how training data are encoded in AI models based on those measurements.
+
+You can click on the titles to access the full papers.
+
+Here are some recent scientific papers mentioning OpenAI:
+
+OpenAI Gym: This paper introduces the OpenAI Gym, a toolkit designed for reinforcement learning research. The toolkit includes a growing collection of benchmark problems that expose a common interface, and a website where researchers can share their results and compare the performance of algorithms. The authors discuss the components of OpenAI Gym and the design decisions that went into the software. The goal of OpenAI Gym is to provide a standard set of environments that can be used to benchmark algorithms and foster reproducible research in the field of reinforcement learning.
+
+ORRB -- OpenAI Remote Rendering Backend: The authors present the OpenAI Remote Rendering Backend (ORRB), a system that allows for fast and customizable rendering of robotics environments. ORRB is based on the Unity3D game engine and interfaces with the MuJoCo physics simulation library. The system was designed with visual domain randomization in mind and is optimized for cloud deployment and high throughput operation. The authors highlight that ORRB is being released to the public under a liberal MIT license.
+
+Learning Dexterous In-Hand Manipulation: This paper presents a method for using reinforcement learning to learn dexterous in-hand manipulation policies. The policies can perform vision-based object reorientation on a physical Shadow Dexterous Hand. The training is performed in a simulated environment in which many of the physical properties of the system, like friction coefficients and an object's appearance, are randomized. The authors demonstrate that the policies transfer to the physical robot despite being trained entirely in simulation. The method does not rely on any human demonstrations, but many behaviors found in human manipulation emerge naturally.
+
+Dota 2 with Large Scale Deep Reinforcement Learning: In this paper, the authors discuss how OpenAI Five, an AI system, became the first to defeat the world champions at an esports game, Dota 2. The game presents novel challenges for AI systems, such as long time horizons, imperfect information, and complex, continuous state-action spaces. OpenAI Five leveraged existing reinforcement learning techniques, scaled to learn from batches of approximately 2 million frames every 2 seconds. The authors developed a distributed training system and tools for continual training which allowed them to train OpenAI Five for 10 months.
+
+Behavior Cloning in OpenAI using Case Based Reasoning: This paper discusses the use of Learning from Observation (LfO), also known as Behavioral Cloning, to build software agents. The authors use jLOAF, a platform that uses Case-Based Reasoning to achieve LfO, and interface it with the popular OpenAI Gym environment. Their experimental results show how their approach can be used to provide a baseline for comparison in this domain, as well as identify the strengths and weaknesses when dealing with environmental complexity.
+
+You can click on the titles to access the full papers.
+
+It appears that IBM unveiled its most powerful quantum computer yet, a machine with 433 qubits, as of 2022. 
+
+Quantum computing and classical computing are fundamentally different, so it's not straightforward to compare their computing power directly. However, one way to understand the potential power of a quantum computer is through the concept of "quantum parallelism".
+
+Quantum parallelism refers to the ability of a quantum computer to perform many calculations simultaneously. This is due to the principle of superposition, which allows quantum bits (qubits) to exist in multiple states at once, unlike classical bits which can only be in one state at a time (0 or 1).
+
+In a quantum computer, a system of qubits can represent and process a vast number of possibilities all at once. Specifically, a quantum computer with 'n' qubits can represent 2^n states simultaneously. So, a quantum computer with 433 qubits could theoretically represent 2^433 different states at the same time. This is an astronomically large number, far greater than the number of atoms in the observable universe.
+
+However, it's important to note that this doesn't mean a 433-qubit quantum computer is "2^433 times faster" than a classical computer. Quantum computers excel at certain types of problems, like factoring large numbers or simulating quantum systems, where they can potentially offer exponential speedups over classical algorithms. For many other types of problems, classical computers are still more efficient.
+
+Moreover, the raw number of qubits is not the only factor that determines the power of a quantum computer. Other factors, such as the quality of the qubits (often measured in terms of "coherence time"), the error rate of quantum operations, and the architecture of the quantum computer (how its qubits are interconnected), also play crucial roles.
+
+Here are some recent papers related to quantum computing and specifically the topic of 433 qubits:
+
+How to factor 2048 bit RSA integers in 8 hours using 20 million noisy qubits by Craig Gidney and Martin Ekerå. This paper discusses the cost of factoring integers and computing discrete logarithms in finite fields on a quantum computer. They estimate the approximate cost of their construction using plausible physical assumptions for large-scale superconducting qubit platforms.
+
+Classical Chaos in Quantum Computers by Simon-Dominik Börner, Christoph Berke, David P. DiVincenzo, Simon Trebst, and Alexander Altland. This paper discusses the challenge that current-day quantum processors, comprising 50-100 qubits, already operate outside the range of quantum simulation on silicon computers. They simulate all current IBM transmon chips, including the recently announced 433-qubit processor of the Osprey generation, as well as future devices with 1,121 qubits (Condor generation).
+
+Universal quantum computing with superconducting charge qubits by Nian-Quan Jiang, Yao Chen, Chuanbing Cai, Ming-FengWang, and Junwang Tang. This paper demonstrates the universal quantum computations, including the preparing of initial states, the single-qubit operations, the two-qubit universal gate operations between arbitrary qubits, the multiple pairs of two-qubit gate operations in parallel, the coupling operations on a group of qubits in parallel, the coupling operations on multiple groups of qubits in parallel, the coupling operations on multiple pairs and multiple groups of qubits in parallel.
+
+Three-electron spin qubits by Maximilian Russ and Guido Burkard. This paper reviews the progress of three-electron spin qubits from their inception to the state of the art. They direct the main focus towards the resonant exchange (RX) qubit and the exchange-only qubit, but they also discuss other qubit implementations using three electron spins.
+
+Polynomial procedure of avoiding multiqubit errors arising due to qubit-qubit interaction by L. Fedichkin. This paper proposes a novel procedure of avoiding multiqubit errors arising due to uncontrollable qubit-qubit interaction by using additional intermediate qubits. It is shown that the scheme requires only a polynomial increase in the number of qubits and algorithmic steps.
+
+The current state of computing is a dynamic landscape marked by the coexistence and interplay of classical computing, quantum computing, and emerging technologies such as neuromorphic computing and edge computing.
+
+Classical computing, based on binary bits and Boolean logic, continues to be the backbone of our digital world. It powers everything from personal computers and smartphones to data centers and supercomputers. The development of classical computing has been guided by Moore's Law, which predicts a doubling of transistor density (and hence computational power) approximately every two years. However, as we approach the physical limits of miniaturization, this pace has started to slow. This has led to a shift in focus towards parallel processing, energy efficiency, and specialized hardware such as GPUs and ASICs.
+
+Quantum computing, on the other hand, is a nascent field with the potential to revolutionize certain areas of computation. Quantum computers leverage the principles of quantum mechanics to process information in fundamentally new ways. They use quantum bits, or qubits, which unlike classical bits can exist in a superposition of states. This allows a quantum computer to perform many calculations simultaneously, offering potential speedups for certain types of problems.
+
+The world of computing is in a state of constant evolution, marked by the coexistence of classical computing, quantum computing, and emerging technologies. This article provides an overview of recent research that highlights the current state and future directions of computing.
+
+**Emerging Memory Technologies: Memristors**
+
+In the paper "Comparative Analysis of Switching Dynamics in Different Memristor Models," Parajuli and Budhathoki examine different memristor models based on physical experiments. Memristors, or memory resistors, are emerging as a promising technology for computational memory. The authors compare how the internal state of these models changes with respect to input current or voltage, providing insights into the potential of memristors in future computing systems.
+
+**Modeling Systems: Asymmetric Exclusion Process**
+
+Lakatos and Chou's paper, "Steady-state properties of a totally asymmetric exclusion process with particles of arbitrary size," discusses the properties of a one-dimensional totally asymmetric exclusion process (TASEP). This model is relevant for systems such as mRNA translation, vesicle locomotion along microtubules, and protein sliding along DNA, demonstrating the intersection of computing with biological systems.
+
+**Superconducting Systems: Magnetic Flux Penetration**
+
+The study "Magneto-optical study of magnetic flux penetration into a current-carrying high-temperature superconductor strip" by Gaevski et al. explores the magnetic flux distribution across a high-temperature superconductor strip using magneto-optical imaging. This research contributes to our understanding of superconducting systems, which are crucial for the development of quantum computing.
+
+**Quantum Computing: Conformal Current Algebra**
+
+In "The conformal current algebra on supergroups with applications to the spectrum and integrability," Benichou and Troost compute the algebra of left and right currents for a principal chiral model with an arbitrary Wess-Zumino term on supergroups with zero Killing form. This work provides insights into the mathematical foundations of quantum computing.
+
+**Microscopic Model for Josephson Currents**
+
+Finally, Lauwers and Verbeure's paper, "A microscopic model for Josephson currents," proposes and analyzes a microscopic model of a Josephson junction between two superconducting plates. Josephson junctions are key components in superconducting qubits, the building blocks of many quantum computers.
+
+In conclusion, the current state of computing is a vibrant field marked by rapid advancements and the convergence of different disciplines. From emerging memory technologies to the development of quantum computing, these research papers highlight the breadth and depth of ongoing efforts to shape the future of computing.
