@@ -1,397 +1,51 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap');
+from flask import Flask, request, jsonify, make_response
+import openai
+import os
+from flask_cors import CORS
 
-        body {
-            background-color: #2B2E33;
-            color: #BFC2C7;
-            font-family: 'Roboto', sans-serif;
-            line-height: 1.6;
-            padding: 10px;
-            margin: 0 auto;
-            max-width: 80ch;
-        }
+# Set your OpenAI API key
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
-        h1, h2 {
-            font-family: 'Playfair Display', serif;
-        }
+app = Flask(__name__)
+CORS(app, origins=["https://davidlones.github.io"])
 
-        h1 {
-            color: #778DA9;
-            text-align: center;
-            padding: 15px;
-            border-bottom: 2px solid #778DA9;
-            margin-bottom: 20px;
-        }
+@app.route('/api', methods=['POST', 'OPTIONS'])
+def chat():
+    if request.method == 'OPTIONS':
+        # This is a preflight request. Reply successfully:
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add('Access-Control-Allow-Headers', "*")
+        response.headers.add('Access-Control-Allow-Methods', "*")
+        return response
 
-        p {
-            margin: 10px 0;
-        }
+    # This is the actual request. Handle it as usual:
+    if request.is_json:
+        data = request.get_json()
+        message = data.get('message', '')  # Use empty string as default value if 'message' is not provided
 
-        h2 {
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 1.2em;
-            border-bottom: 1px solid #778DA9;
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-        }
+        # load services.html from file
+        with open('static/services.html', 'r') as file:
+            services_html = file.read()
 
-        h2:hover {
-            color: #778DA9;
-        }
+        # Call OpenAI API here with the message
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are Sol, a helpful assistant designed by David to help him help others. You take a customers description of their problem and respond with the body of an email detailing the issue and what services David can provide."},
+                {"role": "assistant", "content": f"I will take the customers description of their problem and respond with the well formated body of an email to send to David, detailing a description of the customers issue, a list of possible services we could provide based on their issues and the content our webpage ({services_html}), and the dollar amount we could charge the customer for our services, to be sent to David to review later today."},
+                {"role": "user", "content": f"A customer has written to us concerning the following: '{message}'. Write an email to David using the following email format: '\n\nHi David,\n\nI hope you are having a great day!\n\nI am writing to you today because I have a customer who is experiencing the following issue:\n\n<summerization of the customers description of their issue>\n\nI believe we could provide the following services to help them:\n\n<list of services the we offer that apply to the customers needs>\n\nI believe we could charge the customer the following amount for our services:\n\n<amount>\n\nPlease review this request and let me know what you think.\n\nBest,\n\nYour Helpful Assistant, Sol\n\n'"},
+            ]
+        )
+        assistant_message = response['choices'][0]['message']['content']
+        print("User Message: ", message)
+        print("API Response: ", assistant_message) # print API response to terminal
 
-        .service {
-            margin-bottom: 20px;
-            border: 1px solid #778DA9;
-            border-radius: 10px;
-            padding: 15px;
-            transition: 0.3s;
-            background: #32363C;
-        }
+        response = jsonify({'message': assistant_message})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
+    else:
+        return make_response(jsonify({'error': 'Invalid request'}), 415)
 
-        .service:hover {
-            box-shadow: 0 8px 16px 0 rgba(119,141,169,0.2);
-        }
-
-        .description {
-            margin-top: 5px;
-            transition: max-height 0.2s;
-            overflow: hidden;
-            max-height: 0;
-        }
-
-        .show {
-            max-height: 200px;
-        }
-
-        a {
-            color: #778DA9;
-        }
-
-        .contact-info {
-            text-align: center; 
-            margin-top: 30px; 
-            padding: 15px; 
-            border-top: 2px solid #778DA9;
-        }
-
-        .letter-container {
-            position: relative;
-            height: 250px;
-            margin-bottom: 20px;
-            padding: 10px;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-            border-bottom-left-radius: 0;  /* straighten bottom left corner */
-            border-bottom-right-radius: 0;  /* straighten bottom right corner */
-            border: none;
-            overflow: hidden;
-            background-color: transparent;
-        }
-
-        .letter-content {
-            position: relative;
-            overflow-y: scroll;
-            max-height: 100%;
-            scrollbar-width: thin;
-            scrollbar-color: transparent transparent;
-        }
-
-        .letter-content::-webkit-scrollbar {
-            display: none;
-        }
-
-        .letter-container::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background-image: linear-gradient(to top, #2B2E33, transparent);
-            pointer-events: none;
-        }
-
-        .under-construction-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background-color: #FF0000;
-            color: #FFFFFF;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 18px;
-            display: block; /* Changed from 'none' to 'block' */
-        }
-        
-        .letter-wrapper {
-            position: relative;
-        }
-        
-        .scroll-indicator {
-            position: absolute;
-            bottom: -13px; /* adjust this value as needed */
-            width: 100%;
-            text-align: center;
-            color: #BFC2C7; /* adjust color as needed */
-            background-image: linear-gradient(to top, #2B2E33, transparent);
-        }            
-
-        /* Styles for the chat interface */
-        .chat-container {
-            background-color: #32363C;
-            max-width: 80ch; /* adjust this to match the width of your service blocks */
-            height: auto; /* adjust this to control the height, or use a specific value like '500px' */
-            margin: 0 auto;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .chat-message {
-            background-color: #778DA9;
-            color: #FFFFFF;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            width: fit-content;
-            max-width: 80%;
-        }
-
-        .chat-message.user {
-            align-self: flex-end;
-            background-color: #BFC2C7;
-            color: #2B2E33;
-        }
-
-        .chat-message.assistant {
-            align-self: flex-start;
-        }
-
-        .chat-input {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input input {
-            flex-grow: 1;
-            border-radius: 10px;
-            padding: 10px;
-        }
-
-        .chat-input button {
-            background-color: #778DA9;
-            color: #FFFFFF;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .chat-input button:hover {
-            background-color: #BFC2C7;
-        }
-
-        .service, .chat-container {
-            margin-bottom: 30px; /* consistent spacing between sections */
-        }
-
-        .letter-container {
-            border-radius: 10px; /* uniform border radius */
-        }
-
-        h2 {
-            font-size: 1.5em; /* increased font size for better readability */
-        }
-
-        h2:hover {
-            color: #BFC2C7; /* more subtle hover effect */
-        }
-
-        body {
-            color: #FFFFFF; /* lighter text color for better readability */
-        }
-
-    </style>
-</head>
-<body>
-    <div id="content">
-        <h1>Welcome, I'm David Lones,<br>Your Personal Technology Liaison</h1>
-        <div id="underConstructionBanner" class="under-construction-banner">
-            Site Under Construction. This is a temporary page.
-            <button onclick="disableUnderConstructionBanner()">Disable</button>
-        </div>
-
-        <!-- <div class="letter-wrapper">
-            <div id="letter" class="letter-container">
-                <div class="letter-content" onmouseover="stopScroll()" onmouseout="startScroll()">
-                <p>I understand that the realm of technology can often seem like an enigma. It's a field that's constantly evolving and it can indeed be overwhelming. That's where I step in. My goal? To demystify technology and optimize it to serve you in the most effective way possible.</p>
-        
-                <p>From resolving common tech glitches, to updating that stubborn software, to installing new hardware – consider your tech troubles resolved. With my General Tech Support, I'll ensure technology aids you, not confounds you.</p>
-        
-                <p>Intrigued by the fascinating world of Artificial Intelligence? Whether you're interested in data analysis, task automation, or more advanced AI solutions, I'm your go-to expert. Together, we can leverage the power of AI to fulfill your requirements. My services in scripting and automation can revolutionize your operations. I can assist in writing scripts, integrating systems, and automating tasks, helping you save time and work more efficiently.</p>
-        
-                <p>One of the intriguing applications of AI is in the field of document summarization and analysis. This can be particularly useful when dealing with large volumes of text, such as genealogy records or old diary entries. AI can help summarize these documents, highlighting key points and themes. This can provide a unique perspective on long-lost relatives, offering insights into their lives and experiences that might otherwise be lost in the sheer volume of information.</p>
-        
-                <p>When it comes to the digital landscape, I firmly believe that knowledge is power. That's why I offer Education and Training services – from learning how to use common tech tools to understanding how to navigate the digital world safely.</p>
-        
-                <p>And because I understand the paramount importance of your personal information, my Data Privacy Consulting services are designed to safeguard your data and ensure compliance with privacy regulations.</p>
-        
-                <p>All of this is made possible through years of experience, a profound understanding of various operating systems, cloud platforms, programming languages, and a commitment to serving our community.</p>
-        
-                <p>So, if you're ready for hassle-free, straightforward tech support with a friendly face, drop me a line at davidlones365@protonmail.com. Let's transform your tech hurdles into victories!</p>
-        
-                <p>Looking forward to hearing from you,</p>
-        
-                <p>David Lones</p>
-        
-                <p>Your Local Technology Liaison</p>
-            </div>
-            <div class="fade-effect"></div>
-        </div>
-        <div class="scroll-indicator">
-            <p>Scroll to continue reading...</p>
-        </div> -->
-    </div>
-
-    <div class="chat-container">
-        <div id="chat-messages" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        <div class="chat-input">
-            <input type="text" id="chat-input" placeholder="Type your message here">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-
-    <script>
-        function sendMessage() {
-            var message = $('#chat-input').val();
-            $('#chat-messages').append('<div class="chat-message user">' + message + '</div>');
-            $('#chat-input').val('');
-            $.ajax({
-                url: 'http://localhost:5000/api',
-                type: 'post',
-                dataType: 'json',
-                contentType: 'application/json',
-                success: function (data) {
-                    $('#chat-messages').append('<div class="chat-message assistant">' + data.message + '</div>');
-                },
-                data: JSON.stringify({message: message})
-            });
-        }
-    </script>
-
-    <script>
-            var scrollSpeed = 1; // set scroll speed here
-            var letterDiv = document.getElementById('letter');
-            var scrollInterval;
-
-            function startScroll() {
-                scrollInterval = setInterval(function(){
-                    letterDiv.scrollTop += scrollSpeed;
-                }, 100);
-            }
-
-            function stopScroll() {
-                clearInterval(scrollInterval);
-            }
-
-            function disableUnderConstructionBanner() {
-                var banner = document.getElementById("underConstructionBanner");
-                banner.style.display = "none";
-            }
-
-            startScroll();
-
-            function sendMessage() {
-                var message = $('#chat-input').val();
-                $('#chat-messages').append('<div class="chat-message user">' + message + '</div>');
-                $('#chat-input').val('');
-                $.ajax({
-                    url: 'http://localhost:5000/api',
-                    type: 'post',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    success: function (data) {
-                        $('#chat-messages').append('<div class="chat-message assistant">' + data.message + '</div>');
-                    },
-                    data: JSON.stringify({message: message})
-                });
-            }
-        </script>
-
-        <div class="service">
-            <h2 onclick="toggle('desc1')">General Tech Support</h2>
-            <div id="desc1" class="description">
-                <p>Includes troubleshooting common tech issues, software installation and updates, and hardware setup.</p>
-                <p>Basic Support: $100/month per user</p>
-                <p>Advanced Support: $170/month per user, includes network setup and troubleshooting, and priority response time.</p>
-                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request General Tech Support.</p>
-            </div>
-        </div>
-
-        <div class="service">
-            <h2 onclick="toggle('desc2')">AI Assistance</h2>
-            <div id="desc2" class="description">
-                <p>Includes use of AI for basic data analysis and task automation.</p>
-                <p>Basic AI Assistance: $150/month</p>
-                <p>Advanced AI Assistance: $250/month, includes more complex data analysis, custom AI solutions, and priority response time.</p>
-                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request AI Assistance.</p>
-            </div>
-        </div>
-
-        <div class="service">
-            <h2 onclick="toggle('desc3')">Scripting and Automation</h2>
-            <div id="desc3" class="description">
-                <p>Includes writing simple scripts for task automation and system integration.</p>
-                <p>Basic Scripting: $120/hour</p>
-                <p>Advanced Scripting: $170/hour, includes writing complex scripts, creating custom automation solutions, and priority response time.</p>
-                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request Scripting and Automation services.</p>
-            </div>
-        </div>
-
-        <div class="service">
-            <h2 onclick="toggle('desc4')">Education and Training</h2>
-            <div id="desc4" class="description">
-                <p>Includes teaching how to use common tech tools and basic digital literacy.</p>
-                <p>Basic Training: $60/hour</p>
-                <p>Advanced Training: $110/hour, includes training on advanced topics, personalized training plans, and priority scheduling.</p>
-                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request Education and Training services.</p>
-            </div>
-        </div>
-
-        <div class="service">
-            <h2 onclick="toggle('desc5')">Data Privacy Consulting</h2>
-            <div id="desc5" class="description">
-                <p>Includes advice on basic data privacy practices and compliance with common regulations.</p>
-                <p>Basic Consulting: $170/hour</p>
-                <p>Advanced Consulting: $220/hour, includes in-depth data privacy analysis, custom data privacy solutions, and priority response time.</p>
-                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request Data Privacy Consulting.</p>
-            </div>
-        </div>
-
-        <div class="contact-info">
-            <p>Ready to take the next step? Let's start the conversation. To initiate a support request, please send an email to <a href="mailto:davidlones365@protonmail.com">davidlones365@protonmail.com</a></p>
-        </div>
-    </div>
-
-    <script>
-        function toggle(id) {
-            var element = document.getElementById(id);
-            if (element.classList.contains('show')) {
-                element.classList.remove('show');
-            } else {
-                element.classList.add('show');
-            }
-        }
-    </script>
-</body>
-</html>
+if __name__ == '__main__':
+    app.run(port=5000)
