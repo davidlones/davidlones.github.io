@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap');
+
+        body {
+            background-color: #2B2E33;
+            color: #BFC2C7;
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            padding: 10px;
+            margin: 0 auto;
+            max-width: 80ch;
+        }
+
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        h1 {
+            color: #778DA9;
+            text-align: center;
+            padding: 15px;
+            border-bottom: 2px solid #778DA9;
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        h2 {
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1.2em;
+            border-bottom: 1px solid #778DA9;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        h2:hover {
+            color: #778DA9;
+        }
+
+        .service {
+            margin-bottom: 20px;
+            border: 1px solid #778DA9;
+            border-radius: 10px;
+            padding: 15px;
+            transition: 0.3s;
+            background: #32363C;
+        }
+
+        .service:hover {
+            box-shadow: 0 8px 16px 0 rgba(119,141,169,0.2);
+        }
+
+        .description {
+            margin-top: 5px;
+            transition: max-height 0.2s;
+            overflow: hidden;
+            max-height: 0;
+        }
+
+        .show {
+            max-height: 200px;
+        }
+
+        a {
+            color: #778DA9;
+        }
+
+        .contact-info {
+            text-align: center; 
+            margin-top: 30px; 
+            padding: 15px; 
+            border-top: 2px solid #778DA9;
+        }
+
+        .letter-container {
+            position: relative;
+            height: 250px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            border-bottom-left-radius: 0;  /* straighten bottom left corner */
+            border-bottom-right-radius: 0;  /* straighten bottom right corner */
+            border: none;
+            overflow: hidden;
+            background-color: transparent;
+        }
+
+        .letter-content {
+            position: relative;
+            overflow-y: scroll;
+            max-height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+
+        .letter-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .letter-container::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-image: linear-gradient(to top, #2B2E33, transparent);
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="content">
+        <h1>Welcome, I'm David Lones,<br>Your Personal Technology Liaison</h1>
+        
+        <div id="letter" class="letter-container">
+            <div class="letter-content" onmouseover="stopScroll()" onmouseout="startScroll()">
+            <p>I understand that technology can be a bit of a mystery sometimes. It's ever-evolving and can certainly be overwhelming. That's where I come in. My aim? To simplify technology and make it work for you in the best possible way.</p>
+
+            <p>From sorting out common tech issues, getting that tricky software to update, to setting up new hardware – consider your tech troubles handled. With my General Tech Support, I'll make sure technology serves you, not stumps you.</p>
+
+            <p>Intrigued by the exciting world of Artificial Intelligence? Whether you're looking at data analysis, task automation, or more advanced AI solutions, I'm your go-to guy. Together, we can harness the power of AI to meet your needs.</p>
+
+            <p>If productivity is your game, then my Scripting and Automation services will be a game-changer. I can help write scripts, integrate systems, and automate tasks – helping you save time and work more efficiently.</p>
+
+            <p>When it comes to the digital landscape, I believe knowledge is power. That's why I offer Education and Training services – from learning how to use common tech tools to understanding how to navigate the digital world safely.</p>
+
+            <p>And because I know how important your personal information is, my Data Privacy Consulting services are designed to protect your data and ensure compliance with privacy regulations.</p>
+
+            <p>All of this is made possible through years of experience, a deep understanding of various operating systems, cloud platforms, programming languages, and a dedication to serving our community.</p>
+
+            <p>So, if you're ready for stress-free, straightforward tech support with a friendly face, drop me a line at davidlones365@protonmail.com. Let's turn your tech hurdles into high-fives!</p>
+
+            <p>Looking forward to hearing from you,</p>
+
+            <p>David Lones</p>
+            <p>Your Local Technology Liaison</p>
+        </div>
+        <div class="fade-effect"></div>
+    </div>
+
+    <script>
+        var scrollSpeed = 1; // set scroll speed here
+        var letterDiv = document.getElementById('letter');
+        var scrollInterval;
+
+        function startScroll() {
+            scrollInterval = setInterval(function(){
+                letterDiv.scrollTop += scrollSpeed;
+            }, 100);
+        }
+
+        function stopScroll() {
+            clearInterval(scrollInterval);
+        }
+
+        startScroll();
+    </script>
+
+
+        <div class="service">
+            <h2 onclick="toggle('desc1')">General Tech Support</h2>
+            <div id="desc1" class="description">
+                <p>Includes troubleshooting common tech issues, software installation and updates, and hardware setup.</p>
+                <p>Basic Support: $100/month per user</p>
+                <p>Advanced Support: $170/month per user, includes network setup and troubleshooting, and priority response time.</p>
+                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request General Tech Support.</p>
+            </div>
+        </div>
+
+        <div class="service">
+            <h2 onclick="toggle('desc2')">AI Assistance</h2>
+            <div id="desc2" class="description">
+                <p>Includes use of AI for basic data analysis and task automation.</p>
+                <p>Basic AI Assistance: $150/month</p>
+                <p>Advanced AI Assistance: $250/month, includes more complex data analysis, custom AI solutions, and priority response time.</p>
+                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request AI Assistance.</p>
+            </div>
+        </div>
+
+        <div class="service">
+            <h2 onclick="toggle('desc3')">Scripting and Automation</h2>
+            <div id="desc3" class="description">
+                <p>Includes writing simple scripts for task automation and system integration.</p>
+                <p>Basic Scripting: $120/hour</p>
+                <p>Advanced Scripting: $170/hour, includes writing complex scripts, creating custom automation solutions, and priority response time.</p>
+                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request Scripting and Automation services.</p>
+            </div>
+        </div>
+
+        <div class="service">
+            <h2 onclick="toggle('desc4')">Education and Training</h2>
+            <div id="desc4" class="description">
+                <p>Includes teaching how to use common tech tools and basic digital literacy.</p>
+                <p>Basic Training: $60/hour</p>
+                <p>Advanced Training: $110/hour, includes training on advanced topics, personalized training plans, and priority scheduling.</p>
+                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request Education and Training services.</p>
+            </div>
+        </div>
+
+        <div class="service">
+            <h2 onclick="toggle('desc5')">Data Privacy Consulting</h2>
+            <div id="desc5" class="description">
+                <p>Includes advice on basic data privacy practices and compliance with common regulations.</p>
+                <p>Basic Consulting: $170/hour</p>
+                <p>Advanced Consulting: $220/hour, includes in-depth data privacy analysis, custom data privacy solutions, and priority response time.</p>
+                <p><a href="mailto:davidlones365@protonmail.com">Contact us</a> to request Data Privacy Consulting.</p>
+            </div>
+        </div>
+
+        <div class="contact-info">
+            <p>Ready to take the next step? Let's start the conversation. To initiate a support request, please send an email to <a href="mailto:davidlones365@protonmail.com">davidlones365@protonmail.com</a></p>
+        </div>
+    </div>
+    <script>
+        function toggle(id) {
+            var element = document.getElementById(id);
+            if (element.classList.contains('show')) {
+                element.classList.remove('show');
+            } else {
+                element.classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>
