@@ -232,81 +232,45 @@
             <button onclick="disableUnderConstructionBanner()">Disable</button>
         </div>
 
-        <!-- <div class="letter-wrapper">
-            <div id="letter" class="letter-container">
-                <div class="letter-content" onmouseover="stopScroll()" onmouseout="startScroll()">
-                <p>I understand that the realm of technology can often seem like an enigma. It's a field that's constantly evolving and it can indeed be overwhelming. That's where I step in. My goal? To demystify technology and optimize it to serve you in the most effective way possible.</p>
-        
-                <p>From resolving common tech glitches, to updating that stubborn software, to installing new hardware – consider your tech troubles resolved. With my General Tech Support, I'll ensure technology aids you, not confounds you.</p>
-        
-                <p>Intrigued by the fascinating world of Artificial Intelligence? Whether you're interested in data analysis, task automation, or more advanced AI solutions, I'm your go-to expert. Together, we can leverage the power of AI to fulfill your requirements. My services in scripting and automation can revolutionize your operations. I can assist in writing scripts, integrating systems, and automating tasks, helping you save time and work more efficiently.</p>
-        
-                <p>One of the intriguing applications of AI is in the field of document summarization and analysis. This can be particularly useful when dealing with large volumes of text, such as genealogy records or old diary entries. AI can help summarize these documents, highlighting key points and themes. This can provide a unique perspective on long-lost relatives, offering insights into their lives and experiences that might otherwise be lost in the sheer volume of information.</p>
-        
-                <p>When it comes to the digital landscape, I firmly believe that knowledge is power. That's why I offer Education and Training services – from learning how to use common tech tools to understanding how to navigate the digital world safely.</p>
-        
-                <p>And because I understand the paramount importance of your personal information, my Data Privacy Consulting services are designed to safeguard your data and ensure compliance with privacy regulations.</p>
-        
-                <p>All of this is made possible through years of experience, a profound understanding of various operating systems, cloud platforms, programming languages, and a commitment to serving our community.</p>
-        
-                <p>So, if you're ready for hassle-free, straightforward tech support with a friendly face, drop me a line at davidlones365@protonmail.com. Let's transform your tech hurdles into victories!</p>
-        
-                <p>Looking forward to hearing from you,</p>
-        
-                <p>David Lones</p>
-        
-                <p>Your Local Technology Liaison</p>
+        <div class="chat-container">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="Type your message here">
+                <button onclick="sendMessage()">Send</button>
             </div>
-            <div class="fade-effect"></div>
         </div>
-        <div class="scroll-indicator">
-            <p>Scroll to continue reading...</p>
-        </div> -->
-    </div>
 
-    <div class="chat-container">
-        <div id="chat-messages" style="display: flex; flex-direction: column; gap: 10px;"></div>
-        <div class="chat-input">
-            <input type="text" id="chat-input" placeholder="Type your message here">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-
-    <script>
-            var scrollSpeed = 1; // set scroll speed here
-            var letterDiv = document.getElementById('letter');
-            var scrollInterval;
-
-            function startScroll() {
-                scrollInterval = setInterval(function(){
-                    letterDiv.scrollTop += scrollSpeed;
-                }, 100);
-            }
-
-            function stopScroll() {
-                clearInterval(scrollInterval);
-            }
-
+        <script>
             function disableUnderConstructionBanner() {
                 var banner = document.getElementById("underConstructionBanner");
                 banner.style.display = "none";
             }
 
-            startScroll();
-
             function sendMessage() {
-                var message = $('#chat-input').val();
-                $('#chat-messages').append('<div class="chat-message user">' + message + '</div>');
-                $('#chat-input').val('');
-                $.ajax({
-                    url: 'http://24.199.114.50:8042/api',
-                    type: 'post',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    success: function (data) {
-                        $('#chat-messages').append('<div class="chat-message assistant">' + data.message + '</div>');
+                var message = document.getElementById('chat-input').value;
+                var chatMessages = document.getElementById('chat-messages');
+                var userMessage = document.createElement('div');
+                userMessage.className = 'chat-message user';
+                userMessage.innerText = message;
+                chatMessages.appendChild(userMessage);
+                document.getElementById('chat-input').value = '';
+
+                fetch('http://24.199.114.50:8042/api', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
                     },
-                    data: JSON.stringify({message: message})
+                    body: JSON.stringify({message: message})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    var assistantMessage = document.createElement('div');
+                    assistantMessage.className = 'chat-message assistant';
+                    assistantMessage.innerText = data.message;
+                    chatMessages.appendChild(assistantMessage);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
                 });
             }
         </script>
