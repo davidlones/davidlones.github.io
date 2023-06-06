@@ -1,9 +1,3 @@
-take the following chats and compile a MD file containing the entirety of all the conversations in order:
-https://chat.openai.com/share/7c70a58c-712b-4852-a37e-56b0c79e2907
-https://chat.openai.com/share/5e5af12f-623f-4801-8635-b710eecc0d52
-https://chat.openai.com/share/fa082c85-38cf-44f9-8cd8-ac368ae032df
-https://chat.openai.com/share/dc617a73-3ff8-4c5d-8c33-3ceaf30037b1
-
 ```
 **Title: Transcending Computing Frontiers: The Emergence of ChatGPT**
 
