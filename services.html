@@ -258,7 +258,7 @@
                 chatMessages.appendChild(userMessage);
                 document.getElementById('chat-input').value = '';
 
-                fetch('https://dl.system42.one:8042/api', {
+                fetch('http://dl.system42.one:8042/api', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
