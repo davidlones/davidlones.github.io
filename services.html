@@ -78,7 +78,7 @@
         }
 
         .contact-info {
-            text-align: center; 
+            text-align: left; 
             margin-top: 30px; 
             padding: 15px; 
             border-top: 2px solid #778DA9;
@@ -235,14 +235,6 @@
             <button onclick="disableUnderConstructionBanner()">Disable</button>
         </div>
 
-        <div class="chat-container">
-            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 10px;"></div>
-            <div class="chat-input">
-                <input type="text" id="chat-input" placeholder="Type your message here">
-                <button onclick="sendMessage()">Send</button>
-            </div>
-        </div>
-
         <script>
             function disableUnderConstructionBanner() {
                 var banner = document.getElementById("underConstructionBanner");
@@ -250,20 +242,27 @@
             }
 
             function sendMessage() {
+                var name = document.getElementById('name-input').value;
+                var contact = document.getElementById('contact-input').value;
                 var message = document.getElementById('chat-input').value;
+                var formattedMessage = `Name: ${name}\nContact: ${contact}\nMessage: ${message}`;
+        
                 var chatMessages = document.getElementById('chat-messages');
                 var userMessage = document.createElement('div');
                 userMessage.className = 'chat-message user';
-                userMessage.innerText = message;
+                userMessage.innerText = formattedMessage;
                 chatMessages.appendChild(userMessage);
+        
+                document.getElementById('name-input').value = '';
+                document.getElementById('contact-input').value = '';
                 document.getElementById('chat-input').value = '';
-
+        
                 fetch('http://dl.system42.one:8042/api', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({message: message})
+                    body: JSON.stringify({message: formattedMessage})
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -329,8 +328,21 @@
         </div>
 
         <div class="contact-info">
-            <p>Ready to take the next step? Let's start the conversation. To initiate a support request, please send an email to <a href="mailto:davidlones365@protonmail.com">davidlones365@protonmail.com</a></p>
+            <p>Ready to take the next step? Let's start the conversation.<br>
+                To initiate a support request, please send an email to <a href="mailto:davidlones365@protonmail.com">davidlones365@protonmail.com</a><br>
+                or send a message below.</p>
         </div>
+
+        <div class="chat-container">
+            <div id="chat-messages" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            <div class="chat-input" style="flex-direction: column;">
+                <input type="text" id="name-input" placeholder="Name">
+                <input type="text" id="contact-input" placeholder="Enter your preferred contact info">
+                <textarea id="chat-input" placeholder="Type your message here. Include as much detail as possible." rows="10"></textarea>
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
