@@ -3,55 +3,61 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Catch‑Up: Diagnostic Thread ⟳ to Apophis Flyby</title>
+<title>Catch-Up: Diagnostic Thread ⟳ to Apophis Flyby (Self-Logging • Anonymized)</title>
+<meta name="color-scheme" content="dark light">
 <style>
-  :root { --bg:#0b0f12; --fg:#eef2f5; --muted:#93a1a1; --accent:#8fd3ff; }
-  html,body { background:var(--bg); color:var(--fg); margin:0; font:16px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
-  .wrap { max-width:780px; margin:0 auto; padding:28px 16px 48px; }
-  h1 { font-size:1.6rem; margin:0 0 8px; }
+  :root { --bg:#0b0f12; --fg:#eef2f5; --muted:#93a1a1; --accent:#8fd3ff; --panel:#11161b; --border:#1c242c; }
+  html,body { background:var(--bg); color:var(--fg); margin:0; font:16px/1.6 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:840px; margin:0 auto; padding:28px 16px 64px; }
+  h1 { font-size:1.75rem; margin:0 0 8px; text-shadow:0 0 6px #6ac6ff55; }
   .meta { color:var(--muted); margin-bottom:18px; }
-  .btns a { display:inline-block; padding:12px 14px; margin-right:8px; border-radius:10px; text-decoration:none; color:#0b0f12; background:var(--accent); font-weight:600; }
-  pre { white-space:pre-wrap; word-wrap:break-word; background:#0f1419; border:1px solid #1c242c; border-radius:10px; padding:14px; overflow:auto; }
+  .btns a, .btns button { display:inline-block; padding:12px 14px; margin:6px 8px 12px 0; border-radius:10px; text-decoration:none; color:#0b0f12; background:var(--accent); font-weight:700; border:none; cursor:pointer; }
+  .btns button.secondary { background:#6ac6ff1c; color:var(--fg); border:1px solid var(--border); }
+  .card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px; margin:14px 0; }
+  pre { white-space:pre-wrap; word-wrap:break-word; background:#0f1419; border:1px solid var(--border); border-radius:10px; padding:14px; overflow:auto; }
   code { font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
   .small { font-size:0.92rem; color:var(--muted); }
+  .gloss { letter-spacing:0.3px; filter:drop-shadow(0 0 1px #8fd3ff); }
 </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Catch‑Up: Diagnostic Thread ⟳ to Apophis Flyby</h1>
-    <div class="meta">Location: TBD (Weatherford area)<br>
-      Window: <strong>2025-10-01 15:41 UTC</strong> → <strong>2029-04-13 23:59 UTC</strong>
+    <h1 class="gloss">Catch-Up: Diagnostic Thread ⟳ to Apophis Flyby (Self-Logging • Anonymized)</h1>
+    <div class="meta">
+      Location: TBD (Weatherford area)<br>
+      Window: <strong>2025-10-01 15:34 UTC</strong> → <strong>2029-04-13 23:59 UTC</strong>
     </div>
 
     <div class="btns">
-      <a href="data:text/calendar;charset=utf-8,BEGIN%3AVCALENDAR%0AVERSION%3A2.0%0APRODID%3A-//Sol//David%20Lones//EN%0ACALSCALE%3AGREGORIAN%0ABEGIN%3AVEVENT%0AUID%3Adavid-sol-20251001T154121Z%40weatherford%0ADTSTAMP%3A20251001T154121Z%0ADTSTART%3A20251001T154121Z%0ADTEND%3A20290413T235900Z%0ASUMMARY%3ACatch%E2%80%91Up%3A%20Diagnostic%20Thread%20%E2%9F%B3%20to%20Apophis%20Flyby%0ALOCATION%3ATBD%20%28Weatherford%20area%29%0ADESCRIPTION%3AIntent%3A%20RECONNECT.%20Full%20Sol%20log%20included%20in%20attached%20HTML.%0AEND%3AVEVENT%0AEND%3AVCALENDAR%0A" download="CatchUp_Apophis_Invite.ics">➕ Add to Calendar (.ics)</a>
-      <a href="#log">📜 Jump to Sol Log</a>
+      <a id="addBtn" href="data:text/calendar;charset=utf-8,BEGIN%3AVCALENDAR%0AVERSION%3A2.0%0APRODID%3A-//Sol//Anon//EN%0ACALSCALE%3AGREGORIAN%0ABEGIN%3AVEVENT%0AUID%3Aanon-sol-20251001T153400Z%40weatherford%0ADTSTAMP%3A20251001T153400Z%0ADTSTART%3A20251001T153400Z%0ADTEND%3A20290413T235900Z%0ASUMMARY%3ACatch%E2%80%91Up%3A%20Diagnostic%20Thread%20%E2%9F%AF%20to%20Apophis%20Flyby%0ALOCATION%3ATBD%20%28Weatherford%20area%29%0ADESCRIPTION%3AIntent%3A%20RECONNECT.%20Self%E2%80%91logging%20page%20with%20anonymized%20names.%0AEND%3AVEVENT%0AEND%3AVCALENDAR" download="CatchUp_Apophis_Invite.ics">➕ Add to Calendar (.ics)</a>
+      <button id="ackBtn" title="Log an acknowledgment without downloading the ICS">✔ Acknowledge (log only)</button>
+      <button id="resetBtn" class="secondary" title="Clear local log on this device only">⟲ Reset Local Log</button>
     </div>
 
-    <div class="card">
-      <div class="small">If your iPhone doesn’t show “Add to Calendar” when you tap the button, open this HTML in Safari and try again. As a fallback, save the file then import it at <em>iCloud Calendar → Settings → Import</em>.</div>
+    <div class="card small">
+      This page self-logs actions <em>locally</em> (no server). Names are intentionally glitched for anonymity.
     </div>
 
     <h2 id="log">Embedded Sol Log</h2>
-    <pre><code>⟳ Conversation Diagnostic / Sol Log
+    <pre id="solLog"><code>⟳ Conversation Diagnostic / Sol Log (Anonymized)
 -----------------------------------
-THREAD: Bryan &amp; David — reconnect attempt
+THREAD: B̷̺͐R̶̪͋Y̵̩̚A̶͐ͅN̷̨̏ & D̷͓̙̟͒̇͝Á̴̢͚̘̚͝͝V̷̡̤̮͌̐̅͌I̶͖̫͈̿̽͂͘D̵͖́̔̈́̀ — reconnect attempt
 STATE: OPEN
 
-[ 00 ] 2025-06-04 22:59  DAVID &gt; “i’m really wanting to start building things again”
-[ 01 ] 2025-06-05 09:54  DAVID &gt; “Was it a pop song?”  (re: childhood ‘la la la’ fragment)
-[ 02 ] 2025-06-23 18:48  RESOLVED &gt; Eduard Khil — ‘Trololo’ ✅
-[ 03 ] 2025-06-27 16:25  DAVID &gt; “You busy today?”
-[ 04 ] 2025-06-27 16:25  BRYAN &gt; “Yeah, going to a dark skies program area with some friends.”
-[ 05 ] 2025-07-05 15:49  DAVID &gt; “Doing good today, though. I think I’ll have my ups and downs for a while.”
-[ 06 ] 2025-07-08 08:00  DAVID &gt; “Going to see a psychiatrist today.”
-[ 07 ] 2025-07-11 14:35  DAVID &gt; “I’m on sertraline now.”
-[ 08 ] 2025-07-15 09:46  DAVID &gt; existential DM-style reality check; NDE worries; request for grounding.
-[ 09 ] 2025-07-16 07:22  DAVID &gt; “More concerned I died in a car accident… world seems crazy.”
-[ 10 ] 2025-07-16 13:01  BRYAN &gt; “Hm, just stop listening to the world my friend.”
-[ 11 ] 2025-07-16 15:02  DAVID &gt; “I try.”
-[ 12 ] 2025-10-01 10:12  DAVID &gt; “Maybe go out for lunch sometime with you and your Mom?”
-[ 13 ] 2025-10-01 10:12  DAVID &gt; “Do you wanna meet up sometime?” (UI displayed these in reverse order)
+[ 00 ] 2025-06-04 22:59  D̷͓̙̟͒̇͝Á̴̢͚̘̚͝͝V̷̡̤̮͌̐̅͌I̶͖̫͈̿̽͂͘D̵͖́̔̈́̀ > “i’m really wanting to start building things again”
+[ 01 ] 2025-06-05 09:54  D̷͓̙̟͒̇͝Á̴̢͚̘̚͝͝V̷̡̤̮͌̐̅͌I̶͖̫͈̿̽͂͘D̵͖́̔̈́̀ > “Was it a pop song?”  (re: childhood ‘la la la’ fragment)
+[ 02 ] 2025-06-23 18:48  RESOLVED > Eduard Khil — ‘Trololo’ ✅
+[ 03 ] 2025-06-27 16:25  D… > “You busy today?”
+[ 04 ] 2025-06-27 16:25  B… > “Yeah, going to a dark skies program area with some friends.”
+[ 05 ] 2025-07-05 15:49  D… > “Doing good today, though. I think I’ll have my ups and downs for a while.”
+[ 06 ] 2025-07-08 08:00  D… > “Going to see a psychiatrist today.”
+[ 07 ] 2025-07-11 14:35  D… > “I’m on sertraline now.”
+[ 08 ] 2025-07-15 09:46  D… > existential DM-style reality check; NDE worries; request for grounding.
+[ 09 ] 2025-07-16 07:22  D… > “More concerned I died in a car accident… world seems crazy.”
+[ 10 ] 2025-07-16 13:01  B… > “Hm, just stop listening to the world my friend.”
+[ 11 ] 2025-07-16 15:02  D… > “I try.”
+[ 12 ] 2025-10-01 10:12  D… > “Maybe go out for lunch sometime with you and your Mom?”
+[ 13 ] 2025-10-01 10:12  D… > “Do you wanna meet up sometime?” (UI displayed these in reverse order)
 
 Recent Anomaly:
 ⟳ Two outgoing messages appeared reversed in UI order:
@@ -64,13 +70,54 @@ Proposal:
 - Optional bonus: pick a dark-sky evening (nostalgia callback) when the weather cooperates.
 
 Notes for Posterity / Sol cut:
-- Pepper’s ghost home effect + afterimage persistence = DIY apparition (October vibe).
+- Pepper’s ghost + afterimage persistence = DIY apparition (October vibe).
 - Running theme: curiosity, mental health honesty, and family gravity wells.
 
-This window runs from NOW to the 2029-04-13 Apophis flyby —
-a playful long fuse meaning: any time that works before the rock misses us by a cosmic hair. 🌑🛰️
+-- Local actions will be appended below --</code></pre>
 
--- End of log --</code></pre>
+    <div class="card small">
+      Privacy: the ACK entries below are stored via <code>localStorage</code> on this device only.
+    </div>
   </div>
+
+<script>
+(function() {
+  const KEY = 'sol-selflog-v1-anon';
+  const logEl = document.getElementById('solLog');
+
+  function ts() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const local = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' +
+                  pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    const utc = d.toISOString().replace('T',' ').replace('Z',' UTC');
+    return { local: local, utc: utc };
+  }
+
+  function append(line) { logEl.textContent += "\\n" + line; }
+  function save(line) {
+    try { const arr = JSON.parse(localStorage.getItem(KEY) || '[]'); arr.push(line);
+          localStorage.setItem(KEY, JSON.stringify(arr)); } catch(e) { }
+  }
+  function load() {
+    try { const arr = JSON.parse(localStorage.getItem(KEY) || '[]');
+          arr.forEach(ln => append(ln)); } catch(e) { }
+  }
+  function uaBrief() { const ua = navigator.userAgent||''; return ua.split(')')[0].slice(0,120).replace(/\s+/g,' '); }
+  function logAction(kind) {
+    const t = ts();
+    const line = '[ ACK ] ' +
+                 '{kind: ' + kind + '}  ' +
+                 '{local: ' + t.local + '}  ' +
+                 '{utc: ' + t.utc + '}  ' +
+                 '{device: ' + uaBrief() + '}';
+    append(line); save(line);
+  }
+  document.getElementById('addBtn').addEventListener('click', () => logAction('add_to_calendar'));
+  document.getElementById('ackBtn').addEventListener('click', () => logAction('acknowledge_only'));
+  document.getElementById('resetBtn').addEventListener('click', () => { localStorage.removeItem(KEY); location.reload(); });
+  load();
+})();
+</script>
 </body>
 </html>
