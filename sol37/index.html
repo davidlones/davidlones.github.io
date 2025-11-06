@@ -469,7 +469,10 @@
   const winTerminal = $('#win-terminal');
   let history = []; let hIndex = -1;
 
-  function print(txt){ out.innerHTML += txt + "\\n"; out.scrollTop = out.scrollHeight; }
+  function print(txt){
+    out.appendChild(document.createTextNode(txt + "\n"));
+    out.scrollTop = out.scrollHeight;
+  }
   function banner(){
     print("Sol‑37 Interactive Shell (retro)\\nType 'help' to begin.\\n");
   }
@@ -531,7 +534,7 @@
       try { window.open(arg, '_blank'); print("Opening: " + arg); } catch(e){ print("Could not open URL."); }
     },
     echo(arg){ print(arg||''); },
-    clear(){ out.innerHTML = ''; },
+    clear(){ out.textContent = ''; },
     theme(arg){
       const b = document.body;
       b.classList.remove('theme-amber','theme-gray');
