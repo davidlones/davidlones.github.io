@@ -1,0 +1,56 @@
+
+/* SolNet Design System v1 */
+:root{
+  --bg-0:#0a0c10; --bg-1:#0e131a; --bg-2:#121924;
+  --ink-0:#e8eef7; --ink-1:#cfd9ea; --muted:#9fb0c7; --edge:#243244;
+  --accent:#7ef7e7; --accent-2:#ffd35a; --accent-3:#c792ea;
+  --e1: 0 10px 30px rgba(0,0,0,.25); --radius: 14px;
+
+  --step--1: clamp(0.85rem, 0.83rem + 0.2vw, 0.95rem);
+  --step-0: clamp(1rem, 0.98rem + 0.25vw, 1.1rem);
+  --step-1: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.2vw, 2.1rem);
+  --step-3: clamp(2.1rem, 1.7rem + 2vw, 3rem);
+
+  --space-1: 6px; --space-2: 10px; --space-3: 16px; --space-4: 24px;
+  --space-5: 36px; --space-6: 54px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; color:var(--ink-0);
+  background: radial-gradient(1200px 600px at 20% -10%, #1a2333 0%, var(--bg-0) 60%, #07090c 100%);
+  font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+a{color:var(--accent)} a:hover{filter:brightness(1.1)}
+.site{display:grid; grid-template-rows:auto 1fr auto; min-height:100dvh}
+header.nav{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(10px);
+  background:linear-gradient(180deg,rgba(14,19,26,.85),rgba(14,19,26,.55)); border-bottom:1px solid var(--edge)}
+.nav-inner{display:flex; align-items:center; gap:var(--space-3); padding:var(--space-3) var(--space-4); max-width:1200px; margin:0 auto;}
+.brand{display:flex; align-items:baseline; gap:10px}
+.brand h1{margin:0; font-size:var(--step-1); letter-spacing:.3px}
+.brand small{color:var(--muted)}
+nav.menu{margin-left:auto; display:flex; gap:var(--space-3); flex-wrap:wrap}
+nav.menu a{padding:8px 12px; border:1px solid var(--edge); border-radius:999px; text-decoration:none; color:var(--ink-1); background:rgba(18,25,36,.6)}
+nav.menu a[aria-current="page"]{background:linear-gradient(180deg,#172233,#121a27); color:var(--ink-0)}
+
+main{padding:var(--space-4)} .container{max-width:1200px; margin:0 auto; display:grid; gap:var(--space-4)}
+.hero{display:grid; gap:var(--space-3); grid-template-columns: 1.1fr .9fr;}
+@media (max-width:900px){ .hero{grid-template-columns:1fr} }
+.hero-card{background:var(--bg-1); border:1px solid var(--edge); border-radius:var(--radius); padding:var(--space-4); box-shadow:var(--e1)}
+h2{font-size:var(--step-2); margin:0 0 var(--space-2) 0} h3{font-size:var(--step-1); margin:0 0 var(--space-2) 0}
+p{margin:.6rem 0; color:var(--ink-1)}
+.cta{display:flex; gap:10px; flex-wrap:wrap; margin-top:var(--space-3)}
+.btn{display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--edge); background:linear-gradient(180deg,#131925,#0f141c); color:var(--ink-0); text-decoration:none}
+.btn.secondary{background:transparent; color:var(--ink-1)}
+.panel{background:var(--bg-1); border:1px solid var(--edge); border-radius:var(--radius); padding:var(--space-4); box-shadow:var(--e1)}
+.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-3)} @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+.card{background:var(--bg-2); border:1px solid var(--edge); border-radius:var(--radius); padding:var(--space-3)}
+.card h4{margin:.2rem 0 .4rem 0} .meta{color:var(--muted); font-size:var(--step--1)}
+footer{border-top:1px solid var(--edge); padding:var(--space-4); color:var(--muted); text-align:center}
+
+/* Viz placeholder */
+.viz{aspect-ratio: 16/12; background: radial-gradient(60% 80% at 30% 10%, #1c2230 0%, #0d1219 60%);
+  border:1px solid var(--edge); border-radius:var(--radius); position:relative; overflow:hidden; box-shadow:var(--e1)}
+canvas#field{position:absolute; inset:0; width:100%; height:100%}
