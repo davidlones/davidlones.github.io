@@ -115,6 +115,8 @@
     padding: 8px;
   }
 </style>
+<link rel="stylesheet" href="https://latest.cactus.chat/style.css" type="text/css">
+<script type="text/javascript" src="https://latest.cactus.chat/cactus.js"></script>
 </head>
 <body>
 <canvas id="thoughts" aria-hidden="true"></canvas>
@@ -200,6 +202,13 @@
       <li>Self‑contained: just this file and the ElevenLabs widget.</li>
     </ul>
   </div>
+
+  
+  <section class="post-card" id="comments">
+    <h2>Comments</h2>
+    <div id="comment-section"></div>
+    <p class="sub">Federated via Matrix · Powered by <a href="https://cactus.chat/" target="_blank" rel="noopener">Cactus Comments</a></p>
+  </section>
 
   <p class="footer">© November 06, 2025 · Sol‑37 field notes · CC‑BY 4.0 where applicable</p>
 </div>
@@ -291,6 +300,22 @@
     if (running) requestAnimationFrame(tick);
   });
 })();
+</script>
+<script>
+// Initialize Cactus Comments (Matrix-based).
+// Replace SITE_NAME_HERE with the name you registered via @cactusbot:cactus.chat (e.g., "sol37").
+// commentSectionId uses the pathname so each page gets its own room.
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof initComments === 'function') {
+    initComments({
+      node: document.getElementById("comment-section"),
+      defaultHomeserverUrl: "https://matrix.cactus.chat:8448",
+      serverName: "cactus.chat",
+      siteName: "SITE_NAME_HERE",
+      commentSectionId: window.location.pathname || "post"
+    });
+  }
+});
 </script>
 </body>
 </html>
