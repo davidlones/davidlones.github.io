@@ -143,6 +143,22 @@
 </main>
 <footer>
   <div>Polished for phones: no header overlap, centered ticks, responsive text, continuous gradient spine. Sources inline.</div>
+  
+  <!-- Voice-only gratitude note -->
+  <div class="sr-only" aria-label="To my friends, family, and to everyone listening—thank you for lending your ears, your hearts, and your time. Your presence gives meaning to these words.">
+    <!-- intentionally blank for sighted users -->
+  </div>
 </footer>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+  }
+</style>
+
 </body>
 </html>
