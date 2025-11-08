@@ -106,7 +106,7 @@
   .blink { animation: blink 1s steps(1,end) infinite; }
   @keyframes blink { 50% { opacity: 0; } }
 
-  /* --------- Blog / Files windows --------- */
+  /* --------- Blog window --------- */
   .split { display: grid; grid-template-columns: 220px 1fr; gap: 8px; height: 100%; }
   .panel {
     background: #fff; border: 2px solid #fff; border-right-color: #808080; border-bottom-color: #808080; box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #dfdfdf; overflow: auto;
@@ -149,14 +149,10 @@
       <img alt="Blog" src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect x='6' y='8' width='36' height='32' fill='%23fff' stroke='%23000'/><line x1='10' y1='14' x2='38' y2='14' stroke='%23000'/><line x1='10' y1='20' x2='38' y2='20' stroke='%23000'/><line x1='10' y1='26' x2='38' y2='26' stroke='%23000'/><line x1='10' y1='32' x2='28' y2='32' stroke='%23000'/></svg>">
       <span>Blog</span>
     </a>
-    <a class="icon" style="left:16px; top:268px;" href="#" data-open="files">
-      <img alt="Files" src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><path d='M6 12h16l4 4h16v20H6z' fill='%23ffdf80' stroke='%23000'/></svg>">
-      <span>Files</span>
-    </a>
   </div>
 
   <!-- About Window -->
-  <section class="win95-window" id="win-about" style="left: 120px; top: 80px; width: 520px; height: 320px;">
+  <section class="win95-window hidden" id="win-about" style="left: 120px; top: 80px; width: 520px; height: 320px;">
     <div class="titlebar" data-drag-handle>
       <span>About — Sol-37 Retro UI</span>
       <div class="controls">
@@ -219,28 +215,12 @@
     </div>
   </section>
 
-  <!-- Files Window (placeholder) -->
-  <section class="win95-window hidden" id="win-files" style="left: 200px; top: 160px; width: 640px; height: 380px;">
-    <div class="titlebar" data-drag-handle>
-      <span>Files — C:\\SOL37\\Desktop\\Files\\</span>
-      <div class="controls">
-        <button title="Minimize" data-action="minimize" aria-label="Minimize">_</button>
-        <button title="Maximize" data-action="maximize" aria-label="Maximize">▢</button>
-        <button title="Close" data-action="close" aria-label="Close">✕</button>
-      </div>
-    </div>
-    <div class="content">
-      <p>Place arbitrary assets in <code>files/</code>. Open with <code>open ./files/&lt;name&gt;</code>.</p>
-    </div>
-  </section>
-
   <!-- Start Menu & Taskbar -->
   <nav class="start-menu" id="start-menu" aria-hidden="true">
     <h4>Sol-37</h4>
     <ul>
       <li data-open="terminal">Command Prompt</li>
       <li data-open="blog">Blog</li>
-      <li data-open="files">Files</li>
       <li data-open="about">About Sol-37</li>
       <li id="menu-theme">Themes ▸</li>
     </ul>
@@ -323,7 +303,6 @@
     bringToFront(win);
     const tb = createTaskButton(win);
     $('#task-buttons').appendChild(tb);
-    // active only if visible at boot
     if (!win.classList.contains('hidden')) tb.classList.add('active');
 
     const handle = win.querySelector('[data-drag-handle]');
@@ -370,7 +349,7 @@
   $$('.desktop a.icon').forEach(a=>{
     a.addEventListener('click', (e)=>{
       e.preventDefault();
-      const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog', files: '#win-files' };
+      const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog' };
       const w = $(map[a.dataset.open]); if (!w) return;
       toggleWindow(w);
       if (w.id === 'win-terminal') $('#term-in').focus();
@@ -397,7 +376,7 @@
   startMenu.querySelectorAll('[data-open]').forEach(item=>{
     item.setAttribute('tabindex','0');
     item.addEventListener('click', ()=>{
-      const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog', files: '#win-files' };
+      const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog' };
       const w = $(map[item.dataset.open]);
       toggleWindow(w); startMenu.style.display = 'none';
       if (w.id === 'win-terminal') $('#term-in').focus();
@@ -444,7 +423,6 @@
   let MD_POSTS = [];   // subset of POSTS
 
   async function loadPosts(){
-    // Primary: index.json like before
     try{
       const res = await fetch('posts/index.json', {cache:'no-store'});
       if (!res.ok) throw new Error('index not found');
@@ -455,7 +433,6 @@
         return { id:p.id, title:p.title||p.id, date:p.date||'', file:f, type };
       });
     }catch(e){
-      // Fallback: try a lightweight probe of likely files (optional convenience)
       POSTS = [
         {id:'hello-world', title:'Hello World', date:'2025-11-05', file:'posts/hello-world.md', type:'md'}
       ];
@@ -470,7 +447,7 @@
 
   function renderPostsList(){
     postsListEl.innerHTML = '';
-    const toShow = MD_POSTS; // Blog lists markdown-focused content
+    const toShow = MD_POSTS;
     toShow.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
     for(const p of toShow){
       const li = document.createElement('li');
@@ -483,10 +460,9 @@
 
   // Desktop: add icons for HTML posts
   function mountDesktopHtmlIcons(){
-    // start placing to the right of default icons
-    const startX = 120; // px from left
+    const startX = 120;
     const startY = 16;
-    const stepY  = 84; // vertical spacing
+    const stepY  = 84;
     HTML_POSTS.forEach((p, idx)=>{
       const a = document.createElement('a');
       a.className = 'icon';
@@ -496,7 +472,6 @@
       a.dataset.doc = p.id;
       a.title = p.title;
 
-      // simple document icon
       const svg = "data:image/svg+xml;utf8," +
         encodeURIComponent(`<?xml version='1.0'?>
           <svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'>
@@ -572,7 +547,6 @@
 
   // ---------- Dynamic Document Window (for HTML posts) ----------
   function openHtmlDocumentWindow(p){
-    // If already exists, show it
     let win = document.getElementById('doc-'+p.id);
     if (!win){
       win = document.createElement('section');
@@ -603,10 +577,8 @@
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   function wireWindow(win){
-    // taskbar btn
     const tb = createTaskButton(win);
     $('#task-buttons').appendChild(tb);
-    // drag + controls
     const handle = win.querySelector('[data-drag-handle]');
     let dragging=false, offX=0, offY=0;
     handle.addEventListener('dblclick', ()=>{ win.classList.toggle('maximized'); bringToFront(win); });
@@ -676,7 +648,7 @@
         "  posts                       List discovered posts (HTML + MD)",
         "  openpost <id>               Open a post (MD -> Blog, HTML -> window)",
         "  cat <id>                    Print MD post content inline",
-        "  open <url|./files/...>      Open a link or local asset",
+        "  open <url|path>             Open a link in a new tab",
         "  echo <text>                 Print text",
         "  clear                       Clear screen",
         "  theme <green|amber|gray>    Change terminal theme",
@@ -685,7 +657,7 @@
     about(){ print("Sol-37 is your speculative-science sidekick in Win95 clothing. Drag windows, poke around, and have fun."); },
     whoami(){ print("SOL-37 :: Narrator/Assistant :: C:\\\\SOL37>"); },
     date(){ print(new Date().toString()); },
-    ls(){ print("DESKTOP\n  - Sol-37 (About)\n  - Command (Terminal)\n  - Blog (Posts)\n  - Files (Folder)\n  - HTML posts (dynamic icons)"); },
+    ls(){ print("DESKTOP\n  - Sol-37 (About)\n  - Command (Terminal)\n  - Blog (Posts)\n  - HTML posts (dynamic icons)"); },
     posts(){
       if (!POSTS.length) { print("No posts found (create posts/index.json). Using demo…"); }
       POSTS.forEach(p=> print(` - ${p.id} :: ${p.title}${p.date? ' — '+p.date:''} [${p.type}]`));
@@ -708,7 +680,7 @@
       } catch(e){ print('Failed to read post.'); }
     },
     open(arg){
-      if (!arg) { print("Usage: open <url|./files/...>"); return; }
+      if (!arg) { print("Usage: open <url|path>"); return; }
       try {
         const w = window.open(arg, '_blank', 'noopener'); 
         if (w) print("Opening: " + arg); else print("Popup blocked.");
@@ -756,8 +728,17 @@
 
   $('#win-terminal').addEventListener('click', ()=> input.focus());
 
-  // Load posts at boot
-  loadPosts();
+  // Load posts at boot, then auto-open the first HTML post (or 'timeline' if present)
+  loadPosts().then(() => {
+    const p = POSTS.find(x => x.id === 'timeline') || HTML_POSTS[0];
+    if (p && p.type === 'html') {
+      openHtmlDocumentWindow(p);
+    } else if (p && p.type === 'md') {
+      toggleWindow($('#win-blog'));
+      openPost(p.id);
+    }
+  });
+
 })();
 </script>
 </body>
