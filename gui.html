@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sol-37 • Retro UI</title>
+<style>
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#008080;font-family:"MS Sans Serif","Segoe UI",Tahoma,Geneva,Verdana,sans-serif;color:#000;overflow:hidden}
+
+/* --- window chrome --- */
+.win95-window{position:absolute;min-width:320px;min-height:180px;background:#c0c0c0;
+border:2px solid #fff;border-right-color:#404040;border-bottom-color:#404040;
+box-shadow:inset -1px -1px 0 #000,inset 1px 1px 0 #dfdfdf}
+.titlebar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+background:linear-gradient(#000080,#1084d0);color:#fff;padding:2px 6px;cursor:move;
+user-select:none;font-weight:700;font-size:13px}
+.titlebar .controls{display:flex;gap:4px}
+.titlebar button{width:18px;height:18px;background:#c0c0c0;border:1px solid #000;
+box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 #808080;cursor:pointer}
+.content{padding:8px;background:#c0c0c0;height:calc(100% - 26px);overflow:auto}
+.statusbar{display:none}
+
+/* --- taskbar --- */
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:32px;background:#c0c0c0;
+border-top:2px solid #fff;box-shadow:inset 0 1px 0 #808080;display:grid;
+grid-template-columns:108px 1fr 140px;gap:6px;align-items:center;padding:3px 6px}
+.start-btn{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;
+background:#c0c0c0;border:1px solid #000;box-shadow:inset 1px 1px 0 #fff,
+inset -1px -1px 0 #808080;font-weight:700;cursor:pointer}
+.start-menu{position:absolute;bottom:32px;left:6px;width:260px;background:#c0c0c0;
+border:2px solid #fff;border-right-color:#404040;border-bottom-color:#404040;
+box-shadow:inset -1px -1px 0 #000,inset 1px 1px 0 #dfdfdf;display:none}
+.start-menu h4{margin:8px;font-size:13px}
+.start-menu ul{list-style:none;margin:0;padding:0}
+.start-menu li{padding:6px 10px;cursor:pointer}
+.start-menu li:hover{background:#000080;color:#fff}
+.task-buttons{display:flex;gap:6px;overflow:hidden}
+.task-button{min-width:140px;max-width:220px;height:24px;padding:0 8px;display:inline-flex;
+align-items:center;background:#c0c0c0;border:1px solid #000;
+box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 #808080;cursor:pointer}
+.task-button.active{outline:2px solid #000080;background:#dfdfdf}
+.tray{justify-self:end;display:flex;justify-content:flex-end;gap:6px;align-items:center}
+.clock{background:#dfdfdf;border:1px solid #000;box-shadow:inset 1px 1px 0 #fff,
+inset -1px -1px 0 #808080;padding:2px 6px;font-size:12px;min-width:110px;text-align:center}
+
+/* --- desktop icons --- */
+.desktop{position:absolute;inset:0 0 32px 0}
+.desktop a.icon{position:absolute;width:80px;text-align:center;color:#fff;text-decoration:none;font-size:12px}
+.desktop a.icon img{width:48px;height:48px;display:block;margin:0 auto 4px;image-rendering:pixelated}
+
+/* --- terminal --- */
+.terminal{height:100%;display:grid;grid-template-rows:1fr auto;background:#000;color:#0f0;
+font-family:"Lucida Console","Courier New",monospace;border:2px solid #000}
+.term-output{padding:8px;overflow:auto;white-space:pre-wrap}
+.term-input{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;
+padding:6px;background:#111;border-top:1px solid #0a0}
+.term-input input{background:#000;color:#0f0;border:1px solid #0a0;padding:4px 6px;font-family:inherit}
+.theme-amber .terminal{color:#ffbf00}.theme-gray .terminal{color:#d0d0d0}
+.maximized{left:0!important;top:0!important;width:100%!important;height:calc(100% - 32px)!important}
+
+/* --- blog layout --- */
+.split{display:grid;grid-template-columns:220px 1fr;gap:8px;height:100%}
+.panel{background:#fff;border:2px solid #fff;border-right-color:#808080;border-bottom-color:#808080;
+box-shadow:inset -1px -1px 0 #000,inset 1px 1px 0 #dfdfdf;overflow:auto}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:6px 8px;border-bottom:1px dashed #c0c0c0;cursor:pointer}
+.list li:hover,.list li.active{background:#000080;color:#fff}
+.viewer{padding:10px;font-size:14px;line-height:1.35;background:#fff}
+.iframe-fill{width:100%;height:100%;border:none;background:#000}
+</style>
+</head>
+<body>
+
+<!-- desktop icons -->
+<div class="desktop" id="desktop">
+  <a class="icon" style="left:16px;top:16px" href="#" data-open="about">
+    <img alt="My Computer" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='36' y='6' fill='%23c0c0c0' stroke='%23000'/><rect x='4' y='10' width='40' height='24' fill='%23000080'/><rect x='12' y='36' width='24' height='6' fill='%237f7f7f' stroke='%23000'/></svg>"><span>Sol-37</span></a>
+  <a class="icon" style="left:16px;top:100px" href="#" data-open="terminal">
+    <img alt="Command" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='36' y='6' fill='%23000' stroke='%2300ff00'/><text x='8' y='28' font-size='18' fill='%2300ff00' font-family='monospace'>&gt;_</text></svg>"><span>Command</span></a>
+  <a class="icon" style="left:16px;top:184px" href="#" data-open="blog">
+    <img alt="Blog" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect x='6' y='8' width='36' height='32' fill='%23fff' stroke='%23000'/><line x1='10' y1='14' x2='38' y2='14' stroke='%23000'/><line x1='10' y1='20' x2='38' y2='20' stroke='%23000'/><line x1='10' y1='26' x2='38' y2='26' stroke='%23000'/><line x1='10' y1='32' x2='28' y2='32' stroke='%23000'/></svg>"><span>Blog</span></a>
+  <a class="icon" style="left:16px;top:268px" href="#" data-open="files">
+    <img alt="Files" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><path d='M6 12h16l4 4h16v20H6z' fill='%23ffdf80' stroke='%23000'/></svg>"><span>Files</span></a>
+  <a class="icon" style="left:120px;top:16px" href="#" data-open="timeline">
+    <img alt="Timeline.html" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect x='6' y='6' width='36' height='36' fill='%23fff' stroke='%23000'/><text x='10' y='32' font-size='12' font-family='monospace'>HTML</text></svg>"><span>Timeline.html</span></a>
+</div>
+
+<!-- windows -->
+<section class="win95-window" id="win-about" style="left:120px;top:80px;width:520px;height:320px">
+  <div class="titlebar" data-drag-handle><span>About — Sol-37 Retro UI</span>
+    <div class="controls"><button data-action="close">✕</button></div></div>
+  <div class="content"><h3>Sol-37</h3><p>A Windows-95-styled desktop for your cosmic co-pilot.</p></div>
+</section>
+
+<section class="win95-window" id="win-terminal" style="left:240px;top:140px;width:720px;height:420px">
+  <div class="titlebar" data-drag-handle><span>Command Prompt — C:\SOL37\</span>
+    <div class="controls"><button data-action="close">✕</button></div></div>
+  <div class="content terminal"><div class="term-output" id="term-out"></div>
+    <div class="term-input"><label>C:\SOL37&gt;</label><input id="term-in" type="text" spellcheck="false"/></div></div>
+</section>
+
+<section class="win95-window hidden" id="win-blog" style="left:160px;top:120px;width:840px;height:520px">
+  <div class="titlebar" data-drag-handle><span>Blog — C:\SOL37\Desktop\Blog\</span>
+    <div class="controls"><button data-action="close">✕</button></div></div>
+  <div class="content"><div class="split"><aside class="panel"><ul class="list" id="posts-list"></ul></aside>
+    <main class="panel viewer" id="post-viewer"><h2>Welcome</h2><p>Place posts in posts/index.json</p></main></div></div>
+</section>
+
+<section class="win95-window hidden" id="win-files" style="left:200px;top:160px;width:640px;height:380px">
+  <div class="titlebar" data-drag-handle><span>Files — C:\SOL37\Desktop\Files\</span>
+    <div class="controls"><button data-action="close">✕</button></div></div>
+  <div class="content"><p>Files placeholder</p></div>
+</section>
+
+<section class="win95-window" id="win-timeline" style="left:40px;top:40px;width:900px;height:600px">
+  <div class="titlebar" data-drag-handle><span>From Cambridge Analytica to Project 2025.html — Desktop</span>
+    <div class="controls"><button data-action="close">✕</button></div></div>
+  <div class="content" style="padding:0"><iframe id="timeline-frame" class="iframe-fill"></iframe></div>
+</section>
+
+<!-- start menu / taskbar -->
+<nav class="start-menu" id="start-menu">
+  <h4>Sol-37</h4>
+  <ul>
+    <li data-open="terminal">Command Prompt</li>
+    <li data-open="blog">Blog</li>
+    <li data-open="files">Files</li>
+    <li data-open="timeline">Timeline.html</li>
+    <li data-open="about">About</li>
+  </ul>
+</nav>
+<footer class="taskbar"><button class="start-btn" id="start-btn">Start</button><div class="task-buttons"></div><div class="tray"><div class="clock" id="clock">--:--</div></div></footer>
+
+<!-- boot document -->
+<script type="text/plain" id="bootdoc-html"><!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>From Cambridge Analytica to Project 2025 — Mobile Timeline (with Voice)</title>
+<style>:root{--ca:#ff6a55;--hyb:#9a84e0;--hf:#5a93c6;--bg:#0b0b0f;--fg:#ececf2;--muted:#b8b8c7;--rule:#2a2a36}
+body{margin:0;background:#0b0b0f;color:var(--fg);font-family:system-ui,Segoe UI,Roboto;line-height:1.45}
+header{position:sticky;top:0;padding:20px 16px 10px;background:linear-gradient(#0b0b0fee,#0b0b0fd0 60%,transparent)}
+main{max-width:760px;margin:0 auto;padding:82px 10px 36px}
+.spine{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);
+width:4px;background:linear-gradient(180deg,var(--ca)0%,var(--hyb)55%,var(--hf)100%)}
+.row{display:grid;grid-template-columns:minmax(0,1fr)0 minmax(0,1fr);padding:20px 0}
+.event{max-width:92%;padding:12px 14px;border-radius:8px}
+.event .year{font-weight:800;margin-bottom:4px}
+.left{text-align:right}
+.right{text-align:left}
+</style></head><body>
+<header><h1>From Cambridge Analytica to Project 2025</h1><div class="sub">by David Lones</div></header>
+<main><div class="spine"></div>
+<section class="row start"><div class="event left ca"><div class="year">2013</div>
+<div class="text">Cambridge Analytica founded (Parent SCL Group). Steve Bannon VP.</div></div></section>
+<section class="row"><div class="event right ca"><div class="year">2014</div>
+<div class="text">Facebook data harvesting begins.</div></div></section>
+<section class="row"><div class="event left ca"><div class="year">2016</div>
+<div class="text">Trump campaign employs Cambridge Analytica.</div></div></section>
+<section class="row"><div class="event right ca"><div class="year">2018</div>
+<div class="text">Cambridge Analytica collapses.</div></div></section>
+<section class="row"><div class="event left hyb"><div class="year">2020</div>
+<div class="text">“Stop the Steal” echo chambers rise.</div></div></section>
+<section class="row"><div class="event right hf"><div class="year">2025</div>
+<div class="text">Project 2025 blueprint published.</div></div></section>
+</main></body></html></script>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s),$$=s=>Array.from(document.querySelectorAll(s));
+function bringToFront(w){const z=Math.max(...$$('.win95-window').map(x=>+getComputedStyle(x).zIndex||10),10);w.style.zIndex=z+1}
+$$('.desktop a.icon').forEach(a=>a.onclick=e=>{
+  e.preventDefault();const id=a.dataset.open;const w=$(`#win-${id}`);if(w){w.classList.remove('hidden');bringToFront(w);}
+});
+$('#start-btn').onclick=()=>$('#start-menu').style.display=$('#start-menu').style.display==='block'?'none':'block';
+function updateClock(){const d=new Date();let h=d.getHours(),m=d.getMinutes().toString().padStart(2,'0');$('#clock').textContent=((h+11)%12+1)+':'+m+(h>=12?' PM':' AM')}
+updateClock();setInterval(updateClock,10000);
+const iframe=$('#timeline-frame');iframe.srcdoc=$('#bootdoc-html').textContent;
+$('#win-timeline').classList.add('maximized');bringToFront($('#win-timeline'));
+})();
+</script>
+</body>
+</html>
