@@ -28,8 +28,9 @@
     border-right-color: #404040;
     border-bottom-color: #404040;
     box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #dfdfdf;
-    max-width: 100vw;                       /* keep inside phone viewport */
-    max-height: calc(100vh - 32px);         /* minus taskbar */
+    /* NEW: keep windows inside phone viewport */
+    max-width: 100vw;
+    max-height: calc(100vh - 32px); /* minus taskbar */
   }
   .titlebar {
     display: flex;
@@ -110,9 +111,6 @@
 
   /* --------- Blog window --------- */
   .split { display: grid; grid-template-columns: 220px 1fr; gap: 8px; height: 100%; }
-  .split.collapsed { grid-template-columns: 0 1fr; }
-  .split.collapsed #posts-list-panel { display: none; }
-
   .panel {
     background: #fff; border: 2px solid #fff; border-right-color: #808080; border-bottom-color: #808080; box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #dfdfdf; overflow: auto;
   }
@@ -123,18 +121,6 @@
   .viewer h1, .viewer h2, .viewer h3 { margin: .4em 0; }
   .viewer pre { background: #f2f2f2; padding: 6px; overflow: auto; }
   .viewer code { background: #f2f2f2; padding: 1px 3px; }
-
-  /* Blog toolbar */
-  .blog-toolbar {
-    display: flex; align-items: center; gap: 8px;
-    padding: 4px 6px; margin-bottom: 6px;
-    background: #dfdfdf; border: 1px solid #fff; box-shadow: inset 0 1px 0 #808080;
-  }
-  .btn-95 {
-    background: #c0c0c0; border: 1px solid #000; box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
-    padding: 2px 8px; font-size: 12px; cursor: pointer;
-  }
-  .btn-95:active { box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #808080; }
 
   /* --------- Document window (iframe) --------- */
   .doc-frame { width: 100%; height: 100%; border: 0; background: #fff; }
@@ -149,7 +135,7 @@
   .hidden { display: none !important; }
   .maximized { left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - 32px) !important; }
 
-  /* Mobile-specific tweaks */
+  /* NEW: mobile-specific tweaks */
   @media (max-width: 640px) {
     .win95-window { min-width: auto; min-height: 160px; }
     .desktop a.icon { width: 80px; }
@@ -226,10 +212,7 @@
       </div>
     </div>
     <div class="content">
-      <div class="blog-toolbar">
-        <button id="toggle-sidebar" class="btn-95" type="button">◀ Hide posts</button>
-      </div>
-      <div class="split" id="blog-split" style="height: calc(100% - 34px)">
+      <div class="split" style="height:100%">
         <aside class="panel" id="posts-list-panel">
           <ul class="list" id="posts-list" aria-label="Posts"></ul>
         </aside>
@@ -278,6 +261,7 @@
   const isMobile = () => MOBILE_QUERY.matches;
 
   MOBILE_QUERY.addEventListener?.('change', () => {
+    // Re-clamp windows on orientation/size change
     $$('.win95-window').forEach(clampToViewport);
   });
 
@@ -299,7 +283,8 @@
   const toggleWindow = (winEl, fromTaskbar=false) => {
     if (winEl.classList.contains('hidden')) {
       winEl.classList.remove('hidden');
-      if (isMobile()) winEl.classList.add('maximized'); // auto-maximize on phones
+      // NEW: auto-maximize on small screens
+      if (isMobile()) winEl.classList.add('maximized');
       bringToFront(winEl);
       const btn = $(`.task-button[data-window="${winEl.id}"]`);
       if (btn) btn.classList.add('active');
@@ -310,6 +295,7 @@
       const btn = $(`.task-button[data-window="${winEl.id}"]`);
       if (btn) btn.classList.remove('active');
     } else {
+      // Toggle maximize on mobile for convenience
       if (isMobile()) winEl.classList.add('maximized');
       bringToFront(winEl);
       focusFirst(winEl);
@@ -327,10 +313,11 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight - WIN_MARGIN_BOTTOM;
 
+    // Ensure width/height never exceed viewport (esp. after rotation)
     if (r.width > vw) win.style.width = Math.max(vw, 280) + 'px';
     if (r.height > vh) win.style.height = Math.max(vh, 160) + 'px';
 
-    const rect = win.getBoundingClientRect();
+    const rect = win.getBoundingClientRect(); // re-read after possible size adjust
     const maxLeft = Math.max(0, vw - Math.min(rect.width, vw));
     const maxTop  = Math.max(0, vh - Math.min(rect.height, vh));
 
@@ -344,6 +331,7 @@
 
   // ---------- Window wiring ----------
   $$('.win95-window').forEach((win)=>{
+    // NEW: if visible at boot on mobile, maximize
     if (!win.classList.contains('hidden') && isMobile()) {
       win.classList.add('maximized');
     }
@@ -463,31 +451,13 @@
   // ---------- Posts discovery ----------
   const postsListEl = $('#posts-list');
   const postViewer = $('#post-viewer');
-  const blogSplit = $('#blog-split');
   const desktop = $('#desktop');
   const menuHtml = $('#menu-posts-html');
   const menuMd = $('#menu-posts-md');
-  const toggleSidebarBtn = $('#toggle-sidebar');
 
   let POSTS = [];      // normalized: {id,title,date,file,type: 'html'|'md'}
   let HTML_POSTS = []; // subset of POSTS
   let MD_POSTS = [];   // subset of POSTS
-
-  // Sidebar toggle helpers
-  function setSidebar(collapsed){
-    blogSplit.classList.toggle('collapsed', collapsed);
-    toggleSidebarBtn.textContent = collapsed ? '☰ Show posts' : '◀ Hide posts';
-    try { localStorage.setItem('blogSidebarCollapsed', collapsed ? '1' : '0'); } catch {}
-  }
-  toggleSidebarBtn.addEventListener('click', ()=> setSidebar(!blogSplit.classList.contains('collapsed')));
-
-  // Apply saved preference (default collapsed on mobile)
-  (function initSidebarPref(){
-    let pref = null;
-    try { pref = localStorage.getItem('blogSidebarCollapsed'); } catch {}
-    const initialCollapsed = (pref === '1') || (pref === null && isMobile());
-    setSidebar(initialCollapsed);
-  })();
 
   async function loadPosts(){
     try{
@@ -620,11 +590,13 @@
       win.className = 'win95-window';
       win.id = 'doc-'+p.id;
 
+      // Default desktop sizes
       win.style.left = (180 + Math.floor(Math.random()*60)) + 'px';
       win.style.top  = (100 + Math.floor(Math.random()*40)) + 'px';
       win.style.width = '720px';
       win.style.height= '480px';
 
+      // NEW: mobile bootstrap sizing
       if (isMobile()) {
         win.classList.add('maximized');
         win.style.left = '0px';
@@ -782,7 +754,7 @@
       if (!raw) return; history.unshift(raw); hIndex = -1;
       print(`C:\\SOL37> ${raw}`);
       input.value='';
-      const [cmd, ...rest] = raw split(/\s+/);
+      const [cmd, ...rest] = raw.split(/\s+/);
       const arg = rest.join(' ');
       const name = (cmd||'').toLowerCase();
       const fn = commands[name];
