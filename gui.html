@@ -142,6 +142,12 @@
   }
 
   @media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
+
+  /* --- z-index sanity (ensures taskbar & start menu are topmost) --- */
+  .desktop      { z-index: 50; }
+  .win95-window { z-index: 100; }
+  .taskbar      { z-index: 1000; }
+  .start-menu   { z-index: 1001; }
 </style>
 </head>
 <body>
@@ -265,9 +271,23 @@
     $$('.win95-window').forEach(clampToViewport);
   });
 
+  // Taskbar/Start menu z-layers are enforced by CSS; keep bringToFront for windows only
   const bringToFront = (el) => {
     const maxZ = Math.max( ...$$('.win95-window').map(w => +getComputedStyle(w).zIndex || 10), 10 );
     el.style.zIndex = String(maxZ + 1);
+  };
+
+  // Task button helpers (prevents duplicates and keeps state synced)
+  const getTaskButton = (id) =>
+    document.querySelector(`.task-button[data-window="${id}"]`);
+
+  const ensureTaskButton = (winEl) => {
+    let btn = getTaskButton(winEl.id);
+    if (!btn) {
+      btn = createTaskButton(winEl);
+      $('#task-buttons').appendChild(btn);
+    }
+    return btn;
   };
 
   const createTaskButton = (winEl) => {
@@ -281,26 +301,30 @@
   };
 
   const toggleWindow = (winEl, fromTaskbar=false) => {
+    const btn = ensureTaskButton(winEl);
+
     if (winEl.classList.contains('hidden')) {
+      // Show
       winEl.classList.remove('hidden');
-      // NEW: auto-maximize on small screens
       if (isMobile()) winEl.classList.add('maximized');
       bringToFront(winEl);
-      const btn = $(`.task-button[data-window="${winEl.id}"]`);
-      if (btn) btn.classList.add('active');
+      btn.classList.add('active');
       focusFirst(winEl);
       clampToViewport(winEl);
-    } else if (fromTaskbar) {
-      winEl.classList.add('hidden');
-      const btn = $(`.task-button[data-window="${winEl.id}"]`);
-      if (btn) btn.classList.remove('active');
-    } else {
-      // Toggle maximize on mobile for convenience
-      if (isMobile()) winEl.classList.add('maximized');
-      bringToFront(winEl);
-      focusFirst(winEl);
-      clampToViewport(winEl);
+      return;
     }
+
+    if (fromTaskbar) {
+      // Taskbar button toggles visibility
+      winEl.classList.add('hidden');
+      btn.classList.remove('active');
+      return;
+    }
+
+    // Already visible: focus only
+    bringToFront(winEl);
+    btn.classList.add('active');
+    clampToViewport(winEl);
   };
 
   const focusFirst = (win) => {
@@ -317,7 +341,7 @@
     if (r.width > vw) win.style.width = Math.max(vw, 280) + 'px';
     if (r.height > vh) win.style.height = Math.max(vh, 160) + 'px';
 
-    const rect = win.getBoundingClientRect(); // re-read after possible size adjust
+    const rect = win.getBoundingClientRect(); // re-read after size adjust
     const maxLeft = Math.max(0, vw - Math.min(rect.width, vw));
     const maxTop  = Math.max(0, vh - Math.min(rect.height, vh));
 
@@ -337,9 +361,8 @@
     }
 
     bringToFront(win);
-    const tb = createTaskButton(win);
-    $('#task-buttons').appendChild(tb);
-    if (!win.classList.contains('hidden')) tb.classList.add('active');
+    const tb = ensureTaskButton(win);
+    tb.classList.toggle('active', !win.classList.contains('hidden'));
 
     const handle = win.querySelector('[data-drag-handle]');
     let dragging = false, offX=0, offY=0;
@@ -362,13 +385,24 @@
     win.querySelectorAll('.titlebar [data-action]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const act = btn.dataset.action;
-        if (act === 'close' || act === 'minimize') {
+        const taskBtn = ensureTaskButton(win);
+
+        if (act === 'close') {
           win.classList.add('hidden');
-          const b = $(`.task-button[data-window="${win.id}"]`); if (b) b.classList.remove('active');
-        } else if (act === 'maximize') {
+          // Remove task button (classic Win95 behavior)
+          taskBtn.remove();
+          return;
+        }
+        if (act === 'minimize') {
+          win.classList.add('hidden');
+          taskBtn.classList.remove('active');
+          return;
+        }
+        if (act === 'maximize') {
           win.classList.toggle('maximized');
           bringToFront(win);
           clampToViewport(win);
+          taskBtn.classList.add('active');
         }
       });
     });
@@ -376,7 +410,7 @@
     win.addEventListener('mousedown', ()=>{
       bringToFront(win);
       $$('.task-button').forEach(b=>b.classList.remove('active'));
-      const b = $(`.task-button[data-window="${win.id}"]`); if (b) b.classList.add('active');
+      ensureTaskButton(win).classList.add('active');
     });
 
     clampToViewport(win);
@@ -389,6 +423,7 @@
       const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog' };
       const w = $(map[a.dataset.open]); if (!w) return;
       toggleWindow(w);
+      ensureTaskButton(w).classList.add('active');
       if (w.id === 'win-terminal') $('#term-in').focus();
     });
   });
@@ -396,26 +431,33 @@
   // Start menu
   const startBtn = $('#start-btn');
   const startMenu = $('#start-menu');
+  startMenu.style.zIndex = 1001; // pin above everything
+
   startBtn.addEventListener('click', ()=>{
     const open = startMenu.style.display === 'block';
     startMenu.style.display = open ? 'none' : 'block';
     startBtn.setAttribute('aria-expanded', String(!open));
+    if (!open) startMenu.style.zIndex = 1001; // reinforce
     if (!open) startMenu.querySelector('li, .item')?.focus?.();
   });
+
   document.addEventListener('click', (e)=>{
     if (!startMenu.contains(e.target) && !startBtn.contains(e.target)) {
       startMenu.style.display = 'none'; startBtn.setAttribute('aria-expanded','false');
     }
   });
+
   document.addEventListener('keydown', (e)=>{
     if (e.key === 'Escape') { startMenu.style.display='none'; startBtn.setAttribute('aria-expanded','false'); }
   });
+
   startMenu.querySelectorAll('[data-open]').forEach(item=>{
     item.setAttribute('tabindex','0');
     item.addEventListener('click', ()=>{
       const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog' };
       const w = $(map[item.dataset.open]);
       toggleWindow(w); startMenu.style.display = 'none';
+      ensureTaskButton(w).classList.add('active');
       if (w.id === 'win-terminal') $('#term-in').focus();
     });
   });
@@ -626,10 +668,10 @@
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   function wireWindow(win){
-    const tb = createTaskButton(win);
-    $('#task-buttons').appendChild(tb);
+    const tb = ensureTaskButton(win);
     const handle = win.querySelector('[data-drag-handle]');
     let dragging=false, offX=0, offY=0;
+
     handle.addEventListener('dblclick', ()=>{ win.classList.toggle('maximized'); bringToFront(win); clampToViewport(win); });
     handle.addEventListener('mousedown',(e)=>{
       dragging=true; bringToFront(win);
@@ -647,21 +689,32 @@
     win.querySelectorAll('.titlebar [data-action]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const act = btn.dataset.action;
-        if (act === 'close' || act === 'minimize') {
+        const taskBtn = ensureTaskButton(win);
+
+        if (act === 'close') {
           win.classList.add('hidden');
-          const b = $(`.task-button[data-window="${win.id}"]`); if (b) b.classList.remove('active');
-        } else if (act === 'maximize') {
+          taskBtn.remove();
+          return;
+        }
+        if (act === 'minimize') {
+          win.classList.add('hidden');
+          taskBtn.classList.remove('active');
+          return;
+        }
+        if (act === 'maximize') {
           win.classList.toggle('maximized'); bringToFront(win);
           clampToViewport(win);
+          taskBtn.classList.add('active');
         }
       });
     });
     win.addEventListener('mousedown', ()=>{
       bringToFront(win);
       $$('.task-button').forEach(b=>b.classList.remove('active'));
-      const b = $(`.task-button[data-window="${win.id}"]`); if (b) b.classList.add('active');
+      ensureTaskButton(win).classList.add('active');
     });
     clampToViewport(win);
+    tb.classList.add('active');
   }
 
   // ---------- Drag-drop .md into viewer (preview only) ----------
@@ -770,9 +823,11 @@
   // Programmatic openers
   $('#menu-theme').addEventListener('click', ()=>{ toggleWindow($('#win-terminal')); print("Try: theme amber | theme gray | theme green"); startMenu.style.display='none'; });
 
+  // Robust taskbar delegation
   $('#task-buttons').addEventListener('click', (e)=>{
     const btn = e.target.closest('.task-button'); if (!btn) return;
     const w = document.getElementById(btn.dataset.window);
+    if (!w) { btn.remove(); return; } // orphan cleanup
     toggleWindow(w, true);
   });
 
@@ -783,6 +838,9 @@
     const p = POSTS.find(x => x.id === 'timeline') || HTML_POSTS[0];
     if (p && p.type === 'html') {
       openHtmlDocumentWindow(p);
+      // Uncomment to force fullscreen on desktop too:
+      // const w = document.getElementById('doc-' + p.id);
+      // if (w) w.classList.add('maximized');
     } else if (p && p.type === 'md') {
       toggleWindow($('#win-blog'));
       openPost(p.id);
