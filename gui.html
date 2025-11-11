@@ -28,7 +28,7 @@
     border-right-color: #404040;
     border-bottom-color: #404040;
     box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #dfdfdf;
-    /* NEW: keep windows inside phone viewport */
+    /* keep windows inside phone viewport */
     max-width: 100vw;
     max-height: calc(100vh - 32px); /* minus taskbar */
   }
@@ -135,7 +135,7 @@
   .hidden { display: none !important; }
   .maximized { left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - 32px) !important; }
 
-  /* NEW: mobile-specific tweaks */
+  /* mobile-specific tweaks */
   @media (max-width: 640px) {
     .win95-window { min-width: auto; min-height: 160px; }
     .desktop a.icon { width: 80px; }
@@ -267,17 +267,16 @@
   const isMobile = () => MOBILE_QUERY.matches;
 
   MOBILE_QUERY.addEventListener?.('change', () => {
-    // Re-clamp windows on orientation/size change
     $$('.win95-window').forEach(clampToViewport);
   });
 
-  // Taskbar/Start menu z-layers are enforced by CSS; keep bringToFront for windows only
+  // bring windows to front only
   const bringToFront = (el) => {
     const maxZ = Math.max( ...$$('.win95-window').map(w => +getComputedStyle(w).zIndex || 10), 10 );
     el.style.zIndex = String(maxZ + 1);
   };
 
-  // Task button helpers (prevents duplicates and keeps state synced)
+  // Task button helpers
   const getTaskButton = (id) =>
     document.querySelector(`.task-button[data-window="${id}"]`);
 
@@ -300,13 +299,15 @@
     return btn;
   };
 
+  // UPDATED: taskbar click now always shows/un-minimizes & focuses
   const toggleWindow = (winEl, fromTaskbar=false) => {
     const btn = ensureTaskButton(winEl);
 
-    if (winEl.classList.contains('hidden')) {
-      // Show
-      winEl.classList.remove('hidden');
-      if (isMobile()) winEl.classList.add('maximized');
+    if (fromTaskbar) {
+      if (winEl.classList.contains('hidden')) {
+        winEl.classList.remove('hidden');
+        if (isMobile()) winEl.classList.add('maximized');
+      }
       bringToFront(winEl);
       btn.classList.add('active');
       focusFirst(winEl);
@@ -314,10 +315,13 @@
       return;
     }
 
-    if (fromTaskbar) {
-      // Taskbar button toggles visibility
-      winEl.classList.add('hidden');
-      btn.classList.remove('active');
+    if (winEl.classList.contains('hidden')) {
+      winEl.classList.remove('hidden');
+      if (isMobile()) winEl.classList.add('maximized');
+      bringToFront(winEl);
+      btn.classList.add('active');
+      focusFirst(winEl);
+      clampToViewport(winEl);
       return;
     }
 
@@ -337,11 +341,10 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight - WIN_MARGIN_BOTTOM;
 
-    // Ensure width/height never exceed viewport (esp. after rotation)
     if (r.width > vw) win.style.width = Math.max(vw, 280) + 'px';
     if (r.height > vh) win.style.height = Math.max(vh, 160) + 'px';
 
-    const rect = win.getBoundingClientRect(); // re-read after size adjust
+    const rect = win.getBoundingClientRect();
     const maxLeft = Math.max(0, vw - Math.min(rect.width, vw));
     const maxTop  = Math.max(0, vh - Math.min(rect.height, vh));
 
@@ -355,7 +358,6 @@
 
   // ---------- Window wiring ----------
   $$('.win95-window').forEach((win)=>{
-    // NEW: if visible at boot on mobile, maximize
     if (!win.classList.contains('hidden') && isMobile()) {
       win.classList.add('maximized');
     }
@@ -389,7 +391,6 @@
 
         if (act === 'close') {
           win.classList.add('hidden');
-          // Remove task button (classic Win95 behavior)
           taskBtn.remove();
           return;
         }
@@ -416,7 +417,7 @@
     clampToViewport(win);
   });
 
-  // Desktop icons open windows
+  // Desktop icons
   $$('.desktop a.icon').forEach(a=>{
     a.addEventListener('click', (e)=>{
       e.preventDefault();
@@ -437,7 +438,7 @@
     const open = startMenu.style.display === 'block';
     startMenu.style.display = open ? 'none' : 'block';
     startBtn.setAttribute('aria-expanded', String(!open));
-    if (!open) startMenu.style.zIndex = 1001; // reinforce
+    if (!open) startMenu.style.zIndex = 1001;
     if (!open) startMenu.querySelector('li, .item')?.focus?.();
   });
 
@@ -474,7 +475,7 @@
   }
   updateClock(); setInterval(updateClock, 1000*15);
 
-  // ---------- Tiny Markdown (very small subset) ----------
+  // Tiny Markdown
   function mdToHtml(md){
     let h = String(md ?? '')
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -490,16 +491,16 @@
     return h;
   }
 
-  // ---------- Posts discovery ----------
+  // Posts discovery
   const postsListEl = $('#posts-list');
   const postViewer = $('#post-viewer');
   const desktop = $('#desktop');
   const menuHtml = $('#menu-posts-html');
   const menuMd = $('#menu-posts-md');
 
-  let POSTS = [];      // normalized: {id,title,date,file,type: 'html'|'md'}
-  let HTML_POSTS = []; // subset of POSTS
-  let MD_POSTS = [];   // subset of POSTS
+  let POSTS = [];      // {id,title,date,file,type}
+  let HTML_POSTS = [];
+  let MD_POSTS = [];
 
   async function loadPosts(){
     try{
@@ -537,7 +538,6 @@
     }
   }
 
-  // Desktop: add icons for HTML posts
   function mountDesktopHtmlIcons(){
     const startX = 120;
     const startY = 16;
@@ -572,7 +572,6 @@
     });
   }
 
-  // Start menu → Posts (HTML & MD)
   function buildStartMenuPosts(){
     menuHtml.innerHTML = '';
     menuMd.innerHTML = '';
@@ -624,7 +623,7 @@
     }
   }
 
-  // ---------- Dynamic Document Window (for HTML posts) ----------
+  // Dynamic Document Window (for HTML posts)
   function openHtmlDocumentWindow(p){
     let win = document.getElementById('doc-'+p.id);
     if (!win){
@@ -632,13 +631,11 @@
       win.className = 'win95-window';
       win.id = 'doc-'+p.id;
 
-      // Default desktop sizes
       win.style.left = (180 + Math.floor(Math.random()*60)) + 'px';
       win.style.top  = (100 + Math.floor(Math.random()*40)) + 'px';
       win.style.width = '720px';
       win.style.height= '480px';
 
-      // NEW: mobile bootstrap sizing
       if (isMobile()) {
         win.classList.add('maximized');
         win.style.left = '0px';
@@ -717,7 +714,7 @@
     tb.classList.add('active');
   }
 
-  // ---------- Drag-drop .md into viewer (preview only) ----------
+  // Drag-drop .md into viewer (preview only)
   $('#win-blog').addEventListener('dragover', (e)=>{ e.preventDefault(); });
   $('#win-blog').addEventListener('drop', (e)=>{
     e.preventDefault();
@@ -729,7 +726,7 @@
     reader.readAsText(file);
   });
 
-  // ---------- Terminal ----------
+  // Terminal
   const out = $('#term-out');
   const input = $('#term-in');
   let history = []; let hIndex = -1;
@@ -823,12 +820,12 @@
   // Programmatic openers
   $('#menu-theme').addEventListener('click', ()=>{ toggleWindow($('#win-terminal')); print("Try: theme amber | theme gray | theme green"); startMenu.style.display='none'; });
 
-  // Robust taskbar delegation
+  // Taskbar: always un-minimize & focus
   $('#task-buttons').addEventListener('click', (e)=>{
     const btn = e.target.closest('.task-button'); if (!btn) return;
     const w = document.getElementById(btn.dataset.window);
-    if (!w) { btn.remove(); return; } // orphan cleanup
-    toggleWindow(w, true);
+    if (!w) { btn.remove(); return; }
+    toggleWindow(w, true); // SHOW/FOCUS behavior
   });
 
   $('#win-terminal').addEventListener('click', ()=> input.focus());
@@ -838,7 +835,6 @@
     const p = POSTS.find(x => x.id === 'timeline') || HTML_POSTS[0];
     if (p && p.type === 'html') {
       openHtmlDocumentWindow(p);
-      // Uncomment to force fullscreen on desktop too:
       // const w = document.getElementById('doc-' + p.id);
       // if (w) w.classList.add('maximized');
     } else if (p && p.type === 'md') {
