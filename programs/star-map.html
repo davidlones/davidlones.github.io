@@ -10,11 +10,11 @@
   #root{position:relative;width:100%;height:100%;overflow:hidden}
   .boot{position:absolute;inset:0;display:grid;place-items:center;
         font-size:15px;opacity:.85;background:#060812;z-index:5}
-  /* make all canvases fill space */
   canvas{width:100%!important;height:100%!important;display:block}
   #root::before{content:"";position:absolute;inset:0;z-index:-1;
     background:radial-gradient(120% 100% at 50% 20%,
     #0d1326 0%, #060812 60%, #04060d 100%);}
+
   /* floating controls HUD (auto-tagged via JS) */
   .controls-panel{
     position:fixed;right:16px;top:64px;width:min(360px,32vw);
@@ -30,7 +30,8 @@
   @media (max-width:700px){
     .controls-panel{right:8px;left:8px;width:auto;top:auto;bottom:10px;max-height:52vh}
   }
-  /* tiny loader chip */
+
+  /* dat.json loader chip */
   .data-chip{
     position:fixed;left:16px;top:64px;z-index:21;
     display:flex;gap:8px;align-items:center;
@@ -42,15 +43,23 @@
   .data-chip button:hover{filter:brightness(1.08)}
   .data-chip small{opacity:.8}
 
-  /* click detail toast */
-  .detail-toast{
+  /* persistent detail panel */
+  .detail-panel{
     position:fixed;left:50%;top:18px;transform:translateX(-50%);
-    z-index:22;max-width:min(720px,90vw);
-    background:#0b1224cc;border:1px solid #394a72;border-radius:12px;
+    z-index:22;max-width:min(780px,92vw);
+    background:#0b1224e6;border:1px solid #394a72;border-radius:12px;
     padding:10px 14px;box-shadow:0 8px 28px #000c,inset 0 1px 0 #ffffff1a;
-    line-height:1.2;font-size:14px;display:none;white-space:pre-wrap
+    line-height:1.25;font-size:14px;display:none;white-space:pre-wrap
   }
-  .detail-toast.show{display:block}
+  .detail-panel.show{display:block}
+  .detail-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .detail-title{font-weight:600;opacity:.95}
+  .detail-close{
+    margin-left:auto;cursor:pointer;border:1px solid #3b4f7d;border-radius:8px;
+    background:#1b2643;color:#e9edf5;padding:2px 8px;line-height:1
+  }
+  .detail-body{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+               white-space:pre-wrap}
 </style>
 <!-- React UMD + Babel -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -60,7 +69,15 @@
 <body>
   <div id="root"></div>
   <div class="boot" id="boot">✨ Initializing Interactive Star Map…</div>
-  <div class="detail-toast" id="detailToast" aria-live="polite"></div>
+
+  <!-- persistent info panel -->
+  <div class="detail-panel" id="detailPanel" aria-live="polite" role="dialog" aria-modal="false">
+    <div class="detail-header">
+      <div class="detail-title">Object details</div>
+      <button class="detail-close" id="detailClose" title="Close">×</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
 
 <script>
 (async function(){
@@ -95,10 +112,8 @@
     // --- /dat.json loader chip (site root: davidlones.github.io/dat.json) ---
     const chip = document.createElement('div');
     chip.className = 'data-chip';
-    chip.innerHTML = `
-      <small>Catalog:</small>
-      <button id="btn-load-remote" title="Load /dat.json from site root">Load /dat.json</button>
-    `;
+    chip.innerHTML = `<small>Catalog:</small>
+      <button id="btn-load-remote" title="Load /dat.json from site root">Load /dat.json</button>`;
     document.body.appendChild(chip);
 
     async function loadRemote(){
@@ -110,24 +125,16 @@
         let payload = text;
         try {
           const j = JSON.parse(text);
-          if (j && typeof j === 'object'){
-            // if it's {"file": "contents", ...} flatten to text
-            payload = Object.values(j).join("\n\n");
-          }
-        } catch(_) { /* not JSON, keep raw */ }
-
-        // Find a likely paste-area textarea
+          if (j && typeof j === 'object') payload = Object.values(j).join("\n\n");
+        } catch(_) {}
         const areas = [...document.querySelectorAll('textarea')];
         let target = areas.sort((a,b)=> (b.cols*b.rows||0) - (a.cols*a.rows||0))[0] || areas[0];
         if (!target) throw new Error('Paste area not found.');
         target.value = payload;
         target.dispatchEvent(new Event('input',{bubbles:true}));
-
-        // Click a button that looks like “Parse”
         const parseBtn = [...document.querySelectorAll('button,input[type="button"],input[type="submit"]')]
           .find(el => /parse/i.test(el.value||'') || /parse/i.test(el.textContent||''));
-        if (parseBtn) parseBtn.click();
-
+        parseBtn?.click?.();
         btn.textContent = 'Loaded ✓';
         setTimeout(()=>{ btn.textContent = prev; btn.disabled=false; }, 1000);
       } catch(err){
@@ -138,44 +145,80 @@
     }
     document.getElementById('btn-load-remote').addEventListener('click', loadRemote);
 
-    // --- Ensure details appear when clicking objects (non-invasive) ---
-    const toast = document.getElementById('detailToast');
-    function showToast(text){
-      if(!text) return;
-      toast.textContent = text.trim();
-      toast.classList.add('show');
-      clearTimeout(showToast._t); showToast._t = setTimeout(()=>toast.classList.remove('show'), 3500);
+    // --- Detail panel logic (persistent, shows only object info) ---
+    const panel = document.getElementById('detailPanel');
+    const body  = document.getElementById('detailBody');
+    const closeBtn = document.getElementById('detailClose');
+
+    function normalizeText(s){
+      return String(s||'')
+        .replace(/\s+/g,' ')                // compact spacing
+        .replace(/:\s+/g,': ')
+        .trim();
     }
 
-    // 1) Mirror detail-like console logs to the toast
-    const kw = /(RA|Dec|mag|B-?V|spec|type|distance|pc|ly|deg|°|h\\s*\\d|constellation)/i;
-    const clog = console.log.bind(console), cinf = console.info.bind(console);
-    console.log = (...args)=>{ try{ const s = args.join(' '); if(kw.test(s)) showToast(s); }catch{} clog(...args); };
-    console.info = (...args)=>{ try{ const s = args.join(' '); if(kw.test(s)) showToast(s); }catch{} cinf(...args); };
+    // Keep only lines that look like object data
+    const keepRe = /\b(RA|Right Asc|Dec|Decl?\.?|mag|magnitude|B-?V|class|spectral|type|dist(ance)?|pc|ly|parallax|z=|radial|velocity|size|diam|constellation|NGC|IC|Messier|M\d+|HIP|HR|HD|SAO|HIP|Altair|Vega|Sirius)\b/i;
+    const dropRe = /\b(Pan\/zoom|RA increases to the left|Click objects|View|Equatorial|Galactic|Animate|Reset View|Max size|Stars|Galaxy|Globular|Open|Nebula|Planetary|Double|Load|Use Demo|Paste|Parse|Drop|Choose File)\b/i;
 
-    // 2) On canvas click, scrape any visible “detail-like” block and show it
-    function scrapeDetailText(){
-      const cands = [...document.querySelectorAll('#root p, #root pre, #root div')]
-        .filter(el => el.offsetParent !== null && el.textContent && el.textContent.length < 800)
-        .map(el => ({el, score:(el.textContent.match(kw)||[]).length, text:el.textContent.trim()}))
+    function extractDetailFromDom(){
+      // look for small blocks with lots of object-y tokens
+      const blocks = [...document.querySelectorAll('#root p, #root pre, #root div')]
+        .filter(el => el.offsetParent !== null && el.textContent && el.textContent.length < 1200)
+        .map(el => {
+          const txt = el.textContent;
+          const keep = (txt.match(keepRe)||[]).length;
+          const drop = dropRe.test(txt) ? 3 : 0;
+          return {el, score: keep - drop, txt};
+        })
         .filter(x => x.score > 0)
         .sort((a,b)=> b.score - a.score);
-      return cands[0]?.text || '';
+
+      const raw = blocks[0]?.txt || '';
+      if (!raw) return '';
+
+      // split to lines, filter
+      const lines = raw
+        .split(/[\n\r]+/)
+        .map(l => normalizeText(l))
+        .filter(l => l && keepRe.test(l) && !dropRe.test(l));
+
+      // if we still have a long line, try to shard by semicolons/•/commas
+      let cleaned = lines.length ? lines : raw.split(/[;•]+/).map(normalizeText).filter(l => keepRe.test(l) && !dropRe.test(l));
+
+      // de-dup & limit
+      const uniq = [];
+      for(const l of cleaned){
+        if (!uniq.includes(l)) uniq.push(l);
+        if (uniq.length > 14) break;
+      }
+      return uniq.join('\n');
     }
+
+    function showPanel(text, title='Object details'){
+      if (!text) return;
+      body.textContent = text;
+      panel.querySelector('.detail-title').textContent = title;
+      panel.classList.add('show');
+    }
+    function hidePanel(){ panel.classList.remove('show'); }
+    closeBtn.addEventListener('click', hidePanel);
+
+    // Mirror detail-looking console messages into the panel
+    const keywords = /(RA|Dec|mag|B-?V|spectral|type|distance|pc|ly|parallax|constellation|NGC|IC|Messier|HIP|HD|HR|SAO)/i;
+    const clog = console.log.bind(console), cinf = console.info.bind(console);
+    console.log = (...args)=>{ try{ const s = args.join(' '); if(keywords.test(s)) showPanel(s); }catch{} clog(...args); };
+    console.info = (...args)=>{ try{ const s = args.join(' '); if(keywords.test(s)) showPanel(s); }catch{} cinf(...args); };
+
+    // On canvas click, scrape + show (persistent)
     document.addEventListener('click', (e)=>{
       if (e.target.tagName === 'CANVAS') {
-        setTimeout(()=>{ const t = scrapeDetailText(); if(t) showToast(t); }, 40);
+        setTimeout(()=>{
+          const text = extractDetailFromDom();
+          if (text) showPanel(text);
+        }, 40);
       }
     }, true);
-
-    // Keep any native info blocks above the canvas, if present
-    const style = document.createElement('style');
-    style.textContent = `
-      #root .info, #root .details, #root [id*="info"], #root [class*="detail"]{
-        position:relative; z-index:19; background:transparent; color:#e9edf5;
-      }
-    `;
-    document.head.appendChild(style);
 
     setTimeout(()=> document.getElementById('boot')?.remove(), 600);
   }catch(err){
