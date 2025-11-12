@@ -1,327 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Sol-37 • Star Map</title>
-
-<!-- Tailwind (CDN) for quick polish; app can still use its own classes -->
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- React + ReactDOM + Babel for on-the-fly JSX transform -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-<style>
-  :root {
-    --chrome-h: 56px;
-  }
-  html, body {
-    height: 100%;
-    background: radial-gradient(1200px 800px at 70% 20%, #0b132b 0%, #05080f 70%) fixed;
-  }
-  /* App mount area behind toolbar */
-  #app-frame {
-    position: fixed;
-    inset: var(--chrome-h) 0 0 0;
-    overflow: hidden;
-  }
-  /* Minimal glass toolbar */
-  .toolbar {
-    position: fixed; inset: 0 0 auto 0; height: var(--chrome-h);
-    display: grid; grid-template-columns: 1fr auto; align-items: center;
-    padding: 8px 12px; gap: 12px; z-index: 9999;
-    background: linear-gradient( to bottom,
-      rgba(10,14,22,0.85), rgba(10,14,22,0.6) );
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  .btn {
-    @apply px-3 py-2 rounded-md text-sm font-semibold;
-    background: rgba(255,255,255,0.06);
-    color: #e6edf3;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  .btn:hover { background: rgba(255,255,255,0.12); }
-  .btn-primary {
-    background: linear-gradient(180deg,#1f8fff,#1772ff);
-    border-color: rgba(255,255,255,0.18);
-    color: #fff;
-  }
-  .badge {
-    padding: 2px 8px; border-radius: 999px; font-size: 12px;
-    background: rgba(255,255,255,0.08); color: #cbd5e1;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  /* Loader overlay while JSX compiles */
-  #boot-cover {
-    position: fixed; inset: var(--chrome-h) 0 0 0; display: grid; place-items: center;
-    background: radial-gradient(800px 600px at 50% 30%, rgba(255,255,255,0.04), rgba(0,0,0,0.0));
-    z-index: 10;
-  }
-  .spinner { width: 42px; height: 42px; border: 3px solid #2f3c56; border-top-color: #77aaff; border-radius: 9999px; animation: spin 0.9s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Toasts */
-  #toasts { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 8px; z-index: 10000; }
-  .toast { padding: 10px 12px; border-radius: 10px; color: #e6edf3; background: rgba(16,22,35,0.92); border: 1px solid rgba(255,255,255,0.08); }
-  .toast.error { border-color:#f87171; background: rgba(35,10,10,0.92); }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Star Map v2</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel Standalone for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #18181b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #52525b;
+        }
+    </style>
 </head>
-
-<body class="text-slate-200">
-  <!-- Top chrome -->
-  <header class="toolbar">
-    <div class="flex items-center gap-3 min-w-0">
-      <div class="h-8 w-8 rounded bg-blue-500/80 grid place-items-center text-white font-bold shadow">☆</div>
-      <div class="min-w-0">
-        <div class="text-sm leading-tight text-slate-300">Sol-37 Program</div>
-        <div class="text-base leading-tight font-semibold">Interactive Star Map</div>
-      </div>
-      <span id="status-badge" class="badge ml-2">loading…</span>
-    </div>
-
-    <div class="flex items-center gap-2">
-      <!-- Coord toggle -->
-      <div class="hidden sm:flex items-center gap-1 mr-2">
-        <button id="btn-equ" class="btn">Equatorial</button>
-        <button id="btn-gal" class="btn">Galactic</button>
-      </div>
-
-      <!-- Data loaders -->
-      <button id="btn-demo" class="btn">Demo</button>
-      <button id="btn-url"  class="btn">Load URL</button>
-      <button id="btn-paste" class="btn">Paste JSON</button>
-      <label class="btn cursor-pointer">
-        <input id="file-input" type="file" accept=".json,.dat,.txt" class="hidden">
-        Open File
-      </label>
-
-      <!-- Fullscreen -->
-      <button id="btn-full" class="btn-primary">Fullscreen</button>
-    </div>
-  </header>
-
-  <!-- Root mount for the React app -->
-  <main id="app-frame">
-    <div id="root" class="w-full h-full"></div>
-    <div id="boot-cover">
-      <div class="grid place-items-center gap-4">
-        <div class="spinner"></div>
-        <div class="text-slate-300 text-sm">Compiling star map…</div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Toasts -->
-  <div id="toasts" aria-live="polite"></div>
-
-  <!-- Optional: pass a custom path to the JSX via data attribute -->
-  <script id="bootstrap" type="application/json" data-jsx-path="./interactive_star_map_v_2_react_web_app.jsx">
-    {
-      "autoSrcParam": "src"
-    }
-  </script>
-
-  <script>
-  (function () {
-    const $ = (sel, root=document) => root.querySelector(sel);
-    const status = $('#status-badge');
-    const bootCover = $('#boot-cover');
-    const toasts = $('#toasts');
-    const rootEl = $('#root');
-    const cfgTag = $('#bootstrap');
-    const JSX_PATH = cfgTag.dataset.jsxPath || './interactive_star_map_v_2_react_web_app.jsx';
-    const AUTO_SRC_PARAM = safeJson(cfgTag.textContent)?.autoSrcParam || 'src';
-
-    function safeJson(s) { try { return JSON.parse(s || '{}'); } catch { return {}; } }
-    function toast(msg, kind='info', ms=3500) {
-      const div = document.createElement('div');
-      div.className = 'toast' + (kind === 'error' ? ' error' : '');
-      div.textContent = msg;
-      toasts.appendChild(div);
-      setTimeout(() => div.remove(), ms);
-    }
-
-    function setStatus(txt, color) {
-      status.textContent = txt;
-      status.style.background = color ? color : 'rgba(255,255,255,0.08)';
-    }
-
-    // Compile + mount App
-    async function mountApp() {
-      setStatus('loading…');
-      const res = await fetch(JSX_PATH, { cache: 'no-store' });
-      if (!res.ok) {
-        setStatus('error', '#6b0f12');
-        toast('Could not load star map source: ' + JSX_PATH, 'error');
-        throw new Error('Fetch JSX failed');
-      }
-      const code = await res.text();
-
-      // Transform JSX to JS
-      let compiled;
-      try {
-        compiled = Babel.transform(code, { presets: ['react'] }).code;
-      } catch (e) {
-        setStatus('compile error', '#6b0f12');
-        console.error(e);
-        toast('Babel compile error (see console).', 'error', 6000);
-        throw e;
-      }
-
-      // Execute in a scoped Function so top-level assigns (window.setCoord, window.appSetData) still reach window
-      try {
-        const fn = new Function('React','ReactDOM', compiled + '\nreturn App;'); // App is default export name in your file
-        const App = fn(React, ReactDOM);
-        const root = ReactDOM.createRoot(rootEl);
-        root.render(React.createElement(App));
-      } catch (e) {
-        setStatus('runtime error', '#6b0f12');
-        console.error(e);
-        toast('Runtime error while mounting app (see console).', 'error', 6000);
-        throw e;
-      }
-
-      // Wait until app exposes helpers
-      await waitForGlobals(['setCoord','appSetData']);
-      bootCover.style.display = 'none';
-      setStatus('ready', 'rgba(34,197,94,0.25)');
-
-      // If URL has ?src=…, try auto-load
-      const url = new URL(location.href);
-      const src = url.searchParams.get(AUTO_SRC_PARAM);
-      if (src) {
-        try {
-          const payload = await fetch(src, { cache: 'no-store' }).then(r => r.json());
-          if (looksNormalized(payload)) {
-            window.appSetData(payload);
-            toast('Loaded dataset from URL.');
-          } else if (typeof window.parseFromDatJson === 'function') {
-            window.appSetData(window.parseFromDatJson(payload));
-            toast('Parsed dat.json mapping and loaded dataset.');
-          } else {
-            toast('Data fetched but format unknown. Use app importer panel.', 'error', 6000);
-          }
-        } catch (e) {
-          toast('Failed to load src URL.', 'error');
-        }
-      }
-    }
-
-    function waitForGlobals(keys, timeoutMs=8000) {
-      return new Promise((resolve, reject) => {
-        const t0 = performance.now();
-        (function poll(){
-          const missing = keys.filter(k => typeof window[k] === 'undefined');
-          if (!missing.length) return resolve();
-          if (performance.now() - t0 > timeoutMs) return reject(new Error('Missing globals: ' + missing.join(', ')));
-          requestAnimationFrame(poll);
-        })();
-      });
-    }
-
-    // Heuristic: already normalized dataset for app?
-    function looksNormalized(obj) {
-      if (!obj || typeof obj !== 'object') return false;
-      if (Array.isArray(obj.stars)) return true;
-      if (obj.stars && typeof obj.stars === 'object' && Array.isArray(obj.stars.items)) return true;
-      return false;
-    }
-
-    // Toolbar actions
-    $('#btn-equ').addEventListener('click', () => {
-      if (typeof window.setCoord === 'function') { window.setCoord('equatorial'); toast('Coord: Equatorial'); }
-    });
-    $('#btn-gal').addEventListener('click', () => {
-      if (typeof window.setCoord === 'function') { window.setCoord('galactic'); toast('Coord: Galactic'); }
-    });
-
-    $('#btn-demo').addEventListener('click', () => {
-      // Your App ships with a DEMO dataset internally (it calls appSetData(DEMO) on load).
-      // This just re-applies it by toggling coord then back, acting as a visual reset.
-      if (typeof window.setCoord === 'function') {
-        window.setCoord('equatorial'); setTimeout(() => window.setCoord('galactic'), 50);
-        toast('Demo dataset active.');
-      }
-    });
-
-    $('#btn-url').addEventListener('click', async () => {
-      const src = prompt("Enter dataset URL (JSON). If it's a StarFinder dat.json map, the wrapper will try to parse it.");
-      if (!src) return;
-      try {
-        const payload = await fetch(src, { cache: 'no-store' }).then(r => r.json());
-        if (looksNormalized(payload)) {
-          window.appSetData(payload);
-          toast('Loaded dataset from URL.');
-        } else if (typeof window.parseFromDatJson === 'function') {
-          window.appSetData(window.parseFromDatJson(payload));
-          toast('Parsed dat.json mapping and loaded dataset.');
-        } else {
-          toast('Data fetched but format unknown. Use the app importer panel.', 'error', 6000);
-        }
-      } catch (e) {
-        toast('Failed to fetch/parse URL.', 'error');
-      }
-    });
-
-    $('#btn-paste').addEventListener('click', async () => {
-      const raw = prompt("Paste dataset JSON (either normalized {stars, dsos,...} or dat.json-style mapping).");
-      if (!raw) return;
-      try {
-        const payload = JSON.parse(raw);
-        if (looksNormalized(payload)) {
-          window.appSetData(payload); toast('Loaded pasted dataset.');
-        } else if (typeof window.parseFromDatJson === 'function') {
-          window.appSetData(window.parseFromDatJson(payload)); toast('Parsed dat.json mapping and loaded dataset.');
-        } else {
-          toast('JSON read, but format unknown. Use app importer.', 'error', 6000);
-        }
-      } catch (e) { toast('Invalid JSON.', 'error'); }
-    });
-
-    $('#file-input').addEventListener('change', async (e) => {
-      const f = e.target.files?.[0]; if (!f) return;
-      try {
-        const text = await f.text();
-        // Try JSON first; if not, hand off to the app's own importer UI.
-        let payload;
-        try { payload = JSON.parse(text); } catch { payload = null; }
-        if (payload) {
-          if (looksNormalized(payload)) {
-            window.appSetData(payload); toast('Loaded local dataset JSON.');
-          } else if (typeof window.parseFromDatJson === 'function') {
-            window.appSetData(window.parseFromDatJson(payload)); toast('Parsed dat.json mapping and loaded dataset.');
-          } else {
-            toast('JSON read, but format unknown. Use app importer panel.', 'error', 6000);
-          }
-        } else {
-          toast('Non-JSON file opened. Use the app importer panel to parse it.', 'error', 6000);
-        }
-      } catch (err) {
-        toast('Failed to read file.', 'error');
-      } finally {
-        e.target.value = '';
-      }
-    });
-
-    // Fullscreen handling
-    const appFrame = $('#app-frame');
-    function toggleFull() {
-      if (!document.fullscreenElement) appFrame.requestFullscreen?.();
-      else document.exitFullscreen?.();
-    }
-    $('#btn-full').addEventListener('click', toggleFull);
-    document.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'f') toggleFull();
-      if (e.key.toLowerCase() === 'g') window.setCoord?.('galactic');
-      if (e.key.toLowerCase() === 'e') window.setCoord?.('equatorial');
-    });
-
-    // Boot
-    mountApp().catch(()=>{/* errors already surfaced */});
-  })();
-  </script>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel" src="./interactive_star_map_v_2_react_web_app.jsx"></script>
+    
+    <script type="text/babel">
+        // Mount the React app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+    
+    <noscript>
+        <div style="padding: 2rem; text-align: center; font-family: system-ui;">
+            <h1>JavaScript Required</h1>
+            <p>This Interactive Star Map requires JavaScript to run. Please enable JavaScript in your browser.</p>
+        </div>
+    </noscript>
 </body>
 </html>
