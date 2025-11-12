@@ -237,7 +237,7 @@
     }
 
     .info-panel {
-      max-width: 260px;
+      max-width: 290px;
     }
     .info-title {
       font-size: 11px;
@@ -250,8 +250,11 @@
       font-size: 11px;
       color: #c7d2ff;
       line-height: 1.35;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
-    .info-body div {
+    .info-body div.row {
       display: flex;
       justify-content: space-between;
       gap: 8px;
@@ -259,6 +262,17 @@
     .info-body span.value {
       font-variant-numeric: tabular-nums;
       color: #e5e7ff;
+      text-align: right;
+    }
+    .info-body .raw {
+      margin-top: 4px;
+      font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 10px;
+      color: #9ca3c9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0.9;
     }
 
     .loading-overlay {
@@ -373,6 +387,8 @@ function rgbToRgbaString({r,g,b}, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
+// Full Stars.dat parser based on Stars.hdr schema
+// SAO  RA  Dec  RA_Mot  Dec_Mot  Mag  B-V  Sp  RadVel  Dist  Name...
 function parseStarsFromDatText(text, maxCount = 15000) {
   if (!text) return [];
   const lines = text.split(/\r?\n/);
@@ -382,24 +398,51 @@ function parseStarsFromDatText(text, maxCount = 15000) {
     if (!line) continue;
     const trimmed = line.trim();
     if (!trimmed) continue;
-    if (trimmed[0] === ";" || isNaN(parseInt(trimmed[0], 10))) {
-      continue;
-    }
+    // skip headers (non-digit first char or '------')
+    if (!/^[0-9]/.test(trimmed[0])) continue;
+
     const parts = trimmed.split(/\s+/);
-    if (parts.length < 8) continue;
-    const sao = parts[0];
-    const raStr = parts[1];
-    const decStr = parts[2];
-    const mag = parseFloat(parts[5]);
-    const sp = parts[7] || "";
+    if (parts.length < 10) continue;
+
+    const sao    = parts[0];
+    const raHms  = parts[1];
+    const decDms = parts[2];
+    const raMot  = parseFloat(parts[3]);
+    const decMot = parseFloat(parts[4]);
+    const mag    = parseFloat(parts[5]);
+    const bv     = parseFloat(parts[6]);
+    const sp     = parts[7] || "";
+    const radVel = parseFloat(parts[8]);
+    const dist   = parseFloat(parts[9]);
+
+    const name   = parts.slice(10).join(" ").replace(/\|+$/, "").trim();
+
     if (!isFinite(mag)) continue;
 
-    const raDeg = parseSexagesimalRA(raStr);
-    const decDeg = parseSexagesimalDec(decStr);
-    const col = spectralToRGB(sp);
-    const phase = Math.random() * Math.PI * 2;
+    const raDeg  = parseSexagesimalRA(raHms);
+    const decDeg = parseSexagesimalDec(decDms);
+    const col    = spectralToRGB(sp);
+    const phase  = Math.random() * Math.PI * 2;
 
-    stars.push({ id: sao, raDeg, decDeg, mag, sp, rgb: col, phase });
+    stars.push({
+      id: sao,
+      raHms,
+      decDms,
+      raDeg,
+      decDeg,
+      pmRa: isFinite(raMot) ? raMot : null,
+      pmDec: isFinite(decMot) ? decMot : null,
+      mag,
+      bv: isFinite(bv) ? bv : null,
+      sp,
+      radVel: isFinite(radVel) ? radVel : null,
+      dist: isFinite(dist) ? dist : null,
+      name: name || null,
+      rgb: col,
+      phase,
+      raw: trimmed
+    });
+
     if (stars.length >= maxCount) break;
   }
   return stars;
@@ -441,6 +484,7 @@ function StarCanvas({ stars, settings, onSelectStar }) {
       const height = rect.height;
 
       ctx.clearRect(0, 0, width, height);
+
       const maxStarsToDraw = Math.min(settings.starCount, stars.length);
       const magLimit = settings.magLimit;
       const baseMaxSize = settings.maxSize;
@@ -457,8 +501,6 @@ function StarCanvas({ stars, settings, onSelectStar }) {
         const magFactor = Math.max(0, 8 - star.mag);
         const coreSize = Math.max(0.4, baseMaxSize * (magFactor / 8));
         const haloSize = coreSize * (2.0 + 0.7 * fuzzIntensity);
-
-        // make flicker a bit more visible
         const flicker = 0.6 + 0.5 * Math.sin(time * 2.3 + star.phase);
 
         const haloR = haloSize * flicker;
@@ -507,9 +549,7 @@ function StarCanvas({ stars, settings, onSelectStar }) {
           best = p.star;
         }
       }
-      if (best) {
-        onSelectStar(best);
-      }
+      if (best) onSelectStar(best);
     }
 
     canvas.addEventListener("click", handleClick);
@@ -725,30 +765,77 @@ function App() {
                 <div className="info-title">Focus</div>
                 {!selectedStar && (
                   <div className="info-body">
-                    Click on a star to lock focus and inspect its catalog fields.
+                    Click on a star to inspect all catalog fields from <code>Stars.dat</code>.
                   </div>
                 )}
                 {selectedStar && (
                   <div className="info-body">
-                    <div>
-                      <span>ID</span>
+                    <div className="row">
+                      <span>ID (SAO)</span>
                       <span className="value">{selectedStar.id}</span>
                     </div>
-                    <div>
+                    {selectedStar.name && (
+                      <div className="row">
+                        <span>Name / Bayer / ADS</span>
+                        <span className="value">{selectedStar.name}</span>
+                      </div>
+                    )}
+                    <div className="row">
                       <span>Mag</span>
                       <span className="value">{selectedStar.mag.toFixed(2)}</span>
                     </div>
-                    <div>
+                    {selectedStar.bv != null && (
+                      <div className="row">
+                        <span>B−V</span>
+                        <span className="value">{selectedStar.bv.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="row">
+                      <span>Spectral</span>
+                      <span className="value">{selectedStar.sp || "—"}</span>
+                    </div>
+                    <div className="row">
+                      <span>RA (hms)</span>
+                      <span className="value">{selectedStar.raHms}</span>
+                    </div>
+                    <div className="row">
+                      <span>Dec (dms)</span>
+                      <span className="value">{selectedStar.decDms}</span>
+                    </div>
+                    <div className="row">
                       <span>RA (deg)</span>
                       <span className="value">{selectedStar.raDeg.toFixed(3)}</span>
                     </div>
-                    <div>
+                    <div className="row">
                       <span>Dec (deg)</span>
                       <span className="value">{selectedStar.decDeg.toFixed(3)}</span>
                     </div>
-                    <div>
-                      <span>Sp</span>
-                      <span className="value">{selectedStar.sp || "—"}</span>
+                    {selectedStar.pmRa != null && (
+                      <div className="row">
+                        <span>μ<sub>RA</sub></span>
+                        <span className="value">{selectedStar.pmRa.toFixed(3)}</span>
+                      </div>
+                    )}
+                    {selectedStar.pmDec != null && (
+                      <div className="row">
+                        <span>μ<sub>Dec</sub></span>
+                        <span className="value">{selectedStar.pmDec.toFixed(3)}</span>
+                      </div>
+                    )}
+                    {selectedStar.radVel != null && (
+                      <div className="row">
+                        <span>Radial vel.</span>
+                        <span className="value">{selectedStar.radVel.toFixed(0)}</span>
+                      </div>
+                    )}
+                    {selectedStar.dist != null && (
+                      <div className="row">
+                        <span>Distance</span>
+                        <span className="value">{selectedStar.dist.toFixed(0)}</span>
+                      </div>
+                    )}
+                    <div className="raw" title={selectedStar.raw}>
+                      Row: {selectedStar.raw}
                     </div>
                   </div>
                 )}
