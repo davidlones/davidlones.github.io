@@ -1,321 +1,416 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="cosmic">
+<html lang="en" data-theme="dark">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Sol-37 Observatory • Interactive Star Map</title>
-  <meta name="color-scheme" content="dark light" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Interactive Star Map • Sol-37</title>
+<meta name="color-scheme" content="dark light" />
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #0e152b;
+    --panel: #111a33;
+    --panel-2: #0c1330;
+    --text: #e8eefc;
+    --muted: #9aa7cc;
+    --accent: #6df3ff;
+    --accent-2: #9bf5a5;
+    --warn: #ffd166;
+    --err: #ff6b6b;
+    --border: #1d2748;
+    --glass: 14px;
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  [data-theme="light"] {
+    --bg: #e6edf7;
+    --bg-soft: #eef3fb;
+    --panel: #ffffff;
+    --panel-2: #f7faff;
+    --text: #0a1330;
+    --muted: #4a5480;
+    --accent: #0078ff;
+    --accent-2: #0aa36c;
+    --warn: #aa7a00;
+    --err: #b60d2c;
+    --border: #d7e0f2;
+    --shadow: 0 8px 22px rgba(9,16,48,.12), inset 0 1px 0 rgba(255,255,255,.6);
+  }
 
-  <!-- React + Babel (runtime compilation for your JSX) -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+  * { box-sizing: border-box }
+  html, body { height: 100%; }
+  body {
+    margin: 0; color: var(--text); background: var(--bg);
+    font: 14px/1.35 ui-sans-serif, system-ui, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+    overflow: hidden;
+  }
 
-  <style>
-    :root {
-      --bg-0: #0a0f1e;       /* deep space */
-      --bg-1: #111830;       /* panel */
-      --ink:  #dfe7ff;       /* text */
-      --muted:#9eb3ff;       /* subtext */
-      --acc-1:#73e8ff;       /* accent cyan */
-      --acc-2:#caa7ff;       /* accent violet */
-      --ring : rgba(115,232,255,.35);
-      --glow : 0 0 30px rgba(115,232,255,.25), 0 0 80px rgba(202,167,255,.2);
-      --panel-radius: 14px;
-      --pad: 12px;
-      --hdr-h: 52px;
-    }
-    [data-theme="classic"]{
-      --bg-0:#001022;
-      --bg-1:#0b1a33;
-      --ink:#e8f1ff;
-      --muted:#9ac3ff;
-      --acc-1:#48d1ff;
-      --acc-2:#b999ff;
-      --ring:rgba(72,209,255,.4);
-    }
+  /* Subtle animated starfield background */
+  .space {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(2px 2px at 20% 30%, #ffffffa0, transparent 40%),
+      radial-gradient(1.2px 1.2px at 60% 70%, #a5d3ffb0, transparent 40%),
+      radial-gradient(1.5px 1.5px at 80% 20%, #fddba8a0, transparent 40%),
+      radial-gradient(1px 1px at 30% 85%, #ffffff80, transparent 40%),
+      radial-gradient(1.6px 1.6px at 75% 45%, #9bf5a580, transparent 40%),
+      radial-gradient(1px 1px at 45% 10%, #ffffff70, transparent 40%),
+      linear-gradient(180deg, transparent 0%, rgba(109,243,255,0.05) 100%);
+    filter: drop-shadow(0 0 2px rgba(255,255,255,.12));
+    animation: drift 120s linear infinite;
+    opacity: .65;
+  }
+  @keyframes drift {
+    0% { transform: translateY(0) }
+    100% { transform: translateY(-240px) }
+  }
 
-    html, body {
-      height: 100%; margin: 0; overflow: hidden; background: var(--bg-0); color: var(--ink);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-    }
+  /* App chrome */
+  .chrome {
+    position: relative; z-index: 1; display: grid; grid-template-rows: auto auto 1fr auto;
+    height: 100%; gap: 10px; padding: 12px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,.02) 60%, transparent);
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius);
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .titlebar h1 {
+    margin: 0; font-size: 15px; letter-spacing: .4px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .titlebar .badge {
+    padding: 2px 8px; border-radius: 999px; background: #00000012; color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .spacer { flex: 1 }
 
-    /* Animated starfield canvas behind everything */
-    .space {
-      position: fixed; inset: 0; z-index: 0;
-      background:
-        radial-gradient(1200px 800px at 20% 10%, rgba(115,232,255,.08), transparent 60%),
-        radial-gradient(900px 700px at 80% 80%, rgba(202,167,255,.08), transparent 60%),
-        linear-gradient(180deg, #030711 0%, #0a0f1e 60%, #0b1126 100%);
-    }
-    .twinkle { position: absolute; inset: 0; pointer-events: none; }
-    .twinkle::before, .twinkle::after {
-      content: ""; position: absolute; inset: 0; background-image:
-        radial-gradient(2px 2px at 12% 20%, #fff 40%, transparent 60%),
-        radial-gradient(1px 1px at 22% 66%, #fff 50%, transparent 70%),
-        radial-gradient(1.5px 1.5px at 72% 30%, #fff 50%, transparent 70%),
-        radial-gradient(1px 1px at 44% 84%, #fff 50%, transparent 70%),
-        radial-gradient(2px 2px at 86% 48%, #fff 50%, transparent 70%);
-      opacity: .55; animation: twinkle 6s linear infinite;
-    }
-    .twinkle::after { animation-duration: 9s; opacity: .35; }
-    @keyframes twinkle { 0%,100%{opacity:.25} 50%{opacity:.7} }
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 10px; border-radius: var(--radius);
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .btn, .seg {
+    display: inline-flex; align-items: center; gap: 8px; height: 34px;
+    padding: 0 12px; border-radius: 10px; cursor: pointer; user-select: none;
+    background: #00000012; color: var(--text); border: 1px solid var(--border);
+    transition: transform .06s ease, background-color .2s ease, border-color .2s ease;
+  }
+  .btn:hover, .seg:hover { background: #ffffff0e }
+  .btn:active, .seg:active { transform: translateY(1px) }
+  .btn.primary { background: linear-gradient(180deg, #2a3f7f, #1d2d5a); border-color: #2d4090; color: #eaf1ff; }
+  [data-theme="light"] .btn.primary { background: linear-gradient(180deg, #4d86ff, #2b64dd); color: #f5f8ff; border-color: #3f77f5; }
+  .seg { padding: 0 8px }
+  .seg input[type="range"]{ width: 120px }
 
-    /* Layout */
-    .chrome {
-      position: relative; z-index: 1; display: grid; grid-template-rows: var(--hdr-h) 1fr;
-      height: 100%;
-      backdrop-filter: saturate(115%);
-    }
-    .hdr {
-      display: grid; grid-template-columns: 1fr auto; align-items: center;
-      gap: 8px; height: var(--hdr-h); padding: 0 calc(var(--pad) + 4px);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border-bottom: 1px solid rgba(115,232,255,.15);
-      box-shadow: inset 0 -1px 0 rgba(202,167,255,.08);
-    }
-    .brand {
-      display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.3px;
-    }
-    .brand .badge {
-      width: 28px; height: 28px; border-radius: 8px;
-      background: radial-gradient(circle at 35% 35%, var(--acc-1), transparent 60%),
-                  radial-gradient(circle at 70% 70%, var(--acc-2), transparent 60%),
-                  #081226;
-      box-shadow: var(--glow);
-      border: 1px solid var(--ring);
-    }
-    .brand small { color: var(--muted); font-weight: 500; opacity:.9; }
+  .viewport {
+    position: relative; min-height: 0;
+    border-radius: var(--radius); overflow: clip;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    background: radial-gradient(1200px 800px at 50% 20%, #1b2547 20%, rgba(27,37,71,.4), transparent 70%), var(--bg-soft);
+  }
+  .glass {
+    position: absolute; inset: 0; backdrop-filter: blur(0px) saturate(120%) contrast(102%);
+  }
+  .root {
+    position: relative; z-index: 1; width: 100%; height: 100%;
+  }
 
-    .tools {
-      display:flex; gap:8px; align-items:center;
-    }
-    .btn {
-      display:inline-flex; align-items:center; gap:8px;
-      border: 1px solid rgba(115,232,255,.25);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      color: var(--ink); padding: 8px 12px; border-radius: 10px; cursor: pointer;
-      user-select:none; transition: transform .06s ease, border-color .2s ease, box-shadow .2s ease;
-    }
-    .btn:hover { border-color: var(--acc-1); box-shadow: 0 0 0 2px rgba(115,232,255,.15); }
-    .btn:active { transform: translateY(1px); }
+  /* Loading & error overlays */
+  .overlay {
+    position: absolute; inset: 0; display: grid; place-items: center; z-index: 2;
+    background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.2));
+    color: var(--text);
+  }
+  .card {
+    padding: 16px 18px; border-radius: 14px;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    max-width: min(720px, 90vw);
+  }
+  .spinner {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 3px solid #ffffff25; border-right-color: var(--accent); margin-right: 10px; animation: spin .9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg) } }
 
-    .stage {
-      position: relative; display: grid; grid-template-columns: minmax(0,1fr) 320px;
-      gap: 12px; padding: 12px; height: calc(100% - env(safe-area-inset-bottom, 0px));
-    }
-    .canvas-wrap {
-      position: relative; border-radius: var(--panel-radius);
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-      border: 1px solid rgba(115,232,255,.2); box-shadow: var(--glow);
-      overflow: clip;
-    }
-    /* Mount target for your React app */
-    #root { position:absolute; inset:0; }
+  .statusbar {
+    display: flex; align-items: center; gap: 10px; min-height: 34px;
+    padding: 6px 10px; border-radius: var(--radius);
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    color: var(--muted);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+  .pill { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); background: #00000010; }
 
-    .panel {
-      display:flex; flex-direction: column; min-width: 260px;
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border: 1px solid rgba(115,232,255,.2); border-radius: var(--panel-radius);
-      padding: var(--pad);
-      box-shadow: 0 10px 40px rgba(0,0,0,.25);
-      overflow: hidden;
-    }
-    .panel h3 { margin: 2px 0 8px; font-size: 14px; letter-spacing:.4px; color: var(--muted); }
-    .panel .meta { margin-top: 6px; font-size: 12px; color: var(--muted); opacity:.9; }
-    .panel .sep { height: 1px; margin: 10px 0; background: linear-gradient(90deg, transparent, rgba(115,232,255,.25), transparent); }
+  /* Compact on phones */
+  @media (max-width: 640px) {
+    .titlebar, .toolbar, .statusbar { border-radius: 12px }
+    .btn, .seg { height: 32px }
+    .seg input[type="range"]{ width: 90px }
+  }
+</style>
 
-    /* Overlays */
-    .overlay {
-      position: absolute; inset: 0; display: grid; place-items: center;
-      background: radial-gradient(1200px 800px at 50% 50%, rgba(10,15,30,.9), rgba(10,15,30,.6) 60%, rgba(10,15,30,0) 100%);
-      z-index: 5; transition: opacity .25s ease;
-    }
-    .overlay.hidden { opacity: 0; pointer-events: none; }
-    .loader {
-      display:flex; flex-direction:column; align-items:center; gap:10px;
-      padding: 18px 22px; border-radius: 12px; border: 1px solid var(--ring);
-      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-      box-shadow: var(--glow);
-    }
-    .dots { letter-spacing: 2px; color: var(--muted); }
-    .ring {
-      width: 46px; height: 46px; border-radius: 50%;
-      border: 2px solid rgba(115,232,255,.2);
-      border-top-color: var(--acc-1); border-right-color: var(--acc-2);
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .toast {
-      position: absolute; left: 16px; right: 16px; bottom: 16px; z-index: 6;
-      display:none; padding: 12px 14px; border-radius: 10px; font-size: 14px;
-      border: 1px solid rgba(255,115,115,.35); color: #ffdede;
-      background: linear-gradient(180deg, rgba(255,80,80,.12), rgba(255,80,80,.06));
-      box-shadow: 0 8px 30px rgba(0,0,0,.35);
-    }
-    .toast.show { display:block; }
-
-    /* tiny help list */
-    .help-list { margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.45; color: var(--muted); }
-    .help-list li { margin: 4px 0; }
-
-    /* Responsive: collapse side panel */
-    @media (max-width: 1000px) {
-      .stage { grid-template-columns: 1fr; }
-      .panel { position: absolute; right: 12px; top: calc(var(--hdr-h) + 12px); width: min(92vw, 360px); max-height: 74vh; overflow: auto; display: none; z-index: 3; }
-      .panel.open { display: flex; }
-    }
-  </style>
+<!-- CDN: React & Babel (runtime-transform the uploaded JSX) -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
 </head>
 <body>
-  <div class="space"><div class="twinkle"></div></div>
+  <div class="space" aria-hidden="true"></div>
 
   <div class="chrome">
-    <header class="hdr">
-      <div class="brand">
-        <div class="badge" aria-hidden="true"></div>
-        <div>
-          Sol-37 Observatory<br />
-          <small>Interactive Star Map</small>
-        </div>
-      </div>
-      <div class="tools">
-        <button class="btn" id="btn-theme" title="Toggle theme">🌗 Theme</button>
-        <button class="btn" id="btn-panel" title="Toggle details">☰ Details</button>
-        <button class="btn" id="btn-full" title="Fullscreen">⛶ Fullscreen</button>
-        <a class="btn" href="interactive_star_map_v_2_react_web_app.jsx" target="_blank" rel="noopener">JSX</a>
-      </div>
-    </header>
+    <div class="titlebar">
+      <h1>
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M12 2a1 1 0 0 1 .9.56l1.7 3.45 3.81.55a1 1 0 0 1 .55 1.7l-2.75 2.68.65 3.8a1 1 0 0 1-1.45 1.05L12 14.9l-3.41 1.79a1 1 0 0 1-1.45-1.06l.65-3.8L5.04 8.26a1 1 0 0 1 .55-1.7l3.81-.55L11.1 2.56A1 1 0 0 1 12 2Z"/>
+        </svg>
+        Interactive Star Map
+      </h1>
+      <span class="badge">Sol-37</span>
+      <div class="spacer"></div>
+      <button id="themeBtn" class="btn" title="Toggle theme (T)">Theme</button>
+      <button id="fitBtn" class="btn" title="Fit to view (F)">Fit</button>
+      <button id="resetBtn" class="btn" title="Reset (R)">Reset</button>
+      <button id="aboutBtn" class="btn primary" title="About">About</button>
+    </div>
 
-    <main class="stage">
-      <section class="canvas-wrap" id="wrap">
-        <!-- Loading/Error overlays -->
-        <div class="overlay" id="loading">
-          <div class="loader">
-            <div class="ring" aria-hidden="true"></div>
-            <div class="dots">Loading star map…</div>
+    <div class="toolbar">
+      <div class="seg" title="Zoom">
+        <span>Zoom</span>
+        <input id="zoomRange" type="range" min="0.25" max="2.5" step="0.01" value="1" />
+        <span id="zoomLabel" class="pill">100%</span>
+      </div>
+      <div class="seg" title="Quality">
+        <span>Quality</span>
+        <select id="qualitySel">
+          <option value="high">High</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="seg" title="Show grid">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input id="gridChk" type="checkbox" checked /> Grid
+        </label>
+      </div>
+      <div class="spacer"></div>
+      <div class="seg pill" id="fpsPill" title="Approx FPS">FPS: --</div>
+    </div>
+
+    <div class="viewport">
+      <div id="overlay" class="overlay" role="status" aria-live="polite">
+        <div class="card" style="display:flex;align-items:center;gap:12px">
+          <div class="spinner"></div>
+          <div>
+            <strong>Loading Star Map…</strong>
+            <div id="overlayMsg" style="color:var(--muted);margin-top:4px">Fetching JSX & spinning up Babel</div>
           </div>
         </div>
-        <div class="toast" id="toast" role="alert"></div>
+      </div>
+      <div class="glass"></div>
+      <div id="root" class="root" aria-label="Interactive Star Map root"></div>
+    </div>
 
-        <!-- React mount -->
-        <div id="root" aria-live="polite" aria-busy="true"></div>
-      </section>
-
-      <aside class="panel" id="side">
-        <h3>Mission Control</h3>
-        <div class="meta">Wrapper UI • polished chrome for your map</div>
-        <div class="sep"></div>
-
-        <h3>Quick Tips</h3>
-        <ul class="help-list">
-          <li>Use your app’s built-in controls for navigation.</li>
-          <li>Resize the Sol-37 window or hit ⛶ Fullscreen for more sky.</li>
-          <li>Switch between <em>Cosmic</em> and <em>Classic</em> themes with 🌗.</li>
-        </ul>
-
-        <div class="sep"></div>
-        <h3>Status</h3>
-        <div class="meta" id="status">Initializing…</div>
-      </aside>
-    </main>
+    <div class="statusbar" id="statusbar">
+      <div class="dot" id="statusDot"></div>
+      <div id="statusText" class="pill" title="App status">Initializing…</div>
+      <div class="spacer"></div>
+      <div id="dimText" class="pill">0 × 0</div>
+      <div id="qualityText" class="pill">Balanced</div>
+    </div>
   </div>
 
-  <!-- Your JSX app (compiled at runtime by Babel) -->
-  <script type="text/babel" data-presets="react" src="interactive_star_map_v_2_react_web_app.jsx"></script>
+<script>
+(function(){
+  const ROOT = document.getElementById('root');
+  const overlay = document.getElementById('overlay');
+  const overlayMsg = document.getElementById('overlayMsg');
+  const statusText = document.getElementById('statusText');
+  const statusDot = document.getElementById('statusDot');
+  const dimText = document.getElementById('dimText');
+  const qualityText = document.getElementById('qualityText');
+  const zoomRange = document.getElementById('zoomRange');
+  const zoomLabel = document.getElementById('zoomLabel');
+  const qualitySel = document.getElementById('qualitySel');
+  const gridChk = document.getElementById('gridChk');
+  const fpsPill = document.getElementById('fpsPill');
+  const fitBtn = document.getElementById('fitBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const themeBtn = document.getElementById('themeBtn');
+  const aboutBtn = document.getElementById('aboutBtn');
 
-  <script>
-    (function(){
-      const $ = s => document.querySelector(s);
+  const JSX_PATH = 'interactive_star_map_v_2_react_web_app.jsx'; // same folder as wrapper
 
-      // Theme toggle
-      const btnTheme = $('#btn-theme');
-      btnTheme.addEventListener('click', () => {
-        const html = document.documentElement;
-        html.setAttribute('data-theme', html.getAttribute('data-theme') === 'cosmic' ? 'classic' : 'cosmic');
-      });
+  const setOverlay = (on, msg) => {
+    overlay.style.display = on ? 'grid' : 'none';
+    if (msg) overlayMsg.textContent = msg;
+  };
+  const setStatus = (txt, color) => {
+    statusText.textContent = txt ?? '';
+    statusDot.style.background = color || 'var(--accent)';
+    statusDot.style.boxShadow = `0 0 10px ${getComputedStyle(statusDot).backgroundColor}`;
+  };
 
-      // Details panel toggle (collapses on mobile)
-      const btnPanel = $('#btn-panel');
-      const side = $('#side');
-      btnPanel.addEventListener('click', () => {
-        side.classList.toggle('open');
-      });
-
-      // Fullscreen (wrapper section so ESC exits cleanly inside Sol-37 window)
-      const btnFull = $('#btn-full');
-      const wrap = $('#wrap');
-      btnFull.addEventListener('click', async () => {
-        try {
-          if (!document.fullscreenElement) {
-            await wrap.requestFullscreen();
-          } else {
-            await document.exitFullscreen();
-          }
-        } catch (e) {
-          toast('Fullscreen not available in this context.');
-        }
-      });
-
-      // Loading -> hide when React paints something
-      const loading = $('#loading');
-      const root = $('#root');
-      const status = $('#status');
-
-      // Safety timeout in case JSX throws before mount
-      const failTimer = setTimeout(() => {
-        if (!root.firstChild) {
-          loading.classList.add('hidden');
-          toast('Failed to mount the star map. Check the console for errors.');
-          status.textContent = 'Mount failed. See console.';
-        }
-      }, 7000);
-
-      const obs = new MutationObserver(() => {
-        if (root.firstChild) {
-          clearTimeout(failTimer);
-          loading.classList.add('hidden');
-          root.setAttribute('aria-busy', 'false');
-          status.textContent = 'Online • rendering…';
-          obs.disconnect();
-        }
-      });
-      obs.observe(root, { childList: true, subtree: true });
-
-      // Tiny FPS-ish heartbeat for fun (does not hook your app)
-      let frames = 0, last = performance.now();
-      function beat(now){
-        frames++;
-        if (now - last > 1000) {
-          const fps = frames; frames = 0; last = now;
-          status.textContent = `Online • ~${fps} fps`;
-        }
-        requestAnimationFrame(beat);
+  // FPS meter (approx)
+  (function fpsMeter(){
+    let last = performance.now(), frames = 0, acc = 0;
+    function tick(now){
+      frames++;
+      const dt = now - last; last = now; acc += dt;
+      if (acc >= 500) { // update twice/sec
+        const fps = Math.round(frames * 1000 / acc);
+        fpsPill.textContent = `FPS: ${String(fps).padStart(2,' ')}`;
+        frames = 0; acc = 0;
       }
-      requestAnimationFrame(beat);
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
 
-      // Toast helper
-      function toast(msg){
-        const t = $('#toast');
-        t.textContent = msg;
-        t.classList.add('show');
-        setTimeout(()=> t.classList.remove('show'), 4000);
+  // Theme toggle + shortcuts
+  function toggleTheme(){
+    const html = document.documentElement;
+    html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  }
+  themeBtn.addEventListener('click', toggleTheme);
+  aboutBtn.addEventListener('click', ()=> alert('Interactive Star Map\nSol-37 wrapper\n— GPU-friendly, themeable, and resilient loader.'));
+
+  // Size tracking (pass to app as props)
+  const ro = new ResizeObserver(() => {
+    const r = ROOT.getBoundingClientRect();
+    dimText.textContent = `${Math.round(r.width)} × ${Math.round(r.height)}`;
+    if (window.__StarMap_setSize) window.__StarMap_setSize({ width: r.width, height: r.height });
+  });
+  ro.observe(ROOT);
+
+  // Controls -> props bridge
+  let currentProps = {
+    zoom: parseFloat(zoomRange.value),
+    quality: qualitySel.value,
+    showGrid: gridChk.checked
+  };
+  zoomRange.addEventListener('input', ()=> {
+    currentProps.zoom = parseFloat(zoomRange.value);
+    zoomLabel.textContent = Math.round(currentProps.zoom * 100) + '%';
+    if (window.__StarMap_setProps) window.__StarMap_setProps({ zoom: currentProps.zoom });
+  });
+  qualitySel.addEventListener('change', ()=> {
+    currentProps.quality = qualitySel.value;
+    qualityText.textContent = qualitySel.options[qualitySel.selectedIndex].textContent;
+    if (window.__StarMap_setProps) window.__StarMap_setProps({ quality: currentProps.quality });
+  });
+  gridChk.addEventListener('change', ()=> {
+    currentProps.showGrid = gridChk.checked;
+    if (window.__StarMap_setProps) window.__StarMap_setProps({ showGrid: currentProps.showGrid });
+  });
+
+  fitBtn.addEventListener('click', ()=> {
+    currentProps.zoom = 1;
+    zoomRange.value = '1'; zoomLabel.textContent = '100%';
+    if (window.__StarMap_fit) window.__StarMap_fit();
+  });
+  resetBtn.addEventListener('click', ()=> {
+    currentProps = { zoom: 1, quality: 'balanced', showGrid: true };
+    zoomRange.value = '1'; zoomLabel.textContent = '100%';
+    qualitySel.value = 'balanced'; qualityText.textContent = 'Balanced';
+    gridChk.checked = true;
+    if (window.__StarMap_reset) window.__StarMap_reset();
+    if (window.__StarMap_setProps) window.__StarMap_setProps(currentProps);
+  });
+
+  // Keyboard shortcuts
+  window.addEventListener('keydown', (e)=>{
+    if (e.key === 't' || e.key === 'T') toggleTheme();
+    if (e.key === 'f' || e.key === 'F') fitBtn.click();
+    if (e.key === 'r' || e.key === 'R') resetBtn.click();
+  });
+
+  // Mount React app: resilient to different export styles
+  async function mountApp(){
+    try{
+      setOverlay(true, 'Fetching JSX…');
+      const res = await fetch(JSX_PATH, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status} while fetching ${JSX_PATH}`);
+      const code = await res.text();
+
+      setOverlay(true, 'Transpiling with Babel…');
+      const transformed = Babel.transform(code, { presets: ['react'], sourceType: 'unambiguous' }).code;
+
+      // Sandboxed evaluation to capture CommonJS/ESM/global
+      const exportsBox = { exports: {} };
+      const moduleBox = { exports: {} };
+      const fn = new Function('React','exports','module', transformed + '\n;return module.exports ?? exports;');
+      const result = fn(window.React, exportsBox.exports, moduleBox);
+      const Comp =
+        (result && (result.default || result)) ||
+        (moduleBox.exports && (moduleBox.exports.default || moduleBox.exports)) ||
+        window.InteractiveStarMap || window.default;
+
+      if (typeof Comp !== 'function' && typeof Comp !== 'object') {
+        throw new Error('Could not find exported React component. Export a component as default or named.');
       }
 
-      // Friendly console note
-      console.info('%cSol-37 Observatory wrapper ready.', 'color:#73e8ff; font-weight:700;');
+      setOverlay(true, 'Rendering…');
 
-      // If Babel fails to fetch JSX, show a gentle notice
-      window.addEventListener('error', (e)=>{
-        if (String(e?.message||'').toLowerCase().includes('loading') ||
-            String(e?.message||'').toLowerCase().includes('script error')) {
-          loading.classList.add('hidden');
-          toast('Could not load the JSX file. Ensure it lives at programs/interactive_star_map_v_2_react_web_app.jsx');
-          status.textContent = 'Resource missing.';
+      // Provide wrapper → app bridge via props + imperative helpers
+      const root = ReactDOM.createRoot(ROOT);
+      const bridge = {
+        onStatus: (msg, level='info') => {
+          setStatus(msg, level === 'error' ? 'var(--err)' : level === 'warn' ? 'var(--warn)' : 'var(--accent)');
+        },
+        registerImperatives: (api={}) => {
+          // optional methods your JSX can expose
+          window.__StarMap_fit   = api.fit    || window.__StarMap_fit;
+          window.__StarMap_reset = api.reset  || window.__StarMap_reset;
+          window.__StarMap_setProps = api.setProps || window.__StarMap_setProps;
+          window.__StarMap_setSize  = api.setSize  || window.__StarMap_setSize;
         }
-      }, true);
-    })();
-  </script>
+      };
+
+      // Default fallbacks if not registered by the app
+      window.__StarMap_fit = window.__StarMap_fit || function(){};
+      window.__StarMap_reset = window.__StarMap_reset || function(){};
+      window.__StarMap_setProps = window.__StarMap_setProps || function(){};
+      window.__StarMap_setSize = window.__StarMap_setSize || function(){};
+
+      root.render(React.createElement(Comp, {
+        width: ROOT.clientWidth,
+        height: ROOT.clientHeight,
+        zoom: currentProps.zoom,
+        quality: currentProps.quality,
+        showGrid: currentProps.showGrid,
+        onStatus: bridge.onStatus,
+        wrapperBridge: bridge
+      }));
+
+      setStatus('Ready');
+      setOverlay(false);
+    } catch (err){
+      console.error(err);
+      setOverlay(true);
+      overlay.innerHTML = `
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div class="spinner" style="border-right-color:var(--err)"></div>
+            <strong>Failed to load Star Map</strong>
+          </div>
+          <div style="color:var(--muted);white-space:pre-wrap">${(err && err.message) || err}</div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" onclick="location.reload()">Reload</button>
+            <button class="btn" onclick="navigator.clipboard.writeText('${JSX_PATH}').then(()=>alert('Path copied'));">Copy JSX path</button>
+          </div>
+        </div>`;
+      setStatus('Error loading Star Map', 'error');
+    }
+  }
+
+  mountApp();
+})();
+</script>
 </body>
 </html>
