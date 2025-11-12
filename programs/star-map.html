@@ -152,50 +152,67 @@
 
     function normalizeText(s){
       return String(s||'')
-        .replace(/\s+/g,' ')
+        .replace(/\s+/g,' ')                // compact spacing
         .replace(/:\s+/g,': ')
         .trim();
     }
 
-    // Used only to *find* likely object blocks
-    const keepRe = /\b(RA|Right Asc|Dec|Decl?\.?|mag|magnitude|B-?V|class|spectral|type|dist(ance)?|pc|ly|parallax|z=|radial|velocity|size|diam|constellation|NGC|IC|Messier|M\d+|HIP|HR|HD|SAO)\b/i;
-    // Used to DROP obvious UI / instructions, but **not** descriptions
-    const dropRe = /\b(Pan\/zoom|RA increases to the left|Click objects|View|Equatorial|Galactic|Animate|Reset View|Max size|Stars|Galaxy|Globular|Open cluster|Nebula|Planetary|Double star|Load catalog|Use Demo|Paste data|Parse data|Drop file|Choose File)\b/i;
+    // Keep only lines that look like object data
+    const keepRe = /\b(RA|Right Asc|Dec|Decl?\.?|mag|magnitude|B-?V|class|spectral|type|dist(ance)?|pc|ly|parallax|z=|radial|velocity|size|diam|constellation|NGC|IC|Messier|M\d+|HIP|HR|HD|SAO|HIP|Altair|Vega|Sirius)\b/i;
+    const dropRe = /\b(Pan\/zoom|RA increases to the left|Click objects|View|Equatorial|Galactic|Animate|Reset View|Max size|Stars|Galaxy|Globular|Open|Nebula|Planetary|Double|Load|Use Demo|Paste|Parse|Drop|Choose File)\b/i;
 
     function extractDetailFromDom(){
-      // look for small-ish blocks with lots of object-y tokens
-      const blocks = [...document.querySelectorAll('#root p, #root pre, #root div')]
-        .filter(el => el.offsetParent !== null && el.textContent && el.textContent.length < 2000)
-        .map(el => {
-          const txt = el.textContent;
-          const keep = (txt.match(keepRe)||[]).length;
-          const drop = dropRe.test(txt) ? 2 : 0;
-          return {el, score: keep - drop, txt};
-        })
-        .filter(x => x.score > 0)
-        .sort((a,b)=> b.score - a.score);
+      // First, try to read from the app's own picked-object detail card.
+      const visibleDivs = [...document.querySelectorAll('#root div')].filter(
+        el => el.offsetParent !== null && (el.textContent || '').trim().length
+      );
 
-      const raw = blocks[0]?.txt || '';
+      const card = visibleDivs.find(el => {
+        const t = el.textContent || '';
+        // The React app's card always includes Coords (RA/Dec) and Magnitude lines.
+        return /Coords\s*\(RA\/Dec\)/.test(t) && /Magnitude/i.test(t);
+      });
+
+      let raw = '';
+      if (card) {
+        raw = card.textContent || card.innerText || '';
+      } else {
+        // Fallback: heuristic scan over visible text blocks (older behavior).
+        const blocks = visibleDivs
+          .map(el => {
+            const txt = el.textContent;
+            const keep = (txt.match(keepRe) || []).length;
+            const drop = dropRe.test(txt) ? 3 : 0;
+            return { el, score: keep - drop, txt };
+          })
+          .filter(x => x.score > 0)
+          .sort((a,b)=> b.score - a.score);
+
+        raw = blocks[0]?.txt || '';
+      }
+
       if (!raw) return '';
 
-      // Split into lines, drop only obvious UI/instruction lines, keep everything else
       const lines = raw
         .split(/[\n\r]+/)
         .map(l => normalizeText(l))
-        .filter(l => l && !dropRe.test(l));
+        .filter(l => l && keepRe.test(l) && !dropRe.test(l));
 
-      if (lines.length) {
-        // De-dup and limit a bit for sanity
-        const uniq = [];
-        for (const l of lines) {
-          if (!uniq.includes(l)) uniq.push(l);
-          if (uniq.length > 24) break;
-        }
-        return uniq.join('\n');
+      // If nothing survived filtering (e.g., fallback text), relax the filter slightly.
+      let cleaned = lines;
+      if (!cleaned.length) {
+        cleaned = raw
+          .split(/[;•]+/)
+          .map(normalizeText)
+          .filter(l => keepRe.test(l) && !dropRe.test(l));
       }
 
-      // Fallback: clean the whole block if line-based filtering failed
-      return normalizeText(raw);
+      const uniq = [];
+      for (const l of cleaned) {
+        if (!uniq.includes(l)) uniq.push(l);
+        if (uniq.length > 14) break;
+      }
+      return uniq.join('\n');
     }
 
     function showPanel(text, title='Object details'){
