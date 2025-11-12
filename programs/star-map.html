@@ -1,233 +1,51 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Interactive Star Map</title>
   <style>
-    :root {
-      --bg-0:#070913; --bg-1:#0b0d16; --fg:#e8eef9; --muted:#90a4c6;
-      --glass:rgba(15,18,30,.65); --glass-stroke:rgba(255,255,255,.15);
-      --shadow:0 10px 24px rgba(0,0,0,.45); --blur:saturate(1.15) blur(6px);
-    }
-    html,body{height:100%}
-    body{
-      margin:0;color:var(--fg);
-      font:14px/1.35 system-ui, Segoe UI, Roboto, Ubuntu, Cantarell, Helvetica, Arial, sans-serif;
-      background:
-        radial-gradient(1200px 600px at 20% -10%, #101429 0%, transparent 60%),
-        radial-gradient(900px 600px at 80% 110%, #101a33 0%, transparent 55%),
-        linear-gradient(180deg, var(--bg-0), var(--bg-1));
-      overflow:hidden;
-    }
-    .stars::before,.stars::after{
-      content:"";position:fixed;inset:0;pointer-events:none;
-      background-image:
-        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.9) 99%, transparent),
-        radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,.7) 99%, transparent),
-        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,.8) 99%, transparent),
-        radial-gradient(1px 1px at 80% 80%, rgba(255,255,255,.6) 99%, transparent),
-        radial-gradient(1px 1px at 45% 75%, rgba(255,255,255,.7) 99%, transparent);
-      background-repeat:repeat;
-      background-size:400px 400px,500px 500px,450px 450px,600px 600px,550px 550px;
-      opacity:.35;
-    }
-    .stars::after{transform:scale(1.2);opacity:.18}
-
-    #root{height:100%;display:grid}
-    .shell{position:relative;height:100%;width:100%}
-    .stage{position:relative;height:100%;width:100%;}
-
-    /* Only force-dimension the *render surface* (canvas/svg), not all children */
-    .stage canvas,
-    .stage svg{
-      position:absolute;
-      inset:0;
-      display:block !important;
-      width:100% !important;
-      height:100% !important;
-      max-width:none !important;
-      max-height:none !important;
-      z-index:1; /* under controls */
-    }
-    .stage img{
-      display:block !important;
-      width:100% !important;
-      height:auto !important;
-    }
-
-    /* Floating controls panel (we'll adopt the app's controls into this) */
-    .controls-float{
-      position:absolute;
-      inset:16px auto auto 16px;
-      z-index:3;
-      max-width:360px; max-height:60vh; overflow:auto;
-      padding:10px 12px; border-radius:12px;
-      color:var(--fg); background:var(--glass);
-      -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
-      box-shadow:var(--shadow); border:1px solid var(--glass-stroke);
-      font-size:12px;
-    }
-    .controls-float *{color:inherit}
-    .controls-float input,.controls-float select,.controls-float button{font:inherit}
-
-    .hud{
-      position:absolute; inset:16px 16px auto auto; display:grid; gap:8px; z-index:4;
-    }
-    .hud button{
-      appearance:none; border:1px solid var(--glass-stroke);
-      background:var(--glass); color:var(--fg); border-radius:10px;
-      padding:8px 10px; cursor:pointer; box-shadow:var(--shadow);
-      -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur);
-    }
-    .hud button:hover{border-color:rgba(255,255,255,.35)}
-
-    .boot{position:fixed; inset:0; display:grid; place-items:center; color:var(--muted); font-size:14px; background:linear-gradient(180deg, rgba(11,13,22,.6), rgba(11,13,22,.3)); z-index:9;}
-    .boot .card{padding:14px 16px; border-radius:12px; background:var(--glass); border:1px solid var(--glass-stroke); -webkit-backdrop-filter:var(--blur); backdrop-filter:var(--blur); box-shadow:var(--shadow);}
-
-    @media (max-width:640px){
-      .controls-float{inset:auto 12px 12px 12px; max-width:calc(100% - 24px);}
-      .hud{inset:12px 12px auto auto;}
-    }
+    html,body,#root{height:100%;margin:0;background:#0b0d16;color:#eee;font-family:system-ui,Segoe UI,Roboto,Ubuntu}
+    .boot{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;opacity:.8}
   </style>
-
+  <!-- React (UMD) + Babel standalone for on-the-fly JSX -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body class="stars">
-  <div id="root">
-    <div class="shell">
-      <div class="stage" id="stage"></div>
-
-      <div class="hud" aria-label="Wrapper HUD">
-        <button id="fit-toggle" title="Toggle fit mode (contain/fill)">Fit: contain</button>
-        <button id="controls-toggle" title="Show/Hide controls">Controls</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="boot" id="boot"><div class="card">Loading Interactive Star Map…</div></div>
+<body>
+  <div id="root"></div>
+  <div class="boot" id="boot">Loading Interactive Star Map…</div>
 
   <script>
-    (async function () {
-      const stage = document.getElementById('stage');
-      const boot  = document.getElementById('boot');
-
-      // A floating container we can adopt controls into
-      const controlsFloat = document.createElement('div');
-      controlsFloat.className = 'controls-float';
-      controlsFloat.style.display = 'none'; // hidden until we find something
-      stage.appendChild(controlsFloat);
-
-      try {
-        const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache: 'no-store' });
-        if (!resp.ok) throw new Error('HTTP ' + resp.status + ' while fetching JSX');
+    (async function(){
+      try{
+        // Fetch the uploaded JSX as-is
+        const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache:'no-store' });
         const src0 = await resp.text();
 
-        // Map ESM to UMD
+        // Patch ESM-style imports/exports → globals for UMD runtime
         let src = src0
           .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
                    "const { useEffect, useMemo, useRef, useState } = React;")
-          .replace(/\bexport\s+default\s+function\s+([A-Za-z0-9_]+)?\s*\(/,
-                   (m, name) => `function ${name || 'App'}(`)
-          .replace(/\bexport\s+default\s+([A-Za-z0-9_]+)\s*;/, 'window.__StarMapApp = $1;');
+          .replace(/\bexport\s+default\s+function\s+App\s*\(/, "function App(");
 
-        if (!/window\.__StarMapApp/.test(src)) {
-          src += `\n;window.__StarMapApp = typeof App !== 'undefined' ? App : (typeof StarMapApp !== 'undefined' ? StarMapApp : undefined);`;
-        }
-
+        // Transpile JSX → JS using Babel Standalone
         const out = Babel.transform(src, { presets: ['react'] }).code;
-        (new Function(out))();
-        if (!window.__StarMapApp) throw new Error('No default export detected (App)');
 
-        const r = ReactDOM.createRoot(stage);
-        r.render(React.createElement(window.__StarMapApp));
+        // Evaluate in this page's scope
+        (new Function(out + "\nwindow.__StarMapApp = App;"))();
 
-      } catch (err) {
-        if (boot) boot.innerHTML = `<div class="card">Failed to load the Star Map:<br><small>${(err && err.message) || err}</small></div>`;
+        // Mount
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(window.__StarMapApp));
+      }catch(err){
+        document.getElementById('boot').textContent =
+          'Failed to load the Star Map: ' + (err && err.message ? err.message : err);
         console.error(err);
         return;
       }
-
-      boot?.remove();
-
-      // --- UPDATED: heuristically find & surface controls ---------------------
-      function findControlsCandidate(root) {
-        // Prefer known classes/roles first
-        let c = root.querySelector('.controls, .toolbar, [role="toolbar"]');
-        if (c) return c;
-
-        // Heuristic: find a container with multiple interactive children
-        const inter = Array.from(root.querySelectorAll('input, select, button, textarea, [data-controls], [data-toolbar]'))
-          .filter(el => !el.closest('canvas,svg')); // ignore anything inside render surfaces
-
-        if (inter.length < 2) return null;
-
-        // Choose the shallowest common ancestor that isn't the whole stage
-        let best = null, bestDepth = Infinity;
-        inter.forEach(el => {
-          const cand = el.closest('div, section, form, aside, nav');
-          if (!cand || cand === stage) return;
-          const depth = getDepth(cand);
-          if (depth < bestDepth) { best = cand; bestDepth = depth; }
-        });
-        return best;
-
-        function getDepth(el) {
-          let d = 0, n = el;
-          while (n && n !== stage && d < 50) { n = n.parentElement; d++; }
-          return d;
-        }
-      }
-
-      function adoptControls() {
-        const candidate = findControlsCandidate(stage);
-        if (!candidate) return false;
-
-        // If candidate already wrapped, just ensure visible
-        if (candidate.parentElement === controlsFloat) {
-          controlsFloat.style.display = '';
-          return true;
-        }
-
-        // Move candidate into floating panel
-        controlsFloat.innerHTML = '';
-        controlsFloat.appendChild(candidate);
-        controlsFloat.style.display = '';
-        return true;
-      }
-
-      // Try immediately, then keep trying as the app mounts/updates
-      const tryAdopt = () => { adoptControls(); };
-      tryAdopt();
-
-      const mo = new MutationObserver(() => tryAdopt());
-      mo.observe(stage, { childList: true, subtree: true });
-
-      // --- Fit mode toggle (contain/fill) ------------------------------------
-      let fitContain = true;
-      const fitBtn = document.getElementById('fit-toggle');
-      const applyFit = () => {
-        // We emulate fit by controlling how the stage aligns content.
-        stage.style.display = 'grid';
-        stage.style.alignItems = fitContain ? 'center' : 'stretch';
-        stage.style.justifyItems = fitContain ? 'center' : 'stretch';
-        fitBtn.textContent = `Fit: ${fitContain ? 'contain' : 'fill'}`;
-      };
-      applyFit();
-      fitBtn.addEventListener('click', () => { fitContain = !fitContain; applyFit(); });
-
-      // Show/hide controls
-      document.getElementById('controls-toggle').addEventListener('click', () => {
-        controlsFloat.style.display = (controlsFloat.style.display === 'none') ? '' : 'none';
-      });
-
-      // Keep canvases crisp on resize / DPR changes
-      const handleResize = () => { window.dispatchEvent(new Event('resize')); };
-      window.addEventListener('resize', handleResize);
-      matchMedia?.(`(resolution: ${window.devicePixelRatio}dppx)`).addEventListener?.('change', handleResize);
-      // -----------------------------------------------------------------------
+      document.getElementById('boot').remove();
     })();
   </script>
 </body>
