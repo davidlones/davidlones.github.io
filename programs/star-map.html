@@ -41,6 +41,16 @@
     padding:6px 10px;border-radius:8px;cursor:pointer}
   .data-chip button:hover{filter:brightness(1.08)}
   .data-chip small{opacity:.8}
+
+  /* click detail toast */
+  .detail-toast{
+    position:fixed;left:50%;top:18px;transform:translateX(-50%);
+    z-index:22;max-width:min(720px,90vw);
+    background:#0b1224cc;border:1px solid #394a72;border-radius:12px;
+    padding:10px 14px;box-shadow:0 8px 28px #000c,inset 0 1px 0 #ffffff1a;
+    line-height:1.2;font-size:14px;display:none;white-space:pre-wrap
+  }
+  .detail-toast.show{display:block}
 </style>
 <!-- React UMD + Babel -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -50,6 +60,7 @@
 <body>
   <div id="root"></div>
   <div class="boot" id="boot">✨ Initializing Interactive Star Map…</div>
+  <div class="detail-toast" id="detailToast" aria-live="polite"></div>
 
 <script>
 (async function(){
@@ -57,7 +68,7 @@
     const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', {cache:'no-store'});
     let src = await resp.text();
 
-    // ESM → UMD globals
+    // ESM → UMD globals (non-invasive to your app code)
     src = src
       .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
         "const { useEffect,useMemo,useRef,useState } = React;")
@@ -81,7 +92,7 @@
     setTimeout(tagControls,600);
     setTimeout(tagControls,1200);
 
-    // Add a small data loader chip that pulls /dat.json and injects into "paste" area
+    // --- /dat.json loader chip (site root: davidlones.github.io/dat.json) ---
     const chip = document.createElement('div');
     chip.className = 'data-chip';
     chip.innerHTML = `
@@ -100,19 +111,19 @@
         try {
           const j = JSON.parse(text);
           if (j && typeof j === 'object'){
-            // assume {filename: contents}; join with gaps
+            // if it's {"file": "contents", ...} flatten to text
             payload = Object.values(j).join("\n\n");
           }
-        } catch(_) { /* leave as text */ }
+        } catch(_) { /* not JSON, keep raw */ }
 
-        // Find a textarea that looks like the "paste raw catalog" area
+        // Find a likely paste-area textarea
         const areas = [...document.querySelectorAll('textarea')];
         let target = areas.sort((a,b)=> (b.cols*b.rows||0) - (a.cols*a.rows||0))[0] || areas[0];
-        if (!target) throw new Error('Paste area not found.'); 
+        if (!target) throw new Error('Paste area not found.');
         target.value = payload;
         target.dispatchEvent(new Event('input',{bubbles:true}));
 
-        // Try to auto-click a parse button
+        // Click a button that looks like “Parse”
         const parseBtn = [...document.querySelectorAll('button,input[type="button"],input[type="submit"]')]
           .find(el => /parse/i.test(el.value||'') || /parse/i.test(el.textContent||''));
         if (parseBtn) parseBtn.click();
@@ -126,6 +137,45 @@
       }
     }
     document.getElementById('btn-load-remote').addEventListener('click', loadRemote);
+
+    // --- Ensure details appear when clicking objects (non-invasive) ---
+    const toast = document.getElementById('detailToast');
+    function showToast(text){
+      if(!text) return;
+      toast.textContent = text.trim();
+      toast.classList.add('show');
+      clearTimeout(showToast._t); showToast._t = setTimeout(()=>toast.classList.remove('show'), 3500);
+    }
+
+    // 1) Mirror detail-like console logs to the toast
+    const kw = /(RA|Dec|mag|B-?V|spec|type|distance|pc|ly|deg|°|h\\s*\\d|constellation)/i;
+    const clog = console.log.bind(console), cinf = console.info.bind(console);
+    console.log = (...args)=>{ try{ const s = args.join(' '); if(kw.test(s)) showToast(s); }catch{} clog(...args); };
+    console.info = (...args)=>{ try{ const s = args.join(' '); if(kw.test(s)) showToast(s); }catch{} cinf(...args); };
+
+    // 2) On canvas click, scrape any visible “detail-like” block and show it
+    function scrapeDetailText(){
+      const cands = [...document.querySelectorAll('#root p, #root pre, #root div')]
+        .filter(el => el.offsetParent !== null && el.textContent && el.textContent.length < 800)
+        .map(el => ({el, score:(el.textContent.match(kw)||[]).length, text:el.textContent.trim()}))
+        .filter(x => x.score > 0)
+        .sort((a,b)=> b.score - a.score);
+      return cands[0]?.text || '';
+    }
+    document.addEventListener('click', (e)=>{
+      if (e.target.tagName === 'CANVAS') {
+        setTimeout(()=>{ const t = scrapeDetailText(); if(t) showToast(t); }, 40);
+      }
+    }, true);
+
+    // Keep any native info blocks above the canvas, if present
+    const style = document.createElement('style');
+    style.textContent = `
+      #root .info, #root .details, #root [id*="info"], #root [class*="detail"]{
+        position:relative; z-index:19; background:transparent; color:#e9edf5;
+      }
+    `;
+    document.head.appendChild(style);
 
     setTimeout(()=> document.getElementById('boot')?.remove(), 600);
   }catch(err){
