@@ -1,202 +1,127 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Interactive Star Map</title>
 <style>
-  :root{
-    --bg:#0b0d16;         /* page background */
-    --bg2:#0e1224;        /* window background */
-    --fg:#e8eaf6;         /* text */
-    --muted:#9aa3c2;      /* secondary text */
-    --brand:#7aa2ff;      /* primary accent */
-    --brand-2:#6df2ff;    /* secondary accent */
-    --frame:#1b2240;      /* window border */
-    --shadow:#00000080;   /* big shadow */
-    --rule:#273054;       /* hairlines */
+  /* Page + layers */
+  html,body{height:100%;margin:0}
+  body{background:#0b0d16;color:#e8eefc;font-family:system-ui,Segoe UI,Roboto,Ubuntu}
+
+  /* Fullscreen background mount for the React app */
+  #bg{
+    position:fixed; inset:0;
+    z-index:0;                /* behind any optional HUD you add later */
+    overflow:hidden; 
+    background:#0b0d16;
+  }
+  #root{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    display:block;
   }
 
-  /* Layout & starfield */
-  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Roboto,Ubuntu}
-  body::before{
-    content:"";
-    position:fixed; inset:-20% -10% -10% -10%;
-    background:
-      radial-gradient(2px 2px at 20% 30%, #fff8, transparent 60%),
-      radial-gradient(1px 1px at 70% 60%, #fff5, transparent 60%),
-      radial-gradient(1px 1px at 35% 80%, #fff3, transparent 60%),
-      radial-gradient(1px 1px at 85% 20%, #fff4, transparent 60%),
-      linear-gradient(180deg, #0b0d16 0%, #0b1022 40%, #0a0f20 100%);
-    filter: blur(.2px) saturate(110%);
+  /* 🔒 Hard overrides so the star map cannot render as a tiny inline box */
+  #root > *{             /* whatever the app renders first */
+    position:absolute; inset:0;
+    width:100% !important; height:100% !important;
+    max-width:none !important; max-height:none !important;
+    display:block !important;
+  }
+  #root :is(svg,canvas){
+    position:absolute; inset:0;
+    width:100% !important; height:100% !important;
+    max-width:none !important; max-height:none !important;
+    display:block !important;
+  }
+
+  /* Optional top bar (kept minimal) */
+  .topbar{
+    position:fixed; left:0; right:0; top:0; z-index:2;
+    display:flex; gap:.5rem; align-items:center; justify-content:space-between;
+    padding:.6rem .9rem;
+    background:linear-gradient(180deg,#101425cc,#0b0d16cc);
+    border-bottom:1px solid #1c2235;
+    backdrop-filter:saturate(130%) blur(6px);
+    font-size:.95rem;
+  }
+  .btn{border:1px solid #2a3557; background:#16203b; color:#d9e3ff; padding:.25rem .6rem; border-radius:.5rem; cursor:pointer}
+  .btn:hover{background:#1a274a}
+  .brand{display:flex; align-items:center; gap:.6rem; font-weight:700; letter-spacing:.2px}
+  .brand .pill{font-size:.72rem; padding:.1rem .45rem; border-radius:.5rem; background:#20315f; border:1px solid #2a3c6e}
+
+  /* Bottom hint bar (optional) */
+  .bottombar{
+    position:fixed; left:0; right:0; bottom:0; z-index:2;
+    padding:.35rem .7rem; color:#aeb9d8; font-size:.85rem;
+    background:linear-gradient(0deg,#0b0d16cc,#0b0d1600);
     pointer-events:none;
-    z-index:-1;
-  }
-
-  .wrap{
-    min-height:100%;
-    display:grid;
-    place-items:center;
-    padding:24px;
-  }
-
-  /* App “window” */
-  .window{
-    width:min(1100px, 100%);
-    height:min(90vh, 860px);
-    display:grid;
-    grid-template-rows:auto 1fr auto;
-    background:linear-gradient(180deg, #131936, #0f1633 60%, #0e142f);
-    border:1px solid var(--frame);
-    border-radius:16px;
-    box-shadow:
-      0 22px 60px var(--shadow),
-      0 0 0 1px #ffffff0a inset,
-      0 1px 0 0 #ffffff14 inset;
-    overflow:hidden;
-  }
-
-  .titlebar{
-    display:flex; align-items:center; justify-content:space-between; gap:8px;
-    padding:10px 14px;
-    background:linear-gradient(180deg, #1b2243, #16204a 60%, #121a3c);
-    border-bottom:1px solid var(--rule);
-  }
-  .titlebar .name{
-    display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:.2px;
-  }
-  .titlebar .badge{
-    font:600 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    color:#0c122a; background:linear-gradient(180deg,#7aa2ff,#6df2ff);
-    padding:2px 6px; border-radius:999px;
-  }
-  .titlebar .actions{display:flex; gap:8px}
-  .icon-btn{
-    border:1px solid #2a366a; background:#18214b; color:#d8defa;
-    border-radius:8px; padding:6px 10px; font-size:12px; cursor:pointer;
-    box-shadow:inset 0 1px 0 #2d3a71, 0 1px 0 #0008;
-  }
-  .icon-btn:hover{filter:brightness(1.1)}
-  .icon-btn:active{transform:translateY(1px)}
-
-  .content{
-    /* The React app mounts here */
-    overflow:auto;
-    padding:14px 14px 6px;
-    /* Make the inner app breathe without touching its code */
-  }
-  /* Give whatever the app renders some rhythm */
-  .content :is(h1,h2,h3){margin:12px 0 8px}
-  .content :is(p,fieldset,details,div){margin-block:6px}
-  .content canvas{border-radius:10px; box-shadow:0 0 0 1px #ffffff0e inset}
-
-  /* Make default form controls prettier without touching JSX */
-  button, input, select, textarea{
-    font:inherit; color:inherit; background:#121a39; border:1px solid #2a366a; border-radius:8px;
-  }
-  button{padding:6px 10px; cursor:pointer; box-shadow:inset 0 1px 0 #2d3a71}
-  button:hover{filter:brightness(1.08)}
-  input[type="checkbox"]{accent-color:var(--brand)}
-  input[type="range"]{
-    -webkit-appearance:none; appearance:none; height:6px; border-radius:999px; background:#1a244b; border:none;
-  }
-  input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%;
-    background:conic-gradient(from 120deg,#7aa2ff, #6df2ff);
-    border:1px solid #0a1026; box-shadow:0 0 0 2px #0006;
-  }
-  input[type="range"]::-moz-range-thumb{
-    width:16px; height:16px; border-radius:50%;
-    background:conic-gradient(from 120deg,#7aa2ff, #6df2ff);
-    border:1px solid #0a1026; box-shadow:0 0 0 2px #0006;
-  }
-
-  /* Statusbar */
-  .status{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:8px 12px; font-size:12px; color:var(--muted);
-    border-top:1px solid var(--rule);
-    background:linear-gradient(180deg,#131936,#101736);
-  }
-  .status .hint{opacity:.9}
-  .status .coords{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color:#c8d3ff}
-
-  /* Boot overlay */
-  .boot{
-    position:fixed; inset:0; display:grid; place-items:center;
-    background:radial-gradient(60% 100% at 50% 0%, #10142dCC 0%, transparent 70%);
-    font-size:14px; color:#dfe6ff; letter-spacing:.3px;
-  }
-  .spin{width:26px; height:26px; border-radius:50%; border:3px solid #ffffff26; border-top-color:var(--brand);
-        animation:spin 1s linear infinite; margin-right:10px; display:inline-block; vertical-align:-5px}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  @media (max-width: 720px){
-    .window{height:calc(100vh - 24px)}
-    .titlebar .actions{display:none}
   }
 </style>
 
-<!-- React UMD + Babel -->
+<!-- React UMD + Babel (for the uploaded JSX) -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-  <div class="wrap">
-    <section class="window" role="application" aria-label="Interactive Star Map">
-      <header class="titlebar">
-        <div class="name">
-          <span>🔭 Interactive Star Map</span>
-          <span class="badge">SOL-37</span>
-        </div>
-        <div class="actions">
-          <button class="icon-btn" onclick="document.querySelector('.content').scrollTo({top:0,behavior:'smooth'})">Top</button>
-          <button class="icon-btn" onclick="location.reload()">Restart</button>
-        </div>
-      </header>
 
-      <main class="content" id="root"></main>
-
-      <footer class="status">
-        <div class="hint">Pan: drag • Zoom: wheel • Click objects for details</div>
-        <div class="coords" id="status-coords">RA/Dec: —</div>
-      </footer>
-    </section>
+<!-- Optional UI layer -->
+<div class="topbar">
+  <div class="brand">🛰️ Interactive Star Map <span class="pill">SOL-37</span></div>
+  <div>
+    <button class="btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">Top</button>
+    <button class="btn" onclick="location.reload()">Restart</button>
   </div>
+</div>
 
-  <div class="boot" id="boot"><span class="spin"></span>Loading Interactive Star Map…</div>
+<!-- Fullscreen star-map background -->
+<div id="bg">
+  <div id="root"></div>
+</div>
 
-  <script>
-    // Optional: simple public API for the app to update the status bar (if you want later)
-    window.SOL37 = {
-      setStatus(text){ document.getElementById('status-coords').textContent = text; }
-    };
+<div class="bottombar">Pan: drag • Zoom: wheel • Click objects for details</div>
 
-    (async function(){
-      try{
-        const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache:'no-store' });
-        const src0  = await resp.text();
+<script>
+(async function(){
+  try{
+    const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache:'no-store' });
+    const src0 = await resp.text();
 
-        // Map ESM-style import to UMD globals, keep hooks handy.
-        let src = src0
-          .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
-                   "const { useEffect, useMemo, useRef, useState } = React;")
-          .replace(/\bexport\s+default\s+function\s+([A-Za-z0-9_]+)?\s*\(/, "function App(");
+    // Map ESM-style imports to globals for UMD runtime
+    let src = src0
+      .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
+               "const { useEffect, useMemo, useRef, useState } = React;")
+      .replace(/\bexport\s+default\s+function\s+App\s*\(/, "function App(");
 
-        const out = Babel.transform(src, { presets: ['react'] }).code;
-        // eslint-disable-next-line no-new-func
-        new Function(out + "\nwindow.__StarMapApp = typeof App==='function'?App:window.__StarMapApp;")();
+    const out = Babel.transform(src, { presets: ['react'] }).code;
+    new Function(out + "\nwindow.__StarMapApp = App;")();
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(React.createElement(window.__StarMapApp));
-      }catch(err){
-        document.getElementById('boot').textContent = 'Failed to load the Star Map: ' + (err?.message || err);
-        console.error(err);
-        return;
-      }
-      document.getElementById('boot').remove();
-    })();
-  </script>
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(window.__StarMapApp));
+  }catch(err){
+    console.error(err);
+    document.body.insertAdjacentHTML('beforeend',
+      '<div style="position:fixed;inset:0;display:grid;place-items:center;color:#f99">Failed to load Star Map: '+(err&&err.message||err)+'</div>');
+  }
+
+  /* --- Force-resize helpers ------------------------------------------------ */
+  // If the app sets width/height attributes on <svg>/<canvas>, strip them so CSS can rule.
+  function expandCanvases(){
+    document.querySelectorAll('#root svg,#root canvas').forEach(el=>{
+      el.removeAttribute('width'); el.removeAttribute('height');
+      el.style.width='100%'; el.style.height='100%';
+      el.style.maxWidth='none'; el.style.maxHeight='none';
+      el.style.position='absolute'; el.style.inset='0';
+    });
+    // Nudge any size listeners the app uses
+    window.dispatchEvent(new Event('resize'));
+  }
+  new MutationObserver(expandCanvases).observe(document.getElementById('root'), {childList:true,subtree:true,attributes:true});
+  new ResizeObserver(()=>window.dispatchEvent(new Event('resize'))).observe(document.getElementById('bg'));
+  expandCanvases();
+})();
+</script>
 </body>
 </html>
