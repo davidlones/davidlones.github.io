@@ -5,47 +5,44 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Interactive Star Map</title>
 <style>
-  html,body { height:100%; margin:0; background:#060812; color:#e9edf5;
-              font-family:system-ui, Segoe UI, Roboto, Ubuntu; }
-  /* Full app area */
-  #root { position:relative; width:100%; height:100%; overflow:hidden; }
-  /* Boot overlay */
-  .boot { position:absolute; inset:0; display:grid; place-items:center;
-          font-size:15px; opacity:.85; background:#060812; z-index:5; }
-  /* Make any canvas fill available area */
-  canvas { width:100% !important; height:100% !important; display:block; }
-  /* Gentle space-y backdrop */
-  #root::before {
-    content:""; position:absolute; inset:0; z-index:-1;
-    background:radial-gradient(120% 100% at 50% 20%, #0d1326 0%, #060812 60%, #04060d 100%);
+  html,body{height:100%;margin:0;background:#060812;color:#e9edf5;
+            font-family:system-ui, Segoe UI, Roboto, Ubuntu}
+  #root{position:relative;width:100%;height:100%;overflow:hidden}
+  .boot{position:absolute;inset:0;display:grid;place-items:center;
+        font-size:15px;opacity:.85;background:#060812;z-index:5}
+  /* make all canvases fill space */
+  canvas{width:100%!important;height:100%!important;display:block}
+  #root::before{content:"";position:absolute;inset:0;z-index:-1;
+    background:radial-gradient(120% 100% at 50% 20%,
+    #0d1326 0%, #060812 60%, #04060d 100%);}
+  /* floating controls HUD (auto-tagged via JS) */
+  .controls-panel{
+    position:fixed;right:16px;top:64px;width:min(360px,32vw);
+    max-height:72vh;overflow:auto;z-index:20;padding:10px 12px;
+    border-radius:12px;background:color-mix(in srgb,#0b1224 70%,transparent);
+    backdrop-filter:blur(8px) saturate(115%);
+    border:1px solid #273147;box-shadow:0 6px 28px #0007,inset 0 1px 0 #ffffff14
   }
-
-  /* Floating controls HUD (we’ll assign this class via JS) */
-  .controls-panel {
-    position: fixed; right: 16px; top: 64px; width: min(360px, 32vw);
-    max-height: 72vh; overflow: auto; z-index: 20;
-    padding: 10px 12px; border-radius: 12px;
-    background: color-mix(in srgb, #0b1224 70%, transparent);
-    backdrop-filter: blur(8px) saturate(115%);
-    border: 1px solid #273147; box-shadow: 0 6px 28px #0007, inset 0 1px 0 #ffffff14;
-    color:#e9edf5; font-size: 14px; line-height: 1.3;
+  .controls-panel input,.controls-panel select,.controls-panel button,
+  .controls-panel textarea{font:inherit}
+  .controls-panel hr{border:none;border-top:1px solid #273147;margin:8px 0;opacity:.7}
+  h1,h2,h3{text-shadow:0 1px 2px #000a}
+  @media (max-width:700px){
+    .controls-panel{right:8px;left:8px;width:auto;top:auto;bottom:10px;max-height:52vh}
   }
-  .controls-panel input, .controls-panel select, .controls-panel button, .controls-panel textarea {
-    font: inherit;
+  /* tiny loader chip */
+  .data-chip{
+    position:fixed;left:16px;top:64px;z-index:21;
+    display:flex;gap:8px;align-items:center;
+    background:#0b1224cc;border:1px solid #273147;border-radius:10px;
+    padding:6px 10px;backdrop-filter:blur(6px);box-shadow:0 6px 20px #0007
   }
-  .controls-panel label { opacity:.9 }
-  .controls-panel hr { border:none; border-top:1px solid #273147; margin:8px 0; opacity:.7; }
-  .controls-panel .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  /* Keep headings readable over the canvas */
-  h1,h2,h3 { text-shadow: 0 1px 2px #000a; }
-
-  /* Small screens: tuck HUD to full width at bottom */
-  @media (max-width: 700px) {
-    .controls-panel { right: 8px; left: 8px; width: auto; top: auto; bottom: 10px; max-height: 52vh; }
-  }
+  .data-chip button{background:#1f2a44;border:1px solid #3a4b73;color:#e9edf5;
+    padding:6px 10px;border-radius:8px;cursor:pointer}
+  .data-chip button:hover{filter:brightness(1.08)}
+  .data-chip small{opacity:.8}
 </style>
-
-<!-- React (UMD) + Babel for on-the-fly JSX -->
+<!-- React UMD + Babel -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -56,11 +53,11 @@
 
 <script>
 (async function(){
-  try {
-    const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache:'no-store' });
+  try{
+    const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', {cache:'no-store'});
     let src = await resp.text();
 
-    // Patch ESM → UMD globals
+    // ESM → UMD globals
     src = src
       .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
         "const { useEffect,useMemo,useRef,useState } = React;")
@@ -72,30 +69,66 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(window.__StarMapApp));
 
-    // After mount, tag the most likely controls container and float it.
-    // We DO NOT move nodes (which would fight React). We just add a class.
-    const tryPromoteControls = () => {
-      // find divs that contain several interactive elements but no canvas
-      const candidates = [...document.querySelectorAll('#root div')]
+    // Float the densest control container (no DOM moves, just styling)
+    const tagControls = () => {
+      const cands = [...document.querySelectorAll('#root div')]
         .filter(d => !d.querySelector('canvas'))
-        .map(d => ({ el: d, count: d.querySelectorAll('input,select,button,textarea,label').length }))
-        .filter(x => x.count >= 4) // heuristically "controls-like"
-        .sort((a,b)=> b.count - a.count);
-
-      if (candidates.length) {
-        const panel = candidates[0].el;
-        panel.classList.add('controls-panel');
-      }
+        .map(d => ({el:d, n:d.querySelectorAll('input,select,button,textarea,label').length}))
+        .filter(x => x.n >= 4).sort((a,b)=>b.n-a.n);
+      if (cands[0]) cands[0].el.classList.add('controls-panel');
     };
+    setTimeout(tagControls,150);
+    setTimeout(tagControls,600);
+    setTimeout(tagControls,1200);
 
-    // Give React a tick to render
-    setTimeout(tryPromoteControls, 150);
-    // Retry a couple times in case the app lazy-loads
-    setTimeout(tryPromoteControls, 600);
-    setTimeout(tryPromoteControls, 1200);
+    // Add a small data loader chip that pulls /dat.json and injects into "paste" area
+    const chip = document.createElement('div');
+    chip.className = 'data-chip';
+    chip.innerHTML = `
+      <small>Catalog:</small>
+      <button id="btn-load-remote" title="Load /dat.json from site root">Load /dat.json</button>
+    `;
+    document.body.appendChild(chip);
+
+    async function loadRemote(){
+      const btn = document.getElementById('btn-load-remote');
+      btn.disabled = true; const prev = btn.textContent; btn.textContent = 'Loading…';
+      try{
+        const r = await fetch('/dat.json', {cache:'no-store'});
+        const text = await r.text();
+        let payload = text;
+        try {
+          const j = JSON.parse(text);
+          if (j && typeof j === 'object'){
+            // assume {filename: contents}; join with gaps
+            payload = Object.values(j).join("\n\n");
+          }
+        } catch(_) { /* leave as text */ }
+
+        // Find a textarea that looks like the "paste raw catalog" area
+        const areas = [...document.querySelectorAll('textarea')];
+        let target = areas.sort((a,b)=> (b.cols*b.rows||0) - (a.cols*a.rows||0))[0] || areas[0];
+        if (!target) throw new Error('Paste area not found.'); 
+        target.value = payload;
+        target.dispatchEvent(new Event('input',{bubbles:true}));
+
+        // Try to auto-click a parse button
+        const parseBtn = [...document.querySelectorAll('button,input[type="button"],input[type="submit"]')]
+          .find(el => /parse/i.test(el.value||'') || /parse/i.test(el.textContent||''));
+        if (parseBtn) parseBtn.click();
+
+        btn.textContent = 'Loaded ✓';
+        setTimeout(()=>{ btn.textContent = prev; btn.disabled=false; }, 1000);
+      } catch(err){
+        console.error(err);
+        btn.textContent = 'Failed (see console)';
+        setTimeout(()=>{ btn.textContent = 'Load /dat.json'; btn.disabled=false; }, 1500);
+      }
+    }
+    document.getElementById('btn-load-remote').addEventListener('click', loadRemote);
 
     setTimeout(()=> document.getElementById('boot')?.remove(), 600);
-  } catch (err) {
+  }catch(err){
     const boot = document.getElementById('boot');
     boot.textContent = '⚠️ Failed to load Star Map: ' + (err?.message || err);
     console.error(err);
