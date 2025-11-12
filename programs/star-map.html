@@ -1,252 +1,785 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Interactive Star Map</title>
-<style>
-  html,body{height:100%;margin:0;background:#060812;color:#e9edf5;
-            font-family:system-ui, Segoe UI, Roboto, Ubuntu}
-  #root{position:relative;width:100%;height:100%;overflow:hidden}
-  .boot{position:absolute;inset:0;display:grid;place-items:center;
-        font-size:15px;opacity:.85;background:#060812;z-index:5}
-  canvas{width:100%!important;height:100%!important;display:block}
-  #root::before{content:"";position:absolute;inset:0;z-index:-1;
-    background:radial-gradient(120% 100% at 50% 20%,
-    #0d1326 0%, #060812 60%, #04060d 100%);}
+  <meta charset="utf-8"/>
+  <title>Interactive Star Map V2</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: radial-gradient(circle at 20% 10%, #101426, #050814 60%, #020309 100%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #e6edf7;
+      overflow: hidden;
+    }
+    #root {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .app-shell {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) 1fr;
+      grid-template-rows: 1fr;
+      gap: 0;
+    }
+    @media (max-width: 800px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+    }
+    .sidebar {
+      position: relative;
+      background: rgba(5, 8, 20, 0.9);
+      border-right: 1px solid rgba(255,255,255,0.1);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(12px);
+      z-index: 2;
+    }
+    @media (max-width: 800px) {
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding: 10px 12px;
+      }
+    }
+    .title-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .app-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f5f7ff;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #9aa4c6;
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,255,0.4);
+      background: rgba(17,24,39,0.9);
+      color: #c7d2ff;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+    .section {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3c9;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .control-label {
+      font-size: 11px;
+      color: #cbd5ff;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .control-label span.value {
+      color: #a5b4ff;
+      font-variant-numeric: tabular-nums;
+    }
+    .control-input input[type="range"] {
+      width: 100%;
+    }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .pill {
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,255,0.35);
+      background: rgba(17,24,39,0.85);
+      color: #c7d2ff;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6ee7ff, #a855f7);
+    }
+    .status {
+      margin-top: auto;
+      font-size: 11px;
+      color: #9aa4c6;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .status-line span.value {
+      font-variant-numeric: tabular-nums;
+      color: #c7d2ff;
+    }
+    .status-error {
+      color: #fecaca;
+    }
 
-  /* floating controls HUD (auto-tagged via JS) */
-  .controls-panel{
-    position:fixed;right:16px;top:64px;width:min(360px,32vw);
-    max-height:72vh;overflow:auto;z-index:20;padding:10px 12px;
-    border-radius:12px;background:color-mix(in srgb,#0b1224 70%,transparent);
-    backdrop-filter:blur(8px) saturate(115%);
-    border:1px solid #273147;box-shadow:0 6px 28px #0007,inset 0 1px 0 #ffffff14
-  }
-  .controls-panel input,.controls-panel select,.controls-panel button,
-  .controls-panel textarea{font:inherit}
-  .controls-panel hr{border:none;border-top:1px solid #273147;margin:8px 0;opacity:.7}
-  h1,h2,h3{text-shadow:0 1px 2px #000a}
-  @media (max-width:700px){
-    .controls-panel{right:8px;left:8px;width:auto;top:auto;bottom:10px;max-height:52vh}
-  }
+    .canvas-container {
+      position: relative;
+      background: radial-gradient(circle at 50% 15%, #111827, #020617 70%, #000 100%);
+      overflow: hidden;
+    }
+    .star-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .hud-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 16px;
+      font-size: 11px;
+      color: rgba(209,213,255,0.9);
+      z-index: 2;
+    }
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .hud-bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .hud-panel {
+      background: radial-gradient(circle at 0 0, rgba(129,140,248,0.15), rgba(15,23,42,0.9));
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,255,0.35);
+      padding: 4px 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    .hud-panel-rect {
+      border-radius: 10px;
+      padding: 6px 10px;
+    }
+    .hud-sep {
+      width: 1px;
+      height: 16px;
+      background: linear-gradient(to bottom, transparent, rgba(148,163,255,0.7), transparent);
+    }
+    .hud-label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #a5b4ff;
+      font-size: 10px;
+    }
+    .hud-value {
+      font-variant-numeric: tabular-nums;
+    }
+    .hud-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, #f9fafb, #4ade80);
+      box-shadow: 0 0 6px rgba(52,211,153,0.8);
+    }
+    .hud-dot-red {
+      background: radial-gradient(circle at 30% 30%, #fee2e2, #f97373);
+      box-shadow: 0 0 6px rgba(248,113,113,0.85);
+    }
 
-  /* dat.json loader chip */
-  .data-chip{
-    position:fixed;left:16px;top:64px;z-index:21;
-    display:flex;gap:8px;align-items:center;
-    background:#0b1224cc;border:1px solid #273147;border-radius:10px;
-    padding:6px 10px;backdrop-filter:blur(6px);box-shadow:0 6px 20px #0007
-  }
-  .data-chip button{background:#1f2a44;border:1px solid #3a4b73;color:#e9edf5;
-    padding:6px 10px;border-radius:8px;cursor:pointer}
-  .data-chip button:hover{filter:brightness(1.08)}
-  .data-chip small{opacity:.8}
+    .info-panel {
+      max-width: 260px;
+    }
+    .info-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: #e5e7ff;
+      margin-bottom: 2px;
+    }
+    .info-body {
+      font-size: 11px;
+      color: #c7d2ff;
+      line-height: 1.35;
+    }
+    .info-body div {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .info-body span.value {
+      font-variant-numeric: tabular-nums;
+      color: #e5e7ff;
+    }
 
-  /* persistent detail panel */
-  .detail-panel{
-    position:fixed;left:50%;top:18px;transform:translateX(-50%);
-    z-index:22;max-width:min(780px,92vw);
-    background:#0b1224e6;border:1px solid #394a72;border-radius:12px;
-    padding:10px 14px;box-shadow:0 8px 28px #000c,inset 0 1px 0 #ffffff1a;
-    line-height:1.25;font-size:14px;display:none;white-space:pre-wrap
-  }
-  .detail-panel.show{display:block}
-  .detail-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-  .detail-title{font-weight:600;opacity:.95}
-  .detail-close{
-    margin-left:auto;cursor:pointer;border:1px solid #3b4f7d;border-radius:8px;
-    background:#1b2643;color:#e9edf5;padding:2px 8px;line-height:1
-  }
-  .detail-body{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-               white-space:pre-wrap}
-</style>
-<!-- React UMD + Babel -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 10%, rgba(15,23,42,0.9), rgba(3,7,18,1));
+      z-index: 10;
+    }
+    .boot-panel {
+      border-radius: 16px;
+      padding: 18px 20px;
+      background: radial-gradient(circle at 0 0, rgba(129,140,248,0.22), rgba(15,23,42,0.96));
+      border: 1px solid rgba(191,219,254,0.4);
+      box-shadow:
+        0 20px 45px rgba(15,23,42,0.9),
+        0 0 20px rgba(129,140,248,0.4);
+      max-width: 360px;
+    }
+    .boot-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #e5e7ff;
+      margin-bottom: 8px;
+    }
+    .boot-subtitle {
+      font-size: 12px;
+      color: #cbd5ff;
+      margin-bottom: 10px;
+    }
+    .boot-progress {
+      position: relative;
+      width: 100%;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(15,23,42,1);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .boot-bar {
+      position: absolute;
+      inset: 0;
+      width: 40%;
+      background: linear-gradient(90deg, #38bdf8, #a855f7, #f97316);
+      animation: boot-scan 1.6s infinite ease-in-out;
+    }
+    @keyframes boot-scan {
+      0% { transform: translateX(-60%); }
+      50% { transform: translateX(20%); }
+      100% { transform: translateX(140%); }
+    }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  <div class="boot" id="boot">✨ Initializing Interactive Star Map…</div>
+<div id="root"></div>
 
-  <!-- persistent info panel -->
-  <div class="detail-panel" id="detailPanel" aria-live="polite" role="dialog" aria-modal="false">
-    <div class="detail-header">
-      <div class="detail-title">Object details</div>
-      <button class="detail-close" id="detailClose" title="Close">×</button>
-    </div>
-    <div class="detail-body" id="detailBody"></div>
-  </div>
+<!-- React + ReactDOM + Babel -->
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-<script>
-(async function(){
-  try{
-    const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', {cache:'no-store'});
-    let src = await resp.text();
+<script type="text/babel">
 
-    // ESM → UMD globals (non-invasive to your app code)
-    src = src
-      .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
-        "const { useEffect,useMemo,useRef,useState } = React;")
-      .replace(/\bexport\s+default\s+function\s+App\s*\(/, "function App(");
+const { useState, useEffect, useRef, useMemo } = React;
 
-    const out = Babel.transform(src, { presets: ['react'] }).code;
-    (new Function(out + "\nwindow.__StarMapApp = App;"))();
+// --- Helpers: parsing & colors ---
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(window.__StarMapApp));
+function parseSexagesimalRA(hms) {
+  // "HH:MM:SS.s"
+  const parts = hms.trim().split(":");
+  if (parts.length < 2) return 0;
+  const h = parseFloat(parts[0]) || 0;
+  const m = parseFloat(parts[1]) || 0;
+  const s = parseFloat(parts[2] || "0") || 0;
+  const hours = h + m/60 + s/3600;
+  return hours * 15.0; // degrees
+}
 
-    // Float the densest control container (no DOM moves, just styling)
-    const tagControls = () => {
-      const cands = [...document.querySelectorAll('#root div')]
-        .filter(d => !d.querySelector('canvas'))
-        .map(d => ({el:d, n:d.querySelectorAll('input,select,button,textarea,label').length}))
-        .filter(x => x.n >= 4).sort((a,b)=>b.n-a.n);
-      if (cands[0]) cands[0].el.classList.add('controls-panel');
-    };
-    setTimeout(tagControls,150);
-    setTimeout(tagControls,600);
-    setTimeout(tagControls,1200);
+function parseSexagesimalDec(dms) {
+  // "DD:MM:SS" or "±DD:MM:SS"
+  let s = dms.trim();
+  let sign = 1;
+  if (s[0] === "-") { sign = -1; s = s.slice(1); }
+  else if (s[0] === "+") { s = s.slice(1); }
+  const parts = s.split(":");
+  if (parts.length < 2) return 0;
+  const d = parseFloat(parts[0]) || 0;
+  const m = parseFloat(parts[1]) || 0;
+  const secRaw = parts[2] || "0";
+  const sec = parseFloat(secRaw) || 0;
+  const deg = d + m/60 + sec/3600;
+  return sign * deg;
+}
 
-    // --- /dat.json loader chip (site root: davidlones.github.io/dat.json) ---
-    const chip = document.createElement('div');
-    chip.className = 'data-chip';
-    chip.innerHTML = `<small>Catalog:</small>
-      <button id="btn-load-remote" title="Load /dat.json from site root">Load /dat.json</button>`;
-    document.body.appendChild(chip);
-
-    async function loadRemote(){
-      const btn = document.getElementById('btn-load-remote');
-      btn.disabled = true; const prev = btn.textContent; btn.textContent = 'Loading…';
-      try{
-        const r = await fetch('/dat.json', {cache:'no-store'});
-        const text = await r.text();
-        let payload = text;
-        try {
-          const j = JSON.parse(text);
-          if (j && typeof j === 'object') payload = Object.values(j).join("\n\n");
-        } catch(_) {}
-        const areas = [...document.querySelectorAll('textarea')];
-        let target = areas.sort((a,b)=> (b.cols*b.rows||0) - (a.cols*a.rows||0))[0] || areas[0];
-        if (!target) throw new Error('Paste area not found.');
-        target.value = payload;
-        target.dispatchEvent(new Event('input',{bubbles:true}));
-        const parseBtn = [...document.querySelectorAll('button,input[type="button"],input[type="submit"]')]
-          .find(el => /parse/i.test(el.value||'') || /parse/i.test(el.textContent||''));
-        parseBtn?.click?.();
-        btn.textContent = 'Loaded ✓';
-        setTimeout(()=>{ btn.textContent = prev; btn.disabled=false; }, 1000);
-      } catch(err){
-        console.error(err);
-        btn.textContent = 'Failed (see console)';
-        setTimeout(()=>{ btn.textContent = 'Load /dat.json'; btn.disabled=false; }, 1500);
-      }
-    }
-    document.getElementById('btn-load-remote').addEventListener('click', loadRemote);
-
-    // --- Detail panel logic (persistent, shows only object info) ---
-    const panel = document.getElementById('detailPanel');
-    const body  = document.getElementById('detailBody');
-    const closeBtn = document.getElementById('detailClose');
-
-    function normalizeText(s){
-      return String(s||'')
-        .replace(/\s+/g,' ')                // compact spacing
-        .replace(/:\s+/g,': ')
-        .trim();
-    }
-
-    // Keep only lines that look like object data
-    const keepRe = /\b(RA|Right Asc|Dec|Decl?\.?|mag|magnitude|B-?V|class|spectral|type|dist(ance)?|pc|ly|parallax|z=|radial|velocity|size|diam|constellation|NGC|IC|Messier|M\d+|HIP|HR|HD|SAO|HIP|Altair|Vega|Sirius)\b/i;
-    const dropRe = /\b(Pan\/zoom|RA increases to the left|Click objects|View|Equatorial|Galactic|Animate|Reset View|Max size|Stars|Galaxy|Globular|Open|Nebula|Planetary|Double|Load|Use Demo|Paste|Parse|Drop|Choose File)\b/i;
-
-    function extractDetailFromDom(){
-      // First, try to read from the app's own picked-object detail card.
-      const visibleDivs = [...document.querySelectorAll('#root div')].filter(
-        el => el.offsetParent !== null && (el.textContent || '').trim().length
-      );
-
-      const card = visibleDivs.find(el => {
-        const t = el.textContent || '';
-        // The React app's card always includes Coords (RA/Dec) and Magnitude lines.
-        return /Coords\s*\(RA\/Dec\)/.test(t) && /Magnitude/i.test(t);
-      });
-
-      let raw = '';
-      if (card) {
-        raw = card.textContent || card.innerText || '';
-      } else {
-        // Fallback: heuristic scan over visible text blocks (older behavior).
-        const blocks = visibleDivs
-          .map(el => {
-            const txt = el.textContent;
-            const keep = (txt.match(keepRe) || []).length;
-            const drop = dropRe.test(txt) ? 3 : 0;
-            return { el, score: keep - drop, txt };
-          })
-          .filter(x => x.score > 0)
-          .sort((a,b)=> b.score - a.score);
-
-        raw = blocks[0]?.txt || '';
-      }
-
-      if (!raw) return '';
-
-      const lines = raw
-        .split(/[\n\r]+/)
-        .map(l => normalizeText(l))
-        .filter(l => l && keepRe.test(l) && !dropRe.test(l));
-
-      // If nothing survived filtering (e.g., fallback text), relax the filter slightly.
-      let cleaned = lines;
-      if (!cleaned.length) {
-        cleaned = raw
-          .split(/[;•]+/)
-          .map(normalizeText)
-          .filter(l => keepRe.test(l) && !dropRe.test(l));
-      }
-
-      const uniq = [];
-      for (const l of cleaned) {
-        if (!uniq.includes(l)) uniq.push(l);
-        if (uniq.length > 14) break;
-      }
-      return uniq.join('\n');
-    }
-
-    function showPanel(text, title='Object details'){
-      if (!text) return;
-      body.textContent = text;
-      panel.querySelector('.detail-title').textContent = title;
-      panel.classList.add('show');
-    }
-    function hidePanel(){ panel.classList.remove('show'); }
-    closeBtn.addEventListener('click', hidePanel);
-
-    // Mirror detail-looking console messages into the panel
-    const keywords = /(RA|Dec|mag|B-?V|spectral|type|distance|pc|ly|parallax|constellation|NGC|IC|Messier|HIP|HD|HR|SAO)/i;
-    const clog = console.log.bind(console), cinf = console.info.bind(console);
-    console.log = (...args)=>{ try{ const s = args.join(' '); if(keywords.test(s)) showPanel(s); }catch{} clog(...args); };
-    console.info = (...args)=>{ try{ const s = args.join(' '); if(keywords.test(s)) showPanel(s); }catch{} cinf(...args); };
-
-    // On canvas click, scrape + show (persistent)
-    document.addEventListener('click', (e)=>{
-      if (e.target.tagName === 'CANVAS') {
-        setTimeout(()=>{
-          const text = extractDetailFromDom();
-          if (text) showPanel(text);
-        }, 40);
-      }
-    }, true);
-
-    setTimeout(()=> document.getElementById('boot')?.remove(), 600);
-  }catch(err){
-    const boot = document.getElementById('boot');
-    boot.textContent = '⚠️ Failed to load Star Map: ' + (err?.message || err);
-    console.error(err);
+function spectralToRGB(sp) {
+  if (!sp || typeof sp !== "string") {
+    return { r: 200, g: 220, b: 255 };
   }
-})();
+  const c = sp.trim().charAt(0).toUpperCase();
+  switch (c) {
+    case "O": return { r: 170, g: 200, b: 255 }; // blue
+    case "B": return { r: 180, g: 205, b: 255 };
+    case "A": return { r: 200, g: 215, b: 255 };
+    case "F": return { r: 230, g: 235, b: 255 };
+    case "G": return { r: 255, g: 244, b: 224 };
+    case "K": return { r: 255, g: 220, b: 190 };
+    case "M": return { r: 255, g: 200, b: 170 };
+    default:  return { r: 210, g: 230, b: 255 };
+  }
+}
+
+function rgbToRgbaString({r,g,b}, a) {
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// Parse Stars table from ASCII text inside dat.json["Stars"]
+function parseStarsFromDatText(text, maxCount = 15000) {
+  if (!text) return [];
+  const lines = text.split(/\r?\n/);
+  const stars = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    // data lines start with space + digits or just digits
+    if (!line) continue;
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    // skip header lines that start with ; or letters
+    if (trimmed[0] === ";" || isNaN(parseInt(trimmed[0], 10))) {
+      continue;
+    }
+    const parts = trimmed.split(/\s+/);
+    if (parts.length < 8) continue; // need SAO, RA, Dec, mag, B-V, Sp
+    const sao = parts[0];
+    const raStr = parts[1];
+    const decStr = parts[2];
+    // The magnitude is usually at index 5; spectral class near index 7
+    const mag = parseFloat(parts[5]);
+    const sp = parts[7] || "";
+    if (!isFinite(mag)) continue;
+
+    const raDeg = parseSexagesimalRA(raStr);
+    const decDeg = parseSexagesimalDec(decStr);
+    const col = spectralToRGB(sp);
+    const phase = Math.random() * Math.PI * 2;
+
+    stars.push({
+      id: sao,
+      raDeg,
+      decDeg,
+      mag,
+      sp,
+      rgb: col,
+      phase
+    });
+    if (stars.length >= maxCount) break;
+  }
+  return stars;
+}
+
+// --- Canvas component ---
+
+function StarCanvas({ stars, settings, onHoverStar }) {
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const animationRef = useRef(null);
+  const dprRef = useRef(window.devicePixelRatio || 1);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    dprRef.current = dpr;
+
+    function resize() {
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    let lastHover = null;
+
+    function render(ts) {
+      const time = ts / 1000.0;
+      const rect = container.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+
+      ctx.clearRect(0, 0, width, height);
+
+      const maxStarsToDraw = Math.min(settings.starCount, stars.length);
+      const magLimit = settings.magLimit;
+      const baseMaxSize = settings.maxSize;
+      const fuzzIntensity = settings.fuzzIntensity;
+
+      // star projection: RA->x, Dec->y
+      // RA in [0,360], Dec in [-90,90]
+      for (let i = 0; i < maxStarsToDraw; i++) {
+        const star = stars[i];
+        if (star.mag > magLimit) continue;
+
+        const x = (star.raDeg / 360) * width;
+        const y = height * 0.5 - (star.decDeg / 180) * height;
+
+        // magnitude to size (brighter = bigger)
+        const magFactor = Math.max(0, 8 - star.mag); // simple mapping
+        const coreSize = Math.max(0.4, baseMaxSize * (magFactor / 8));
+        const haloSize = coreSize * (1.5 + 0.5 * fuzzIntensity);
+        const flicker = 0.7 + 0.3 * Math.sin(time * 2.0 + star.phase);
+
+        // halo
+        const haloR = haloSize * flicker;
+        const haloAlpha = 0.12 * fuzzIntensity;
+        if (haloAlpha > 0.01) {
+          const grad = ctx.createRadialGradient(x, y, 0, x, y, haloR);
+          const c = star.rgb;
+          grad.addColorStop(0, rgbToRgbaString(c, haloAlpha));
+          grad.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(x, y, haloR, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // core
+        const coreR = Math.max(0.5, coreSize * 0.6);
+        ctx.fillStyle = rgbToRgbaString(star.rgb, 0.95);
+        ctx.beginPath();
+        ctx.arc(x, y, coreR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      animationRef.current = requestAnimationFrame(render);
+    }
+
+    animationRef.current = requestAnimationFrame(render);
+
+    return () => {
+      window.removeEventListener("resize", resize);
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+    };
+  }, [stars, settings]);
+
+  return (
+    <div ref={containerRef} className="canvas-container">
+      <canvas ref={canvasRef} className="star-canvas"/>
+    </div>
+  );
+}
+
+// --- Main app ---
+
+function App() {
+  const [stars, setStars] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(null);
+  const [settings, setSettings] = useState({
+    maxSize: 3.5,
+    magLimit: 8.0,
+    starCount: 8000,
+    fuzzIntensity: 1.0
+  });
+  const [hoverStar, setHoverStar] = useState(null);
+
+  useEffect(() => {
+    async function loadDat() {
+      try {
+        const res = await fetch("/dat.json", { cache: "no-cache" });
+        if (!res.ok) throw new Error("Failed to fetch dat.json: " + res.status);
+        const json = await res.json();
+        if (!json || typeof json.Stars !== "string") {
+          throw new Error("dat.json missing 'Stars' text table");
+        }
+        const parsed = parseStarsFromDatText(json.Stars, 20000);
+        setStars(parsed);
+        setLoaded(true);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || String(err));
+      }
+    }
+    loadDat();
+  }, []);
+
+  const visibleStars = useMemo(() => {
+    const magLimit = settings.magLimit;
+    return stars.filter(s => s.mag <= magLimit);
+  }, [stars, settings.magLimit]);
+
+  const handleSettingChange = (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  return (
+    <div className="app-shell">
+      {/* Sidebar */}
+      <div className="sidebar">
+        <div className="title-row">
+          <div className="app-title">Interactive Star Map V2</div>
+          <div className="subtitle">
+            Live rendering of the original StarFinder II star catalog (J2000).
+          </div>
+          <div className="badge-row">
+            <div className="badge">Canvas</div>
+            <div className="badge">React</div>
+            <div className="badge">StarFinder II Dataset</div>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-title">Render Controls</div>
+
+          <div className="control-group">
+            <label className="control-label">
+              <span>Max object size</span>
+              <span className="value">{settings.maxSize.toFixed(1)} px</span>
+            </label>
+            <div className="control-input">
+              <input
+                type="range"
+                min="1"
+                max="7"
+                step="0.1"
+                value={settings.maxSize}
+                onChange={e => handleSettingChange("maxSize", parseFloat(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label className="control-label">
+              <span>Magnitude limit</span>
+              <span className="value">{settings.magLimit.toFixed(1)}</span>
+            </label>
+            <div className="control-input">
+              <input
+                type="range"
+                min="1"
+                max="10"
+                step="0.1"
+                value={settings.magLimit}
+                onChange={e => handleSettingChange("magLimit", parseFloat(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label className="control-label">
+              <span>Star count cap</span>
+              <span className="value">{settings.starCount}</span>
+            </label>
+            <div className="control-input">
+              <input
+                type="range"
+                min="1000"
+                max="20000"
+                step="500"
+                value={settings.starCount}
+                onChange={e => handleSettingChange("starCount", parseInt(e.target.value, 10))}
+              />
+            </div>
+          </div>
+
+          <div className="control-group">
+            <label className="control-label">
+              <span>Fuzz intensity</span>
+              <span className="value">{settings.fuzzIntensity.toFixed(2)}</span>
+            </label>
+            <div className="control-input">
+              <input
+                type="range"
+                min="0"
+                max="1.5"
+                step="0.05"
+                value={settings.fuzzIntensity}
+                onChange={e => handleSettingChange("fuzzIntensity", parseFloat(e.target.value))}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-title">Legend</div>
+          <div className="pill-row">
+            <div className="pill">
+              <span className="pill-dot"></span>
+              <span>Hot / early types (O–A)</span>
+            </div>
+            <div className="pill">
+              <span className="pill-dot" style={{background:"radial-gradient(circle at 30% 30%, #fef3c7, #f97316)"}}></span>
+              <span>Solar-like (F–G)</span>
+            </div>
+            <div className="pill">
+              <span className="pill-dot" style={{background:"radial-gradient(circle at 30% 30%, #fee2e2, #f97373)"}}></span>
+              <span>Cool giants (K–M)</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="status">
+          <div className="status-line">
+            <span>Catalog stars (parsed)</span>
+            <span className="value">{stars.length}</span>
+          </div>
+          <div className="status-line">
+            <span>Visible (mag ≤ {settings.magLimit.toFixed(1)})</span>
+            <span className="value">{visibleStars.length}</span>
+          </div>
+          {error && (
+            <div className="status-error">
+              Error loading dat.json: {error}
+            </div>
+          )}
+          {!error && !loaded && (
+            <div>
+              Loading StarFinder II dataset from <code>/dat.json</code>…
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main canvas + HUD */}
+      <div className="canvas-container">
+        <StarCanvas
+          stars={visibleStars}
+          settings={settings}
+          onHoverStar={setHoverStar}
+        />
+        <div className="hud-overlay">
+          <div className="hud-top">
+            <div className="hud-panel">
+              <div className="hud-dot"></div>
+              <div>
+                <div className="hud-label">Dataset</div>
+                <div className="hud-value">StarFinder II • J2000 snapshot</div>
+              </div>
+              <div className="hud-sep"></div>
+              <div>
+                <div className="hud-label">Stars parsed</div>
+                <div className="hud-value">{stars.length}</div>
+              </div>
+            </div>
+          </div>
+          <div className="hud-bottom">
+            <div className="hud-panel hud-panel-rect info-panel">
+              <div>
+                <div className="info-title">Focus</div>
+                {!hoverStar && (
+                  <div className="info-body">
+                    No star selected. Move the view or tweak the controls; brightest stars dominate the fuzz.
+                  </div>
+                )}
+                {hoverStar && (
+                  <div className="info-body">
+                    <div>
+                      <span>ID</span>
+                      <span className="value">{hoverStar.id}</span>
+                    </div>
+                    <div>
+                      <span>Mag</span>
+                      <span className="value">{hoverStar.mag.toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <span>RA (deg)</span>
+                      <span className="value">{hoverStar.raDeg.toFixed(3)}</span>
+                    </div>
+                    <div>
+                      <span>Dec (deg)</span>
+                      <span className="value">{hoverStar.decDeg.toFixed(3)}</span>
+                    </div>
+                    <div>
+                      <span>Sp</span>
+                      <span className="value">{hoverStar.sp || "—"}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="hud-panel">
+              <div className="hud-dot-red"></div>
+              <div>
+                <div className="hud-label">Renderer</div>
+                <div className="hud-value">Canvas • point sources with pulsing halos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {!loaded && !error && (
+          <div className="loading-overlay">
+            <div className="boot-panel">
+              <div className="boot-title">Initializing Star Map</div>
+              <div className="boot-subtitle">
+                Reading original StarFinder II <code>Stars.dat</code> via <code>/dat.json</code>, building catalog in memory, and seeding the canvas renderer.
+              </div>
+              <div className="boot-progress">
+                <div className="boot-bar"></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
 </script>
 </body>
 </html>
