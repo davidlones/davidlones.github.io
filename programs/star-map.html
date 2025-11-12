@@ -1,416 +1,327 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Interactive Star Map • Sol-37</title>
-<meta name="color-scheme" content="dark light" />
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Sol-37 • Star Map</title>
+
+<!-- Tailwind (CDN) for quick polish; app can still use its own classes -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- React + ReactDOM + Babel for on-the-fly JSX transform -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
 <style>
   :root {
-    --bg: #0b1020;
-    --bg-soft: #0e152b;
-    --panel: #111a33;
-    --panel-2: #0c1330;
-    --text: #e8eefc;
-    --muted: #9aa7cc;
-    --accent: #6df3ff;
-    --accent-2: #9bf5a5;
-    --warn: #ffd166;
-    --err: #ff6b6b;
-    --border: #1d2748;
-    --glass: 14px;
-    --radius: 14px;
-    --shadow: 0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+    --chrome-h: 56px;
   }
-  [data-theme="light"] {
-    --bg: #e6edf7;
-    --bg-soft: #eef3fb;
-    --panel: #ffffff;
-    --panel-2: #f7faff;
-    --text: #0a1330;
-    --muted: #4a5480;
-    --accent: #0078ff;
-    --accent-2: #0aa36c;
-    --warn: #aa7a00;
-    --err: #b60d2c;
-    --border: #d7e0f2;
-    --shadow: 0 8px 22px rgba(9,16,48,.12), inset 0 1px 0 rgba(255,255,255,.6);
+  html, body {
+    height: 100%;
+    background: radial-gradient(1200px 800px at 70% 20%, #0b132b 0%, #05080f 70%) fixed;
   }
-
-  * { box-sizing: border-box }
-  html, body { height: 100%; }
-  body {
-    margin: 0; color: var(--text); background: var(--bg);
-    font: 14px/1.35 ui-sans-serif, system-ui, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+  /* App mount area behind toolbar */
+  #app-frame {
+    position: fixed;
+    inset: var(--chrome-h) 0 0 0;
     overflow: hidden;
   }
-
-  /* Subtle animated starfield background */
-  .space {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none;
-    background:
-      radial-gradient(2px 2px at 20% 30%, #ffffffa0, transparent 40%),
-      radial-gradient(1.2px 1.2px at 60% 70%, #a5d3ffb0, transparent 40%),
-      radial-gradient(1.5px 1.5px at 80% 20%, #fddba8a0, transparent 40%),
-      radial-gradient(1px 1px at 30% 85%, #ffffff80, transparent 40%),
-      radial-gradient(1.6px 1.6px at 75% 45%, #9bf5a580, transparent 40%),
-      radial-gradient(1px 1px at 45% 10%, #ffffff70, transparent 40%),
-      linear-gradient(180deg, transparent 0%, rgba(109,243,255,0.05) 100%);
-    filter: drop-shadow(0 0 2px rgba(255,255,255,.12));
-    animation: drift 120s linear infinite;
-    opacity: .65;
-  }
-  @keyframes drift {
-    0% { transform: translateY(0) }
-    100% { transform: translateY(-240px) }
-  }
-
-  /* App chrome */
-  .chrome {
-    position: relative; z-index: 1; display: grid; grid-template-rows: auto auto 1fr auto;
-    height: 100%; gap: 10px; padding: 12px;
-    background: linear-gradient(180deg, transparent, rgba(255,255,255,.02) 60%, transparent);
-  }
-  .titlebar {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: var(--radius);
-    background: linear-gradient(180deg, var(--panel), var(--panel-2));
-    border: 1px solid var(--border); box-shadow: var(--shadow);
-  }
-  .titlebar h1 {
-    margin: 0; font-size: 15px; letter-spacing: .4px; font-weight: 700;
-    display: inline-flex; align-items: center; gap: 10px;
-  }
-  .titlebar .badge {
-    padding: 2px 8px; border-radius: 999px; background: #00000012; color: var(--muted);
-    border: 1px solid var(--border);
-  }
-  .spacer { flex: 1 }
-
+  /* Minimal glass toolbar */
   .toolbar {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    padding: 8px 10px; border-radius: var(--radius);
-    background: linear-gradient(180deg, var(--panel), var(--panel-2));
-    border: 1px solid var(--border); box-shadow: var(--shadow);
+    position: fixed; inset: 0 0 auto 0; height: var(--chrome-h);
+    display: grid; grid-template-columns: 1fr auto; align-items: center;
+    padding: 8px 12px; gap: 12px; z-index: 9999;
+    background: linear-gradient( to bottom,
+      rgba(10,14,22,0.85), rgba(10,14,22,0.6) );
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
-  .btn, .seg {
-    display: inline-flex; align-items: center; gap: 8px; height: 34px;
-    padding: 0 12px; border-radius: 10px; cursor: pointer; user-select: none;
-    background: #00000012; color: var(--text); border: 1px solid var(--border);
-    transition: transform .06s ease, background-color .2s ease, border-color .2s ease;
+  .btn {
+    @apply px-3 py-2 rounded-md text-sm font-semibold;
+    background: rgba(255,255,255,0.06);
+    color: #e6edf3;
+    border: 1px solid rgba(255,255,255,0.08);
   }
-  .btn:hover, .seg:hover { background: #ffffff0e }
-  .btn:active, .seg:active { transform: translateY(1px) }
-  .btn.primary { background: linear-gradient(180deg, #2a3f7f, #1d2d5a); border-color: #2d4090; color: #eaf1ff; }
-  [data-theme="light"] .btn.primary { background: linear-gradient(180deg, #4d86ff, #2b64dd); color: #f5f8ff; border-color: #3f77f5; }
-  .seg { padding: 0 8px }
-  .seg input[type="range"]{ width: 120px }
+  .btn:hover { background: rgba(255,255,255,0.12); }
+  .btn-primary {
+    background: linear-gradient(180deg,#1f8fff,#1772ff);
+    border-color: rgba(255,255,255,0.18);
+    color: #fff;
+  }
+  .badge {
+    padding: 2px 8px; border-radius: 999px; font-size: 12px;
+    background: rgba(255,255,255,0.08); color: #cbd5e1;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  /* Loader overlay while JSX compiles */
+  #boot-cover {
+    position: fixed; inset: var(--chrome-h) 0 0 0; display: grid; place-items: center;
+    background: radial-gradient(800px 600px at 50% 30%, rgba(255,255,255,0.04), rgba(0,0,0,0.0));
+    z-index: 10;
+  }
+  .spinner { width: 42px; height: 42px; border: 3px solid #2f3c56; border-top-color: #77aaff; border-radius: 9999px; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .viewport {
-    position: relative; min-height: 0;
-    border-radius: var(--radius); overflow: clip;
-    border: 1px solid var(--border); box-shadow: var(--shadow);
-    background: radial-gradient(1200px 800px at 50% 20%, #1b2547 20%, rgba(27,37,71,.4), transparent 70%), var(--bg-soft);
-  }
-  .glass {
-    position: absolute; inset: 0; backdrop-filter: blur(0px) saturate(120%) contrast(102%);
-  }
-  .root {
-    position: relative; z-index: 1; width: 100%; height: 100%;
-  }
-
-  /* Loading & error overlays */
-  .overlay {
-    position: absolute; inset: 0; display: grid; place-items: center; z-index: 2;
-    background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.2));
-    color: var(--text);
-  }
-  .card {
-    padding: 16px 18px; border-radius: 14px;
-    background: linear-gradient(180deg, var(--panel), var(--panel-2));
-    border: 1px solid var(--border); box-shadow: var(--shadow);
-    max-width: min(720px, 90vw);
-  }
-  .spinner {
-    width: 26px; height: 26px; border-radius: 50%;
-    border: 3px solid #ffffff25; border-right-color: var(--accent); margin-right: 10px; animation: spin .9s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg) } }
-
-  .statusbar {
-    display: flex; align-items: center; gap: 10px; min-height: 34px;
-    padding: 6px 10px; border-radius: var(--radius);
-    background: linear-gradient(180deg, var(--panel), var(--panel-2));
-    border: 1px solid var(--border); box-shadow: var(--shadow);
-    color: var(--muted);
-  }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
-  .pill { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); background: #00000010; }
-
-  /* Compact on phones */
-  @media (max-width: 640px) {
-    .titlebar, .toolbar, .statusbar { border-radius: 12px }
-    .btn, .seg { height: 32px }
-    .seg input[type="range"]{ width: 90px }
-  }
+  /* Toasts */
+  #toasts { position: fixed; right: 16px; bottom: 16px; display: grid; gap: 8px; z-index: 10000; }
+  .toast { padding: 10px 12px; border-radius: 10px; color: #e6edf3; background: rgba(16,22,35,0.92); border: 1px solid rgba(255,255,255,0.08); }
+  .toast.error { border-color:#f87171; background: rgba(35,10,10,0.92); }
 </style>
-
-<!-- CDN: React & Babel (runtime-transform the uploaded JSX) -->
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
 </head>
-<body>
-  <div class="space" aria-hidden="true"></div>
 
-  <div class="chrome">
-    <div class="titlebar">
-      <h1>
-        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-          <path fill="currentColor" d="M12 2a1 1 0 0 1 .9.56l1.7 3.45 3.81.55a1 1 0 0 1 .55 1.7l-2.75 2.68.65 3.8a1 1 0 0 1-1.45 1.05L12 14.9l-3.41 1.79a1 1 0 0 1-1.45-1.06l.65-3.8L5.04 8.26a1 1 0 0 1 .55-1.7l3.81-.55L11.1 2.56A1 1 0 0 1 12 2Z"/>
-        </svg>
-        Interactive Star Map
-      </h1>
-      <span class="badge">Sol-37</span>
-      <div class="spacer"></div>
-      <button id="themeBtn" class="btn" title="Toggle theme (T)">Theme</button>
-      <button id="fitBtn" class="btn" title="Fit to view (F)">Fit</button>
-      <button id="resetBtn" class="btn" title="Reset (R)">Reset</button>
-      <button id="aboutBtn" class="btn primary" title="About">About</button>
+<body class="text-slate-200">
+  <!-- Top chrome -->
+  <header class="toolbar">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="h-8 w-8 rounded bg-blue-500/80 grid place-items-center text-white font-bold shadow">☆</div>
+      <div class="min-w-0">
+        <div class="text-sm leading-tight text-slate-300">Sol-37 Program</div>
+        <div class="text-base leading-tight font-semibold">Interactive Star Map</div>
+      </div>
+      <span id="status-badge" class="badge ml-2">loading…</span>
     </div>
 
-    <div class="toolbar">
-      <div class="seg" title="Zoom">
-        <span>Zoom</span>
-        <input id="zoomRange" type="range" min="0.25" max="2.5" step="0.01" value="1" />
-        <span id="zoomLabel" class="pill">100%</span>
+    <div class="flex items-center gap-2">
+      <!-- Coord toggle -->
+      <div class="hidden sm:flex items-center gap-1 mr-2">
+        <button id="btn-equ" class="btn">Equatorial</button>
+        <button id="btn-gal" class="btn">Galactic</button>
       </div>
-      <div class="seg" title="Quality">
-        <span>Quality</span>
-        <select id="qualitySel">
-          <option value="high">High</option>
-          <option value="balanced" selected>Balanced</option>
-          <option value="low">Low</option>
-        </select>
-      </div>
-      <div class="seg" title="Show grid">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-          <input id="gridChk" type="checkbox" checked /> Grid
-        </label>
-      </div>
-      <div class="spacer"></div>
-      <div class="seg pill" id="fpsPill" title="Approx FPS">FPS: --</div>
+
+      <!-- Data loaders -->
+      <button id="btn-demo" class="btn">Demo</button>
+      <button id="btn-url"  class="btn">Load URL</button>
+      <button id="btn-paste" class="btn">Paste JSON</button>
+      <label class="btn cursor-pointer">
+        <input id="file-input" type="file" accept=".json,.dat,.txt" class="hidden">
+        Open File
+      </label>
+
+      <!-- Fullscreen -->
+      <button id="btn-full" class="btn-primary">Fullscreen</button>
     </div>
+  </header>
 
-    <div class="viewport">
-      <div id="overlay" class="overlay" role="status" aria-live="polite">
-        <div class="card" style="display:flex;align-items:center;gap:12px">
-          <div class="spinner"></div>
-          <div>
-            <strong>Loading Star Map…</strong>
-            <div id="overlayMsg" style="color:var(--muted);margin-top:4px">Fetching JSX & spinning up Babel</div>
-          </div>
-        </div>
+  <!-- Root mount for the React app -->
+  <main id="app-frame">
+    <div id="root" class="w-full h-full"></div>
+    <div id="boot-cover">
+      <div class="grid place-items-center gap-4">
+        <div class="spinner"></div>
+        <div class="text-slate-300 text-sm">Compiling star map…</div>
       </div>
-      <div class="glass"></div>
-      <div id="root" class="root" aria-label="Interactive Star Map root"></div>
     </div>
+  </main>
 
-    <div class="statusbar" id="statusbar">
-      <div class="dot" id="statusDot"></div>
-      <div id="statusText" class="pill" title="App status">Initializing…</div>
-      <div class="spacer"></div>
-      <div id="dimText" class="pill">0 × 0</div>
-      <div id="qualityText" class="pill">Balanced</div>
-    </div>
-  </div>
+  <!-- Toasts -->
+  <div id="toasts" aria-live="polite"></div>
 
-<script>
-(function(){
-  const ROOT = document.getElementById('root');
-  const overlay = document.getElementById('overlay');
-  const overlayMsg = document.getElementById('overlayMsg');
-  const statusText = document.getElementById('statusText');
-  const statusDot = document.getElementById('statusDot');
-  const dimText = document.getElementById('dimText');
-  const qualityText = document.getElementById('qualityText');
-  const zoomRange = document.getElementById('zoomRange');
-  const zoomLabel = document.getElementById('zoomLabel');
-  const qualitySel = document.getElementById('qualitySel');
-  const gridChk = document.getElementById('gridChk');
-  const fpsPill = document.getElementById('fpsPill');
-  const fitBtn = document.getElementById('fitBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const themeBtn = document.getElementById('themeBtn');
-  const aboutBtn = document.getElementById('aboutBtn');
-
-  const JSX_PATH = 'interactive_star_map_v_2_react_web_app.jsx'; // same folder as wrapper
-
-  const setOverlay = (on, msg) => {
-    overlay.style.display = on ? 'grid' : 'none';
-    if (msg) overlayMsg.textContent = msg;
-  };
-  const setStatus = (txt, color) => {
-    statusText.textContent = txt ?? '';
-    statusDot.style.background = color || 'var(--accent)';
-    statusDot.style.boxShadow = `0 0 10px ${getComputedStyle(statusDot).backgroundColor}`;
-  };
-
-  // FPS meter (approx)
-  (function fpsMeter(){
-    let last = performance.now(), frames = 0, acc = 0;
-    function tick(now){
-      frames++;
-      const dt = now - last; last = now; acc += dt;
-      if (acc >= 500) { // update twice/sec
-        const fps = Math.round(frames * 1000 / acc);
-        fpsPill.textContent = `FPS: ${String(fps).padStart(2,' ')}`;
-        frames = 0; acc = 0;
-      }
-      requestAnimationFrame(tick);
+  <!-- Optional: pass a custom path to the JSX via data attribute -->
+  <script id="bootstrap" type="application/json" data-jsx-path="./interactive_star_map_v_2_react_web_app.jsx">
+    {
+      "autoSrcParam": "src"
     }
-    requestAnimationFrame(tick);
-  })();
+  </script>
 
-  // Theme toggle + shortcuts
-  function toggleTheme(){
-    const html = document.documentElement;
-    html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-  }
-  themeBtn.addEventListener('click', toggleTheme);
-  aboutBtn.addEventListener('click', ()=> alert('Interactive Star Map\nSol-37 wrapper\n— GPU-friendly, themeable, and resilient loader.'));
+  <script>
+  (function () {
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const status = $('#status-badge');
+    const bootCover = $('#boot-cover');
+    const toasts = $('#toasts');
+    const rootEl = $('#root');
+    const cfgTag = $('#bootstrap');
+    const JSX_PATH = cfgTag.dataset.jsxPath || './interactive_star_map_v_2_react_web_app.jsx';
+    const AUTO_SRC_PARAM = safeJson(cfgTag.textContent)?.autoSrcParam || 'src';
 
-  // Size tracking (pass to app as props)
-  const ro = new ResizeObserver(() => {
-    const r = ROOT.getBoundingClientRect();
-    dimText.textContent = `${Math.round(r.width)} × ${Math.round(r.height)}`;
-    if (window.__StarMap_setSize) window.__StarMap_setSize({ width: r.width, height: r.height });
-  });
-  ro.observe(ROOT);
+    function safeJson(s) { try { return JSON.parse(s || '{}'); } catch { return {}; } }
+    function toast(msg, kind='info', ms=3500) {
+      const div = document.createElement('div');
+      div.className = 'toast' + (kind === 'error' ? ' error' : '');
+      div.textContent = msg;
+      toasts.appendChild(div);
+      setTimeout(() => div.remove(), ms);
+    }
 
-  // Controls -> props bridge
-  let currentProps = {
-    zoom: parseFloat(zoomRange.value),
-    quality: qualitySel.value,
-    showGrid: gridChk.checked
-  };
-  zoomRange.addEventListener('input', ()=> {
-    currentProps.zoom = parseFloat(zoomRange.value);
-    zoomLabel.textContent = Math.round(currentProps.zoom * 100) + '%';
-    if (window.__StarMap_setProps) window.__StarMap_setProps({ zoom: currentProps.zoom });
-  });
-  qualitySel.addEventListener('change', ()=> {
-    currentProps.quality = qualitySel.value;
-    qualityText.textContent = qualitySel.options[qualitySel.selectedIndex].textContent;
-    if (window.__StarMap_setProps) window.__StarMap_setProps({ quality: currentProps.quality });
-  });
-  gridChk.addEventListener('change', ()=> {
-    currentProps.showGrid = gridChk.checked;
-    if (window.__StarMap_setProps) window.__StarMap_setProps({ showGrid: currentProps.showGrid });
-  });
+    function setStatus(txt, color) {
+      status.textContent = txt;
+      status.style.background = color ? color : 'rgba(255,255,255,0.08)';
+    }
 
-  fitBtn.addEventListener('click', ()=> {
-    currentProps.zoom = 1;
-    zoomRange.value = '1'; zoomLabel.textContent = '100%';
-    if (window.__StarMap_fit) window.__StarMap_fit();
-  });
-  resetBtn.addEventListener('click', ()=> {
-    currentProps = { zoom: 1, quality: 'balanced', showGrid: true };
-    zoomRange.value = '1'; zoomLabel.textContent = '100%';
-    qualitySel.value = 'balanced'; qualityText.textContent = 'Balanced';
-    gridChk.checked = true;
-    if (window.__StarMap_reset) window.__StarMap_reset();
-    if (window.__StarMap_setProps) window.__StarMap_setProps(currentProps);
-  });
-
-  // Keyboard shortcuts
-  window.addEventListener('keydown', (e)=>{
-    if (e.key === 't' || e.key === 'T') toggleTheme();
-    if (e.key === 'f' || e.key === 'F') fitBtn.click();
-    if (e.key === 'r' || e.key === 'R') resetBtn.click();
-  });
-
-  // Mount React app: resilient to different export styles
-  async function mountApp(){
-    try{
-      setOverlay(true, 'Fetching JSX…');
+    // Compile + mount App
+    async function mountApp() {
+      setStatus('loading…');
       const res = await fetch(JSX_PATH, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status} while fetching ${JSX_PATH}`);
+      if (!res.ok) {
+        setStatus('error', '#6b0f12');
+        toast('Could not load star map source: ' + JSX_PATH, 'error');
+        throw new Error('Fetch JSX failed');
+      }
       const code = await res.text();
 
-      setOverlay(true, 'Transpiling with Babel…');
-      const transformed = Babel.transform(code, { presets: ['react'], sourceType: 'unambiguous' }).code;
-
-      // Sandboxed evaluation to capture CommonJS/ESM/global
-      const exportsBox = { exports: {} };
-      const moduleBox = { exports: {} };
-      const fn = new Function('React','exports','module', transformed + '\n;return module.exports ?? exports;');
-      const result = fn(window.React, exportsBox.exports, moduleBox);
-      const Comp =
-        (result && (result.default || result)) ||
-        (moduleBox.exports && (moduleBox.exports.default || moduleBox.exports)) ||
-        window.InteractiveStarMap || window.default;
-
-      if (typeof Comp !== 'function' && typeof Comp !== 'object') {
-        throw new Error('Could not find exported React component. Export a component as default or named.');
+      // Transform JSX to JS
+      let compiled;
+      try {
+        compiled = Babel.transform(code, { presets: ['react'] }).code;
+      } catch (e) {
+        setStatus('compile error', '#6b0f12');
+        console.error(e);
+        toast('Babel compile error (see console).', 'error', 6000);
+        throw e;
       }
 
-      setOverlay(true, 'Rendering…');
+      // Execute in a scoped Function so top-level assigns (window.setCoord, window.appSetData) still reach window
+      try {
+        const fn = new Function('React','ReactDOM', compiled + '\nreturn App;'); // App is default export name in your file
+        const App = fn(React, ReactDOM);
+        const root = ReactDOM.createRoot(rootEl);
+        root.render(React.createElement(App));
+      } catch (e) {
+        setStatus('runtime error', '#6b0f12');
+        console.error(e);
+        toast('Runtime error while mounting app (see console).', 'error', 6000);
+        throw e;
+      }
 
-      // Provide wrapper → app bridge via props + imperative helpers
-      const root = ReactDOM.createRoot(ROOT);
-      const bridge = {
-        onStatus: (msg, level='info') => {
-          setStatus(msg, level === 'error' ? 'var(--err)' : level === 'warn' ? 'var(--warn)' : 'var(--accent)');
-        },
-        registerImperatives: (api={}) => {
-          // optional methods your JSX can expose
-          window.__StarMap_fit   = api.fit    || window.__StarMap_fit;
-          window.__StarMap_reset = api.reset  || window.__StarMap_reset;
-          window.__StarMap_setProps = api.setProps || window.__StarMap_setProps;
-          window.__StarMap_setSize  = api.setSize  || window.__StarMap_setSize;
+      // Wait until app exposes helpers
+      await waitForGlobals(['setCoord','appSetData']);
+      bootCover.style.display = 'none';
+      setStatus('ready', 'rgba(34,197,94,0.25)');
+
+      // If URL has ?src=…, try auto-load
+      const url = new URL(location.href);
+      const src = url.searchParams.get(AUTO_SRC_PARAM);
+      if (src) {
+        try {
+          const payload = await fetch(src, { cache: 'no-store' }).then(r => r.json());
+          if (looksNormalized(payload)) {
+            window.appSetData(payload);
+            toast('Loaded dataset from URL.');
+          } else if (typeof window.parseFromDatJson === 'function') {
+            window.appSetData(window.parseFromDatJson(payload));
+            toast('Parsed dat.json mapping and loaded dataset.');
+          } else {
+            toast('Data fetched but format unknown. Use app importer panel.', 'error', 6000);
+          }
+        } catch (e) {
+          toast('Failed to load src URL.', 'error');
         }
-      };
-
-      // Default fallbacks if not registered by the app
-      window.__StarMap_fit = window.__StarMap_fit || function(){};
-      window.__StarMap_reset = window.__StarMap_reset || function(){};
-      window.__StarMap_setProps = window.__StarMap_setProps || function(){};
-      window.__StarMap_setSize = window.__StarMap_setSize || function(){};
-
-      root.render(React.createElement(Comp, {
-        width: ROOT.clientWidth,
-        height: ROOT.clientHeight,
-        zoom: currentProps.zoom,
-        quality: currentProps.quality,
-        showGrid: currentProps.showGrid,
-        onStatus: bridge.onStatus,
-        wrapperBridge: bridge
-      }));
-
-      setStatus('Ready');
-      setOverlay(false);
-    } catch (err){
-      console.error(err);
-      setOverlay(true);
-      overlay.innerHTML = `
-        <div class="card">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div class="spinner" style="border-right-color:var(--err)"></div>
-            <strong>Failed to load Star Map</strong>
-          </div>
-          <div style="color:var(--muted);white-space:pre-wrap">${(err && err.message) || err}</div>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn" onclick="location.reload()">Reload</button>
-            <button class="btn" onclick="navigator.clipboard.writeText('${JSX_PATH}').then(()=>alert('Path copied'));">Copy JSX path</button>
-          </div>
-        </div>`;
-      setStatus('Error loading Star Map', 'error');
+      }
     }
-  }
 
-  mountApp();
-})();
-</script>
+    function waitForGlobals(keys, timeoutMs=8000) {
+      return new Promise((resolve, reject) => {
+        const t0 = performance.now();
+        (function poll(){
+          const missing = keys.filter(k => typeof window[k] === 'undefined');
+          if (!missing.length) return resolve();
+          if (performance.now() - t0 > timeoutMs) return reject(new Error('Missing globals: ' + missing.join(', ')));
+          requestAnimationFrame(poll);
+        })();
+      });
+    }
+
+    // Heuristic: already normalized dataset for app?
+    function looksNormalized(obj) {
+      if (!obj || typeof obj !== 'object') return false;
+      if (Array.isArray(obj.stars)) return true;
+      if (obj.stars && typeof obj.stars === 'object' && Array.isArray(obj.stars.items)) return true;
+      return false;
+    }
+
+    // Toolbar actions
+    $('#btn-equ').addEventListener('click', () => {
+      if (typeof window.setCoord === 'function') { window.setCoord('equatorial'); toast('Coord: Equatorial'); }
+    });
+    $('#btn-gal').addEventListener('click', () => {
+      if (typeof window.setCoord === 'function') { window.setCoord('galactic'); toast('Coord: Galactic'); }
+    });
+
+    $('#btn-demo').addEventListener('click', () => {
+      // Your App ships with a DEMO dataset internally (it calls appSetData(DEMO) on load).
+      // This just re-applies it by toggling coord then back, acting as a visual reset.
+      if (typeof window.setCoord === 'function') {
+        window.setCoord('equatorial'); setTimeout(() => window.setCoord('galactic'), 50);
+        toast('Demo dataset active.');
+      }
+    });
+
+    $('#btn-url').addEventListener('click', async () => {
+      const src = prompt("Enter dataset URL (JSON). If it's a StarFinder dat.json map, the wrapper will try to parse it.");
+      if (!src) return;
+      try {
+        const payload = await fetch(src, { cache: 'no-store' }).then(r => r.json());
+        if (looksNormalized(payload)) {
+          window.appSetData(payload);
+          toast('Loaded dataset from URL.');
+        } else if (typeof window.parseFromDatJson === 'function') {
+          window.appSetData(window.parseFromDatJson(payload));
+          toast('Parsed dat.json mapping and loaded dataset.');
+        } else {
+          toast('Data fetched but format unknown. Use the app importer panel.', 'error', 6000);
+        }
+      } catch (e) {
+        toast('Failed to fetch/parse URL.', 'error');
+      }
+    });
+
+    $('#btn-paste').addEventListener('click', async () => {
+      const raw = prompt("Paste dataset JSON (either normalized {stars, dsos,...} or dat.json-style mapping).");
+      if (!raw) return;
+      try {
+        const payload = JSON.parse(raw);
+        if (looksNormalized(payload)) {
+          window.appSetData(payload); toast('Loaded pasted dataset.');
+        } else if (typeof window.parseFromDatJson === 'function') {
+          window.appSetData(window.parseFromDatJson(payload)); toast('Parsed dat.json mapping and loaded dataset.');
+        } else {
+          toast('JSON read, but format unknown. Use app importer.', 'error', 6000);
+        }
+      } catch (e) { toast('Invalid JSON.', 'error'); }
+    });
+
+    $('#file-input').addEventListener('change', async (e) => {
+      const f = e.target.files?.[0]; if (!f) return;
+      try {
+        const text = await f.text();
+        // Try JSON first; if not, hand off to the app's own importer UI.
+        let payload;
+        try { payload = JSON.parse(text); } catch { payload = null; }
+        if (payload) {
+          if (looksNormalized(payload)) {
+            window.appSetData(payload); toast('Loaded local dataset JSON.');
+          } else if (typeof window.parseFromDatJson === 'function') {
+            window.appSetData(window.parseFromDatJson(payload)); toast('Parsed dat.json mapping and loaded dataset.');
+          } else {
+            toast('JSON read, but format unknown. Use app importer panel.', 'error', 6000);
+          }
+        } else {
+          toast('Non-JSON file opened. Use the app importer panel to parse it.', 'error', 6000);
+        }
+      } catch (err) {
+        toast('Failed to read file.', 'error');
+      } finally {
+        e.target.value = '';
+      }
+    });
+
+    // Fullscreen handling
+    const appFrame = $('#app-frame');
+    function toggleFull() {
+      if (!document.fullscreenElement) appFrame.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+    $('#btn-full').addEventListener('click', toggleFull);
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'f') toggleFull();
+      if (e.key.toLowerCase() === 'g') window.setCoord?.('galactic');
+      if (e.key.toLowerCase() === 'e') window.setCoord?.('equatorial');
+    });
+
+    // Boot
+    mountApp().catch(()=>{/* errors already surfaced */});
+  })();
+  </script>
 </body>
 </html>
