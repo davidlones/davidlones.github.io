@@ -318,30 +318,26 @@
 <body>
 <div id="root"></div>
 
-<!-- React + ReactDOM + Babel -->
 <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <script type="text/babel">
-
 const { useState, useEffect, useRef, useMemo } = React;
 
-// --- Helpers: parsing & colors ---
+// --- Helpers ---
 
 function parseSexagesimalRA(hms) {
-  // "HH:MM:SS.s"
   const parts = hms.trim().split(":");
   if (parts.length < 2) return 0;
   const h = parseFloat(parts[0]) || 0;
   const m = parseFloat(parts[1]) || 0;
   const s = parseFloat(parts[2] || "0") || 0;
   const hours = h + m/60 + s/3600;
-  return hours * 15.0; // degrees
+  return hours * 15.0;
 }
 
 function parseSexagesimalDec(dms) {
-  // "DD:MM:SS" or "±DD:MM:SS"
   let s = dms.trim();
   let sign = 1;
   if (s[0] === "-") { sign = -1; s = s.slice(1); }
@@ -362,7 +358,7 @@ function spectralToRGB(sp) {
   }
   const c = sp.trim().charAt(0).toUpperCase();
   switch (c) {
-    case "O": return { r: 170, g: 200, b: 255 }; // blue
+    case "O": return { r: 170, g: 200, b: 255 };
     case "B": return { r: 180, g: 205, b: 255 };
     case "A": return { r: 200, g: 215, b: 255 };
     case "F": return { r: 230, g: 235, b: 255 };
@@ -377,27 +373,23 @@ function rgbToRgbaString({r,g,b}, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-// Parse Stars table from ASCII text inside dat.json["Stars"]
 function parseStarsFromDatText(text, maxCount = 15000) {
   if (!text) return [];
   const lines = text.split(/\r?\n/);
   const stars = [];
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    // data lines start with space + digits or just digits
     if (!line) continue;
     const trimmed = line.trim();
     if (!trimmed) continue;
-    // skip header lines that start with ; or letters
     if (trimmed[0] === ";" || isNaN(parseInt(trimmed[0], 10))) {
       continue;
     }
     const parts = trimmed.split(/\s+/);
-    if (parts.length < 8) continue; // need SAO, RA, Dec, mag, B-V, Sp
+    if (parts.length < 8) continue;
     const sao = parts[0];
     const raStr = parts[1];
     const decStr = parts[2];
-    // The magnitude is usually at index 5; spectral class near index 7
     const mag = parseFloat(parts[5]);
     const sp = parts[7] || "";
     if (!isFinite(mag)) continue;
@@ -407,27 +399,19 @@ function parseStarsFromDatText(text, maxCount = 15000) {
     const col = spectralToRGB(sp);
     const phase = Math.random() * Math.PI * 2;
 
-    stars.push({
-      id: sao,
-      raDeg,
-      decDeg,
-      mag,
-      sp,
-      rgb: col,
-      phase
-    });
+    stars.push({ id: sao, raDeg, decDeg, mag, sp, rgb: col, phase });
     if (stars.length >= maxCount) break;
   }
   return stars;
 }
 
-// --- Canvas component ---
+// --- Canvas ---
 
-function StarCanvas({ stars, settings, onHoverStar }) {
+function StarCanvas({ stars, settings, onSelectStar }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const animationRef = useRef(null);
-  const dprRef = useRef(window.devicePixelRatio || 1);
+  const screenPointsRef = useRef([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -436,7 +420,6 @@ function StarCanvas({ stars, settings, onHoverStar }) {
 
     const ctx = canvas.getContext("2d");
     const dpr = window.devicePixelRatio || 1;
-    dprRef.current = dpr;
 
     function resize() {
       const rect = container.getBoundingClientRect();
@@ -451,8 +434,6 @@ function StarCanvas({ stars, settings, onHoverStar }) {
     resize();
     window.addEventListener("resize", resize);
 
-    let lastHover = null;
-
     function render(ts) {
       const time = ts / 1000.0;
       const rect = container.getBoundingClientRect();
@@ -460,14 +441,12 @@ function StarCanvas({ stars, settings, onHoverStar }) {
       const height = rect.height;
 
       ctx.clearRect(0, 0, width, height);
-
       const maxStarsToDraw = Math.min(settings.starCount, stars.length);
       const magLimit = settings.magLimit;
       const baseMaxSize = settings.maxSize;
       const fuzzIntensity = settings.fuzzIntensity;
 
-      // star projection: RA->x, Dec->y
-      // RA in [0,360], Dec in [-90,90]
+      const points = [];
       for (let i = 0; i < maxStarsToDraw; i++) {
         const star = stars[i];
         if (star.mag > magLimit) continue;
@@ -475,15 +454,15 @@ function StarCanvas({ stars, settings, onHoverStar }) {
         const x = (star.raDeg / 360) * width;
         const y = height * 0.5 - (star.decDeg / 180) * height;
 
-        // magnitude to size (brighter = bigger)
-        const magFactor = Math.max(0, 8 - star.mag); // simple mapping
+        const magFactor = Math.max(0, 8 - star.mag);
         const coreSize = Math.max(0.4, baseMaxSize * (magFactor / 8));
-        const haloSize = coreSize * (1.5 + 0.5 * fuzzIntensity);
-        const flicker = 0.7 + 0.3 * Math.sin(time * 2.0 + star.phase);
+        const haloSize = coreSize * (2.0 + 0.7 * fuzzIntensity);
 
-        // halo
+        // make flicker a bit more visible
+        const flicker = 0.6 + 0.5 * Math.sin(time * 2.3 + star.phase);
+
         const haloR = haloSize * flicker;
-        const haloAlpha = 0.12 * fuzzIntensity;
+        const haloAlpha = 0.18 * fuzzIntensity;
         if (haloAlpha > 0.01) {
           const grad = ctx.createRadialGradient(x, y, 0, x, y, haloR);
           const c = star.rgb;
@@ -495,24 +474,52 @@ function StarCanvas({ stars, settings, onHoverStar }) {
           ctx.fill();
         }
 
-        // core
-        const coreR = Math.max(0.5, coreSize * 0.6);
-        ctx.fillStyle = rgbToRgbaString(star.rgb, 0.95);
+        const coreR = Math.max(0.5, coreSize * 0.7 * flicker);
+        ctx.fillStyle = rgbToRgbaString(star.rgb, 0.98);
         ctx.beginPath();
         ctx.arc(x, y, coreR, 0, Math.PI * 2);
         ctx.fill();
-      }
 
+        points.push({ star, x, y, r: Math.max(coreR, haloR * 0.25) });
+      }
+      screenPointsRef.current = points;
       animationRef.current = requestAnimationFrame(render);
     }
 
     animationRef.current = requestAnimationFrame(render);
 
+    function handleClick(evt) {
+      if (!onSelectStar) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = evt.clientX - rect.left;
+      const y = evt.clientY - rect.top;
+      const pts = screenPointsRef.current || [];
+      let best = null;
+      let bestR2 = Infinity;
+      const pickRadius = 14;
+      const pickR2 = pickRadius * pickRadius;
+      for (const p of pts) {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const r2 = dx*dx + dy*dy;
+        if (r2 < pickR2 && r2 < bestR2) {
+          bestR2 = r2;
+          best = p.star;
+        }
+      }
+      if (best) {
+        onSelectStar(best);
+      }
+    }
+
+    canvas.addEventListener("click", handleClick);
+
     return () => {
       window.removeEventListener("resize", resize);
+      canvas.removeEventListener("click", handleClick);
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [stars, settings]);
+  }, [stars, settings, onSelectStar]);
 
   return (
     <div ref={containerRef} className="canvas-container">
@@ -533,7 +540,7 @@ function App() {
     starCount: 8000,
     fuzzIntensity: 1.0
   });
-  const [hoverStar, setHoverStar] = useState(null);
+  const [selectedStar, setSelectedStar] = useState(null);
 
   useEffect(() => {
     async function loadDat() {
@@ -566,7 +573,6 @@ function App() {
 
   return (
     <div className="app-shell">
-      {/* Sidebar */}
       <div className="sidebar">
         <div className="title-row">
           <div className="app-title">Interactive Star Map V2</div>
@@ -692,12 +698,11 @@ function App() {
         </div>
       </div>
 
-      {/* Main canvas + HUD */}
       <div className="canvas-container">
         <StarCanvas
           stars={visibleStars}
           settings={settings}
-          onHoverStar={setHoverStar}
+          onSelectStar={setSelectedStar}
         />
         <div className="hud-overlay">
           <div className="hud-top">
@@ -718,32 +723,32 @@ function App() {
             <div className="hud-panel hud-panel-rect info-panel">
               <div>
                 <div className="info-title">Focus</div>
-                {!hoverStar && (
+                {!selectedStar && (
                   <div className="info-body">
-                    No star selected. Move the view or tweak the controls; brightest stars dominate the fuzz.
+                    Click on a star to lock focus and inspect its catalog fields.
                   </div>
                 )}
-                {hoverStar && (
+                {selectedStar && (
                   <div className="info-body">
                     <div>
                       <span>ID</span>
-                      <span className="value">{hoverStar.id}</span>
+                      <span className="value">{selectedStar.id}</span>
                     </div>
                     <div>
                       <span>Mag</span>
-                      <span className="value">{hoverStar.mag.toFixed(2)}</span>
+                      <span className="value">{selectedStar.mag.toFixed(2)}</span>
                     </div>
                     <div>
                       <span>RA (deg)</span>
-                      <span className="value">{hoverStar.raDeg.toFixed(3)}</span>
+                      <span className="value">{selectedStar.raDeg.toFixed(3)}</span>
                     </div>
                     <div>
                       <span>Dec (deg)</span>
-                      <span className="value">{hoverStar.decDeg.toFixed(3)}</span>
+                      <span className="value">{selectedStar.decDeg.toFixed(3)}</span>
                     </div>
                     <div>
                       <span>Sp</span>
-                      <span className="value">{hoverStar.sp || "—"}</span>
+                      <span className="value">{selectedStar.sp || "—"}</span>
                     </div>
                   </div>
                 )}
@@ -779,7 +784,6 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);
-
 </script>
 </body>
 </html>
