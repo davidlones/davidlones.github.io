@@ -1,114 +1,235 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Interactive Star Map</title>
-  <style>
-    html, body, #root {
-      height: 100%;
-      margin: 0;
-      background: #0b0d16;
-      color: #eee;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, sans-serif;
-    }
-    body {
-      display: flex;
-      align-items: stretch;
-      justify-content: stretch;
-    }
-    #root {
-      width: 100%;
-    }
-    .boot {
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      font-size: 14px;
-      opacity: 0.85;
-      pointer-events: none;
-      background: radial-gradient(circle at top, rgba(255,255,255,0.04), transparent 55%),
-                  radial-gradient(circle at bottom, rgba(0, 200, 255, 0.05), transparent 60%);
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interactive Star Map</title>
+<style>
+  html,body{height:100%;margin:0;background:#060812;color:#e9edf5;
+            font-family:system-ui, Segoe UI, Roboto, Ubuntu}
+  #root{position:relative;width:100%;height:100%;overflow:hidden}
+  .boot{position:absolute;inset:0;display:grid;place-items:center;
+        font-size:15px;opacity:.85;background:#060812;z-index:5}
+  canvas{width:100%!important;height:100%!important;display:block}
+  #root::before{content:"";position:absolute;inset:0;z-index:-1;
+    background:radial-gradient(120% 100% at 50% 20%,
+    #0d1326 0%, #060812 60%, #04060d 100%);}
 
-  <!-- React (UMD) + Babel standalone for on-the-fly JSX -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  /* floating controls HUD (auto-tagged via JS) */
+  .controls-panel{
+    position:fixed;right:16px;top:64px;width:min(360px,32vw);
+    max-height:72vh;overflow:auto;z-index:20;padding:10px 12px;
+    border-radius:12px;background:color-mix(in srgb,#0b1224 70%,transparent);
+    backdrop-filter:blur(8px) saturate(115%);
+    border:1px solid #273147;box-shadow:0 6px 28px #0007,inset 0 1px 0 #ffffff14
+  }
+  .controls-panel input,.controls-panel select,.controls-panel button,
+  .controls-panel textarea{font:inherit}
+  .controls-panel hr{border:none;border-top:1px solid #273147;margin:8px 0;opacity:.7}
+  h1,h2,h3{text-shadow:0 1px 2px #000a}
+  @media (max-width:700px){
+    .controls-panel{right:8px;left:8px;width:auto;top:auto;bottom:10px;max-height:52vh}
+  }
+
+  /* dat.json loader chip */
+  .data-chip{
+    position:fixed;left:16px;top:64px;z-index:21;
+    display:flex;gap:8px;align-items:center;
+    background:#0b1224cc;border:1px solid #273147;border-radius:10px;
+    padding:6px 10px;backdrop-filter:blur(6px);box-shadow:0 6px 20px #0007
+  }
+  .data-chip button{background:#1f2a44;border:1px solid #3a4b73;color:#e9edf5;
+    padding:6px 10px;border-radius:8px;cursor:pointer}
+  .data-chip button:hover{filter:brightness(1.08)}
+  .data-chip small{opacity:.8}
+
+  /* persistent detail panel */
+  .detail-panel{
+    position:fixed;left:50%;top:18px;transform:translateX(-50%);
+    z-index:22;max-width:min(780px,92vw);
+    background:#0b1224e6;border:1px solid #394a72;border-radius:12px;
+    padding:10px 14px;box-shadow:0 8px 28px #000c,inset 0 1px 0 #ffffff1a;
+    line-height:1.25;font-size:14px;display:none;white-space:pre-wrap
+  }
+  .detail-panel.show{display:block}
+  .detail-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .detail-title{font-weight:600;opacity:.95}
+  .detail-close{
+    margin-left:auto;cursor:pointer;border:1px solid #3b4f7d;border-radius:8px;
+    background:#1b2643;color:#e9edf5;padding:2px 8px;line-height:1
+  }
+  .detail-body{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+               white-space:pre-wrap}
+</style>
+<!-- React UMD + Babel -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
-  <div class="boot" id="boot">Loading Interactive Star Map…</div>
+  <div class="boot" id="boot">✨ Initializing Interactive Star Map…</div>
 
-  <script>
-    (async function () {
-      const bootEl = document.getElementById('boot');
+  <!-- persistent info panel -->
+  <div class="detail-panel" id="detailPanel" aria-live="polite" role="dialog" aria-modal="false">
+    <div class="detail-header">
+      <div class="detail-title">Object details</div>
+      <button class="detail-close" id="detailClose" title="Close">×</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
 
-      function setBoot(msg) {
-        if (bootEl) bootEl.textContent = msg;
-      }
+<script>
+(async function(){
+  try{
+    const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', {cache:'no-store'});
+    let src = await resp.text();
 
-      try {
-        // Fetch the uploaded JSX as-is
-        const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache: 'no-store' });
-        if (!resp.ok) throw new Error('Failed to fetch JSX: ' + resp.status);
-        const src0 = await resp.text();
+    // ESM → UMD globals (non-invasive to your app code)
+    src = src
+      .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
+        "const { useEffect,useMemo,useRef,useState } = React;")
+      .replace(/\bexport\s+default\s+function\s+App\s*\(/, "function App(");
 
-        // Patch ESM-style imports/exports → globals for UMD runtime
-        let src = src0
-          .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
-            "const { useEffect, useMemo, useRef, useState } = React;")
-          .replace(/\bexport\s+default\s+function\s+App\s*\(/,
-            "function App(");
+    const out = Babel.transform(src, { presets: ['react'] }).code;
+    (new Function(out + "\nwindow.__StarMapApp = App;"))();
 
-        // Transpile JSX → JS using Babel Standalone
-        const out = Babel.transform(src, { presets: ['react'] }).code;
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(window.__StarMapApp));
 
-        // Evaluate in this page's scope.
-        // Also expose App and parseFromDatJson on window for our wrapper to use.
-        (new Function(out + "\nwindow.__StarMapApp = App; try { window.__parseFromDatJson = parseFromDatJson; } catch(e) {}"))();
+    // Float the densest control container (no DOM moves, just styling)
+    const tagControls = () => {
+      const cands = [...document.querySelectorAll('#root div')]
+        .filter(d => !d.querySelector('canvas'))
+        .map(d => ({el:d, n:d.querySelectorAll('input,select,button,textarea,label').length}))
+        .filter(x => x.n >= 4).sort((a,b)=>b.n-a.n);
+      if (cands[0]) cands[0].el.classList.add('controls-panel');
+    };
+    setTimeout(tagControls,150);
+    setTimeout(tagControls,600);
+    setTimeout(tagControls,1200);
 
-        if (!window.__StarMapApp) {
-          throw new Error('Star Map App not found after eval');
-        }
+    // --- /dat.json loader chip (site root: davidlones.github.io/dat.json) ---
+    const chip = document.createElement('div');
+    chip.className = 'data-chip';
+    chip.innerHTML = `<small>Catalog:</small>
+      <button id="btn-load-remote" title="Load /dat.json from site root">Load /dat.json</button>`;
+    document.body.appendChild(chip);
 
-        // Mount React app
-        const rootEl = document.getElementById('root');
-        const root = ReactDOM.createRoot(rootEl);
-        root.render(React.createElement(window.__StarMapApp));
-
-        // Once it’s mounted, try to auto-load dat.json from the site root.
-        // For GitHub Pages at davidlones.github.io, this would be davidlones.github.io/dat.json
+    async function loadRemote(){
+      const btn = document.getElementById('btn-load-remote');
+      btn.disabled = true; const prev = btn.textContent; btn.textContent = 'Loading…';
+      try{
+        const r = await fetch('/dat.json', {cache:'no-store'});
+        const text = await r.text();
+        let payload = text;
         try {
-          const datResp = await fetch('./dat.json', { cache: 'no-store' });
-          if (datResp.ok) {
-            const datObj = await datResp.json();
-            if (window.__parseFromDatJson && window.appSetData) {
-              const parsed = window.__parseFromDatJson(datObj);
-              window.appSetData(parsed);
-              console.log('Loaded dat.json →', parsed);
-            } else if (window.appSetData) {
-              // Fallback: if parser isn’t exposed for some reason, still try to set raw
-              console.warn('parseFromDatJson not exposed; appSetData will receive raw dat.json object');
-              window.appSetData(datObj);
-            }
-          } else {
-            console.warn('dat.json not found or failed to load:', datResp.status);
-          }
-        } catch (e) {
-          console.warn('Error loading dat.json:', e);
-        }
-
-        // Remove boot overlay
-        if (bootEl) bootEl.remove();
-
-      } catch (err) {
+          const j = JSON.parse(text);
+          if (j && typeof j === 'object') payload = Object.values(j).join("\n\n");
+        } catch(_) {}
+        const areas = [...document.querySelectorAll('textarea')];
+        let target = areas.sort((a,b)=> (b.cols*b.rows||0) - (a.cols*a.rows||0))[0] || areas[0];
+        if (!target) throw new Error('Paste area not found.');
+        target.value = payload;
+        target.dispatchEvent(new Event('input',{bubbles:true}));
+        const parseBtn = [...document.querySelectorAll('button,input[type="button"],input[type="submit"]')]
+          .find(el => /parse/i.test(el.value||'') || /parse/i.test(el.textContent||''));
+        parseBtn?.click?.();
+        btn.textContent = 'Loaded ✓';
+        setTimeout(()=>{ btn.textContent = prev; btn.disabled=false; }, 1000);
+      } catch(err){
         console.error(err);
-        setBoot('Failed to load the Star Map: ' + (err && err.message ? err.message : err));
+        btn.textContent = 'Failed (see console)';
+        setTimeout(()=>{ btn.textContent = 'Load /dat.json'; btn.disabled=false; }, 1500);
       }
-    })();
-  </script>
+    }
+    document.getElementById('btn-load-remote').addEventListener('click', loadRemote);
+
+    // --- Detail panel logic (persistent, shows only object info) ---
+    const panel = document.getElementById('detailPanel');
+    const body  = document.getElementById('detailBody');
+    const closeBtn = document.getElementById('detailClose');
+
+    function normalizeText(s){
+      return String(s||'')
+        .replace(/\s+/g,' ')
+        .replace(/:\s+/g,': ')
+        .trim();
+    }
+
+    // Used only to *find* likely object blocks
+    const keepRe = /\b(RA|Right Asc|Dec|Decl?\.?|mag|magnitude|B-?V|class|spectral|type|dist(ance)?|pc|ly|parallax|z=|radial|velocity|size|diam|constellation|NGC|IC|Messier|M\d+|HIP|HR|HD|SAO)\b/i;
+    // Used to DROP obvious UI / instructions, but **not** descriptions
+    const dropRe = /\b(Pan\/zoom|RA increases to the left|Click objects|View|Equatorial|Galactic|Animate|Reset View|Max size|Stars|Galaxy|Globular|Open cluster|Nebula|Planetary|Double star|Load catalog|Use Demo|Paste data|Parse data|Drop file|Choose File)\b/i;
+
+    function extractDetailFromDom(){
+      // look for small-ish blocks with lots of object-y tokens
+      const blocks = [...document.querySelectorAll('#root p, #root pre, #root div')]
+        .filter(el => el.offsetParent !== null && el.textContent && el.textContent.length < 2000)
+        .map(el => {
+          const txt = el.textContent;
+          const keep = (txt.match(keepRe)||[]).length;
+          const drop = dropRe.test(txt) ? 2 : 0;
+          return {el, score: keep - drop, txt};
+        })
+        .filter(x => x.score > 0)
+        .sort((a,b)=> b.score - a.score);
+
+      const raw = blocks[0]?.txt || '';
+      if (!raw) return '';
+
+      // Split into lines, drop only obvious UI/instruction lines, keep everything else
+      const lines = raw
+        .split(/[\n\r]+/)
+        .map(l => normalizeText(l))
+        .filter(l => l && !dropRe.test(l));
+
+      if (lines.length) {
+        // De-dup and limit a bit for sanity
+        const uniq = [];
+        for (const l of lines) {
+          if (!uniq.includes(l)) uniq.push(l);
+          if (uniq.length > 24) break;
+        }
+        return uniq.join('\n');
+      }
+
+      // Fallback: clean the whole block if line-based filtering failed
+      return normalizeText(raw);
+    }
+
+    function showPanel(text, title='Object details'){
+      if (!text) return;
+      body.textContent = text;
+      panel.querySelector('.detail-title').textContent = title;
+      panel.classList.add('show');
+    }
+    function hidePanel(){ panel.classList.remove('show'); }
+    closeBtn.addEventListener('click', hidePanel);
+
+    // Mirror detail-looking console messages into the panel
+    const keywords = /(RA|Dec|mag|B-?V|spectral|type|distance|pc|ly|parallax|constellation|NGC|IC|Messier|HIP|HD|HR|SAO)/i;
+    const clog = console.log.bind(console), cinf = console.info.bind(console);
+    console.log = (...args)=>{ try{ const s = args.join(' '); if(keywords.test(s)) showPanel(s); }catch{} clog(...args); };
+    console.info = (...args)=>{ try{ const s = args.join(' '); if(keywords.test(s)) showPanel(s); }catch{} cinf(...args); };
+
+    // On canvas click, scrape + show (persistent)
+    document.addEventListener('click', (e)=>{
+      if (e.target.tagName === 'CANVAS') {
+        setTimeout(()=>{
+          const text = extractDetailFromDom();
+          if (text) showPanel(text);
+        }, 40);
+      }
+    }, true);
+
+    setTimeout(()=> document.getElementById('boot')?.remove(), 600);
+  }catch(err){
+    const boot = document.getElementById('boot');
+    boot.textContent = '⚠️ Failed to load Star Map: ' + (err?.message || err);
+    console.error(err);
+  }
+})();
+</script>
 </body>
 </html>
