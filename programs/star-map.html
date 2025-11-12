@@ -5,59 +5,99 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Interactive Star Map</title>
 <style>
-  html,body { height:100%; margin:0; background:#060812; color:#eee;
-              font-family:system-ui,Segoe UI,Roboto,Ubuntu; overflow:hidden; }
-  #root { position:relative; width:100%; height:100%; display:flex; flex-direction:column; }
-  /* Center boot overlay */
+  html,body { height:100%; margin:0; background:#060812; color:#e9edf5;
+              font-family:system-ui, Segoe UI, Roboto, Ubuntu; }
+  /* Full app area */
+  #root { position:relative; width:100%; height:100%; overflow:hidden; }
+  /* Boot overlay */
   .boot { position:absolute; inset:0; display:grid; place-items:center;
-          font-size:15px; letter-spacing:.2px; opacity:.8; background:#060812; }
-  /* Override all canvases the app creates */
-  canvas {
-    width:100%!important;
-    height:100%!important;
-    aspect-ratio:auto!important;
-    display:block;
-  }
-  /* Optional visual polish */
+          font-size:15px; opacity:.85; background:#060812; z-index:5; }
+  /* Make any canvas fill available area */
+  canvas { width:100% !important; height:100% !important; display:block; }
+  /* Gentle space-y backdrop */
   #root::before {
-    content:"";
-    position:absolute; inset:0;
-    background:radial-gradient(ellipse at center, #0c101e 0%, #060812 100%);
-    z-index:-1;
+    content:""; position:absolute; inset:0; z-index:-1;
+    background:radial-gradient(120% 100% at 50% 20%, #0d1326 0%, #060812 60%, #04060d 100%);
+  }
+
+  /* Floating controls HUD (we’ll assign this class via JS) */
+  .controls-panel {
+    position: fixed; right: 16px; top: 64px; width: min(360px, 32vw);
+    max-height: 72vh; overflow: auto; z-index: 20;
+    padding: 10px 12px; border-radius: 12px;
+    background: color-mix(in srgb, #0b1224 70%, transparent);
+    backdrop-filter: blur(8px) saturate(115%);
+    border: 1px solid #273147; box-shadow: 0 6px 28px #0007, inset 0 1px 0 #ffffff14;
+    color:#e9edf5; font-size: 14px; line-height: 1.3;
+  }
+  .controls-panel input, .controls-panel select, .controls-panel button, .controls-panel textarea {
+    font: inherit;
+  }
+  .controls-panel label { opacity:.9 }
+  .controls-panel hr { border:none; border-top:1px solid #273147; margin:8px 0; opacity:.7; }
+  .controls-panel .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  /* Keep headings readable over the canvas */
+  h1,h2,h3 { text-shadow: 0 1px 2px #000a; }
+
+  /* Small screens: tuck HUD to full width at bottom */
+  @media (max-width: 700px) {
+    .controls-panel { right: 8px; left: 8px; width: auto; top: auto; bottom: 10px; max-height: 52vh; }
   }
 </style>
-<!-- React + Babel -->
+
+<!-- React (UMD) + Babel for on-the-fly JSX -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-<div id="root"></div>
-<div class="boot" id="boot">✨ Initializing Interactive Star Map…</div>
+  <div id="root"></div>
+  <div class="boot" id="boot">✨ Initializing Interactive Star Map…</div>
 
 <script>
 (async function(){
-  try{
+  try {
     const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache:'no-store' });
     let src = await resp.text();
 
-    // Patch imports/exports for UMD runtime
+    // Patch ESM → UMD globals
     src = src
       .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
-               "const { useEffect,useMemo,useRef,useState } = React;")
+        "const { useEffect,useMemo,useRef,useState } = React;")
       .replace(/\bexport\s+default\s+function\s+App\s*\(/, "function App(");
 
-    const out = Babel.transform(src, { presets:['react'] }).code;
+    const out = Babel.transform(src, { presets: ['react'] }).code;
     (new Function(out + "\nwindow.__StarMapApp = App;"))();
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(window.__StarMapApp));
 
-    // Allow a moment for React to mount before killing the boot overlay
-    setTimeout(()=> document.getElementById('boot').remove(), 600);
-  }catch(err){
-    const boot=document.getElementById('boot');
-    boot.textContent='⚠️ Failed to load Star Map: '+(err?.message||err);
+    // After mount, tag the most likely controls container and float it.
+    // We DO NOT move nodes (which would fight React). We just add a class.
+    const tryPromoteControls = () => {
+      // find divs that contain several interactive elements but no canvas
+      const candidates = [...document.querySelectorAll('#root div')]
+        .filter(d => !d.querySelector('canvas'))
+        .map(d => ({ el: d, count: d.querySelectorAll('input,select,button,textarea,label').length }))
+        .filter(x => x.count >= 4) // heuristically "controls-like"
+        .sort((a,b)=> b.count - a.count);
+
+      if (candidates.length) {
+        const panel = candidates[0].el;
+        panel.classList.add('controls-panel');
+      }
+    };
+
+    // Give React a tick to render
+    setTimeout(tryPromoteControls, 150);
+    // Retry a couple times in case the app lazy-loads
+    setTimeout(tryPromoteControls, 600);
+    setTimeout(tryPromoteControls, 1200);
+
+    setTimeout(()=> document.getElementById('boot')?.remove(), 600);
+  } catch (err) {
+    const boot = document.getElementById('boot');
+    boot.textContent = '⚠️ Failed to load Star Map: ' + (err?.message || err);
     console.error(err);
   }
 })();
