@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Interactive Star Map</title>
+  <style>
+    html,body,#root{height:100%;margin:0;background:#0b0d16;color:#eee;font-family:system-ui,Segoe UI,Roboto,Ubuntu}
+    .boot{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;opacity:.8}
+  </style>
+  <!-- React (UMD) + Babel standalone for on-the-fly JSX -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <div class="boot" id="boot">Loading Interactive Star Map…</div>
+
+  <script>
+    (async function(){
+      try{
+        // Fetch the uploaded JSX as-is
+        const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', { cache:'no-store' });
+        const src0 = await resp.text();
+
+        // Patch ESM-style imports/exports → globals for UMD runtime
+        let src = src0
+          .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
+                   "const { useEffect, useMemo, useRef, useState } = React;")
+          .replace(/\bexport\s+default\s+function\s+App\s*\(/, "function App(");
+
+        // Transpile JSX → JS using Babel Standalone
+        const out = Babel.transform(src, { presets: ['react'] }).code;
+
+        // Evaluate in this page's scope
+        (new Function(out + "\nwindow.__StarMapApp = App;"))();
+
+        // Mount
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(window.__StarMapApp));
+      }catch(err){
+        document.getElementById('boot').textContent =
+          'Failed to load the Star Map: ' + (err && err.message ? err.message : err);
+        console.error(err);
+        return;
+      }
+      document.getElementById('boot').remove();
+    })();
+  </script>
+</body>
+</html>
