@@ -10,12 +10,10 @@
   #root{position:relative;width:100%;height:100%;overflow:hidden}
   .boot{position:absolute;inset:0;display:grid;place-items:center;
         font-size:15px;opacity:.85;background:#060812;z-index:5}
-  /* make all canvases fill space */
-  canvas{width:100%!important;height:100%!important;display:block}
+  canvas{width:100%!important;height:100%!important;display:block;position:absolute;inset:0;z-index:0}
   #root::before{content:"";position:absolute;inset:0;z-index:-1;
     background:radial-gradient(120% 100% at 50% 20%,
     #0d1326 0%, #060812 60%, #04060d 100%);}
-  /* floating controls HUD (auto-tagged via JS) */
   .controls-panel{
     position:fixed;right:16px;top:64px;width:min(360px,32vw);
     max-height:72vh;overflow:auto;z-index:20;padding:10px 12px;
@@ -30,7 +28,6 @@
   @media (max-width:700px){
     .controls-panel{right:8px;left:8px;width:auto;top:auto;bottom:10px;max-height:52vh}
   }
-  /* tiny loader chip */
   .data-chip{
     position:fixed;left:16px;top:64px;z-index:21;
     display:flex;gap:8px;align-items:center;
@@ -41,6 +38,11 @@
     padding:6px 10px;border-radius:8px;cursor:pointer}
   .data-chip button:hover{filter:brightness(1.08)}
   .data-chip small{opacity:.8}
+  /* popover/info boxes above canvas */
+  #root .tooltip,#root .details,#root .info,#root [role="dialog"],
+  #root [data-tooltip],#root [data-details]{
+    position:absolute;z-index:40!important;pointer-events:auto;
+  }
 </style>
 <!-- React UMD + Babel -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -57,7 +59,6 @@
     const resp = await fetch('./interactive_star_map_v_2_react_web_app.jsx', {cache:'no-store'});
     let src = await resp.text();
 
-    // ESM → UMD globals
     src = src
       .replace(/^\s*import\s+React[^;]*?from\s+["']react["'];?\s*/m,
         "const { useEffect,useMemo,useRef,useState } = React;")
@@ -69,7 +70,6 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(window.__StarMapApp));
 
-    // Float the densest control container (no DOM moves, just styling)
     const tagControls = () => {
       const cands = [...document.querySelectorAll('#root div')]
         .filter(d => !d.querySelector('canvas'))
@@ -81,7 +81,6 @@
     setTimeout(tagControls,600);
     setTimeout(tagControls,1200);
 
-    // Add a small data loader chip that pulls /dat.json and injects into "paste" area
     const chip = document.createElement('div');
     chip.className = 'data-chip';
     chip.innerHTML = `
@@ -91,46 +90,64 @@
     document.body.appendChild(chip);
 
     async function loadRemote(){
-      const btn = document.getElementById('btn-load-remote');
-      btn.disabled = true; const prev = btn.textContent; btn.textContent = 'Loading…';
+      const btn=document.getElementById('btn-load-remote');
+      btn.disabled=true;const prev=btn.textContent;btn.textContent='Loading…';
       try{
-        const r = await fetch('/dat.json', {cache:'no-store'});
-        const text = await r.text();
-        let payload = text;
-        try {
-          const j = JSON.parse(text);
-          if (j && typeof j === 'object'){
-            // assume {filename: contents}; join with gaps
-            payload = Object.values(j).join("\n\n");
-          }
-        } catch(_) { /* leave as text */ }
-
-        // Find a textarea that looks like the "paste raw catalog" area
-        const areas = [...document.querySelectorAll('textarea')];
-        let target = areas.sort((a,b)=> (b.cols*b.rows||0) - (a.cols*a.rows||0))[0] || areas[0];
-        if (!target) throw new Error('Paste area not found.'); 
-        target.value = payload;
+        const r=await fetch('/dat.json',{cache:'no-store'});
+        const text=await r.text();let payload=text;
+        try{
+          const j=JSON.parse(text);
+          if(j&&typeof j==='object'){payload=Object.values(j).join("\n\n");}
+        }catch(_){}
+        const areas=[...document.querySelectorAll('textarea')];
+        let target=areas.sort((a,b)=>(b.cols*b.rows||0)-(a.cols*a.rows||0))[0]||areas[0];
+        if(!target)throw new Error('Paste area not found');
+        target.value=payload;
         target.dispatchEvent(new Event('input',{bubbles:true}));
-
-        // Try to auto-click a parse button
-        const parseBtn = [...document.querySelectorAll('button,input[type="button"],input[type="submit"]')]
-          .find(el => /parse/i.test(el.value||'') || /parse/i.test(el.textContent||''));
-        if (parseBtn) parseBtn.click();
-
-        btn.textContent = 'Loaded ✓';
-        setTimeout(()=>{ btn.textContent = prev; btn.disabled=false; }, 1000);
-      } catch(err){
+        const parseBtn=[...document.querySelectorAll('button,input[type="button"],input[type="submit"]')]
+          .find(el=>/parse/i.test(el.value||'')||/parse/i.test(el.textContent||''));
+        if(parseBtn)parseBtn.click();
+        btn.textContent='Loaded ✓';
+        setTimeout(()=>{btn.textContent=prev;btn.disabled=false;},1000);
+      }catch(err){
         console.error(err);
-        btn.textContent = 'Failed (see console)';
-        setTimeout(()=>{ btn.textContent = 'Load /dat.json'; btn.disabled=false; }, 1500);
+        btn.textContent='Failed (see console)';
+        setTimeout(()=>{btn.textContent='Load /dat.json';btn.disabled=false;},1500);
       }
     }
-    document.getElementById('btn-load-remote').addEventListener('click', loadRemote);
+    document.getElementById('btn-load-remote').addEventListener('click',loadRemote);
 
-    setTimeout(()=> document.getElementById('boot')?.remove(), 600);
+    /* Promote info/detail popovers above canvas dynamically */
+    (function promoteInfoLayers(){
+      const isInfo = el=>{
+        if(!el||el===document.body)return false;
+        const t=(el.textContent||"").toLowerCase();
+        const cls=el.className?el.className.toString().toLowerCase():"";
+        return(/tooltip|detail|info|popover/.test(cls)||
+               (/\bra\b/.test(t)&&/\bdec\b/.test(t))||
+               /magnitude|spectral|redshift|type/.test(t));
+      };
+      const promote=el=>{
+        el.style.position=el.style.position||'absolute';
+        el.style.zIndex='40';
+      };
+      document.querySelectorAll('#root *').forEach(el=>{if(isInfo(el))promote(el);});
+      const mo=new MutationObserver(muts=>{
+        for(const m of muts){
+          m.addedNodes&&m.addedNodes.forEach(n=>{
+            if(!(n instanceof HTMLElement))return;
+            if(isInfo(n))promote(n);
+            n.querySelectorAll&&n.querySelectorAll('*').forEach(c=>{if(isInfo(c))promote(c);});
+          });
+        }
+      });
+      mo.observe(document.getElementById('root'),{childList:true,subtree:true});
+    })();
+
+    setTimeout(()=>document.getElementById('boot')?.remove(),600);
   }catch(err){
-    const boot = document.getElementById('boot');
-    boot.textContent = '⚠️ Failed to load Star Map: ' + (err?.message || err);
+    const boot=document.getElementById('boot');
+    boot.textContent='⚠️ Failed to load Star Map: '+(err?.message||err);
     console.error(err);
   }
 })();
