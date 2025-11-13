@@ -1,6 +1,6 @@
 {
   "posts": [
-    {"id":"timeline","title":"Project Analytica 2025","date":"2025-11-07","file":"index.html"},
+    {"id":"timeline","title":"Project Analytica 2025","date":"2025-11-07","file":"timeline.html"},
     {"id":"2025","title":"awareness economy","date":"2025-11-07","file":"posts/2025.md"},
     {"id":"test","title":"awareness test","date":"2025-11-13","file":"posts/test.md"}
   ]
