@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>XP Desktop Tree – Fixed</title>
+    <title>XP Desktop Tree – Properly Upright</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       html,
@@ -74,10 +74,12 @@
             const baseY = height * 0.62;
             const centerX = width / 2;
 
+            // t = 0 bottom, t = 1 top
             for (let i = 0; i < layers; i++) {
               const t = i / (layers - 1);
-              const y = topY + t * (baseY - topY);
-              const w = baseWidth * (1 - t * 0.75);
+              const y = baseY - t * (baseY - topY);
+              const w = baseWidth * (1 - t * 0.75); // widest at bottom
+
               const count = 10 + i * 3;
               for (let j = 0; j < count; j++) {
                 const ratio = j / (count - 1 || 1);
@@ -131,7 +133,6 @@
             ctx.fillStyle = vg;
             ctx.fillRect(0, 0, width, height);
 
-            // stable but gently twinkling stars
             stars.forEach((s, idx) => {
               const twinkle = 0.2 * Math.sin(time * 0.8 + idx * 1.7);
               ctx.fillStyle = `rgba(255,255,255,${s.alpha + twinkle})`;
@@ -187,9 +188,10 @@
             ctx.fillStyle = glow;
             ctx.fillRect(0, 0, width, height);
 
+            // t = 0 bottom, 1 top (same as lights)
             for (let i = 0; i < layers; i++) {
               const t = i / (layers - 1);
-              const y = topY + t * (baseY - topY);
+              const y = baseY - t * (baseY - topY);
               const w = baseWidth * (1 - t * 0.75);
 
               const grad = ctx.createLinearGradient(
