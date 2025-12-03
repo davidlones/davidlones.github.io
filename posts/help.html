@@ -3,91 +3,326 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Help Us Save Our Home</title>
+  <title>Help Us Save Our Family Home</title>
   <style>
+    :root {
+      --bg1: #050716;
+      --bg2: #11172b;
+      --accent: #ffdd7c;
+      --card: rgba(15, 20, 40, 0.92);
+      --muted: #c9cede;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1a1f33, #0d0f18);
-      color: white;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      background:
+        radial-gradient(circle at top, #283a74 0%, #050716 55%),
+        linear-gradient(160deg, #050716, #02030a);
+      color: #f7f8ff;
       min-height: 100vh;
-      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
     }
 
-    .container {
-      max-width: 600px;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 2rem 2.5rem;
-      border-radius: 18px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 24px rgba(0, 0, 0, 0.45);
-      animation: fadeIn 1s ease forwards;
+    main {
+      width: 100%;
+      max-width: 960px;
+      margin: 2.5rem 1rem;
+      background: radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 60%);
+      border-radius: 24px;
+      padding: 2.5rem 1.75rem 2.75rem;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.65);
+      backdrop-filter: blur(10px);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.25rem;
+    }
+
+    .eyebrow {
+      font-size: 0.9rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
     }
 
     h1 {
-      margin-top: 0;
-      font-size: 1.8rem;
+      margin: 0;
+      font-size: clamp(1.9rem, 2.6vw, 2.4rem);
+      font-weight: 650;
+    }
+
+    .subhead {
+      margin-top: 0.9rem;
+      font-size: 1.02rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .highlight {
+      color: var(--accent);
       font-weight: 600;
-      margin-bottom: 0.5rem;
+    }
+
+    section {
+      margin-bottom: 2rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr);
+      gap: 1.8rem;
+      align-items: flex-start;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 1.4rem 1.5rem 1.25rem;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .card h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.15rem;
+      font-weight: 600;
     }
 
     p {
-      font-size: 1.05rem;
-      line-height: 1.55rem;
-      margin-bottom: 1.5rem;
+      margin: 0 0 0.75rem;
+      font-size: 0.99rem;
+      line-height: 1.65;
+      color: #e2e5f5;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
+    ul {
+      margin: 0 0 0.75rem 1.1rem;
+      padding: 0;
+      font-size: 0.96rem;
+      line-height: 1.6;
+      color: #dde2f4;
     }
 
-    /* Mobile tweaks */
-    @media (max-width: 480px) {
-      .container {
-        padding: 1.5rem 1.3rem;
+    li + li {
+      margin-top: 0.25rem;
+    }
+
+    .tagline {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 0.75rem;
+    }
+
+    .donate-block {
+      text-align: center;
+      margin-top: 1.2rem;
+    }
+
+    .donate-note {
+      margin-top: 0.65rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.4rem;
+    }
+
+    .pill {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #f4f4ff;
+    }
+
+    footer {
+      margin-top: 2.4rem;
+      font-size: 0.85rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    footer strong {
+      color: #fdfdfd;
+      font-weight: 600;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        margin: 1.5rem 0.75rem 2rem;
+        padding: 1.75rem 1.1rem 2.1rem;
       }
-      h1 {
-        font-size: 1.55rem;
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
       }
-      p {
-        font-size: 0.95rem;
+      header {
+        text-align: left;
       }
     }
   </style>
 </head>
 <body>
-
-  <div class="container">
+<main>
+  <header>
+    <div class="eyebrow">Weatherford, Texas • Family Home on the Line</div>
     <h1>Help Us Save Our Family Home</h1>
-
-    <p>
-      We're working to catch up on overwhelming property taxes and repair years of 
-      damage caused by medical emergencies and financial hardship. Every contribution 
-      helps us hold onto the only home we have.
+    <p class="subhead">
+      Our home is facing nearly <span class="highlight">$50,000</span> in property tax debt,
+      years of deferred repairs, and the aftermath of medical and financial crises.
+      I’ve reached the point where I cannot fix this alone.
     </p>
+  </header>
 
-    <!-- PayPal Donation Button -->
-    <form action="https://www.paypal.com/donate" method="post" target="_top">
-      <input type="hidden" name="business" value="6FTJ4V47X4G8N" />
-      <input type="hidden" name="no_recurring" value="0" />
-      <input type="hidden" name="item_name" value="Help us save our family home by catching up property taxes and repairing years of damage from medical and financial hardship." />
-      <input type="hidden" name="currency_code" value="USD" />
-      <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"
-             border="0" name="submit"
-             title="Donate using PayPal"
-             alt="Donate with PayPal button" />
-      <img alt="" border="0"
-           src="https://www.paypal.com/en_US/i/scr/pixel.gif"
-           width="1" height="1" />
-    </form>
-  </div>
+  <section class="grid">
+    <div class="card">
+      <h2>Our Home & Our Reality</h2>
+      <p>
+        My name is David, and I live with my family on a five-acre property in Weatherford, Texas.
+        This is the first place that ever truly felt like a long-term home for us.
+      </p>
+      <p>
+        The house was purchased in 2009 for around <span class="highlight">$300,000</span>.
+        Today, county appraisals have pushed its value to around <span class="highlight">$1,000,000</span>.
+        On paper, that looks like a success story. In reality, it has become a crushing tax burden.
+      </p>
+      <p>
+        Since around 2019, I have been the one covering the property taxes. Every bit of savings,
+        every bit of available credit, went toward keeping this home out of foreclosure while also
+        helping my mother through serious health issues. There wasn’t anything “extra” left for repairs,
+        organization, or the thousand little problems that slowly turn a home into a crisis.
+      </p>
+      <p>
+        I tried to shoulder it quietly. Now I’m asking for help.
+      </p>
+    </div>
 
+    <div class="card">
+      <h2>Where Things Stand Now</h2>
+      <ul>
+        <li>Back taxes and penalties together are approaching <span class="highlight">$50,000</span>.</li>
+        <li>The house needs professional de-hoarding, deep cleaning, and hauling services.</li>
+        <li>Doors and windows need re-sealing and insulation to keep utilities and damage under control.</li>
+        <li>Plumbing issues have begun to surface after years of delayed maintenance.</li>
+        <li>Caregiving, job loss, and medical emergencies have drained what little margin we had.</li>
+      </ul>
+      <p class="tagline">
+        This isn’t about cosmetic updates. It’s about stabilizing a home before the foundation of our lives disappears out from under us.
+      </p>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>How We Got Here</h2>
+      <p>
+        For years, rising Texas appraisals quietly turned our property tax bill into something
+        closer to a second mortgage. When my mother’s health declined and medical and caregiving
+        demands increased, I did what many families do: I patched things month to month and hoped
+        that next year would be easier.
+      </p>
+      <p>
+        By 2019, I had effectively emptied my savings and maxed out what I could reasonably use in
+        credit just trying to keep taxes current. Repairs around the house slowed, then stopped.
+        Rooms became overfilled with belongings we didn’t have the bandwidth to sort. Every storm,
+        every leak, every broken fixture got pushed onto a list for “after we catch up.”
+      </p>
+      <p>
+        In 2024, I quietly started a GoFundMe asking for <span class="highlight">$10,000</span>.
+        At the time, that felt like the most I could justify asking for. That campaign eventually
+        disappeared after inactivity — and the situation has only grown more urgent.
+      </p>
+      <p>
+        Looking at everything honestly now, the real need is much larger than I was willing to admit then.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>What Needs to Happen</h2>
+      <p>Here is a realistic picture of what we are trying to raise funds for:</p>
+      <ul>
+        <li><strong>Back Property Taxes:</strong> bring the account current and stop the risk of losing the home.</li>
+        <li><strong>De-hoarding & Cleanup:</strong> professional teams to clear, sort, and haul away accumulated items safely.</li>
+        <li><strong>Critical Repairs:</strong> doors, windows, insulation, and areas where weather and time have taken a toll.</li>
+        <li><strong>Plumbing & Safety:</strong> addressing leaks, clogs, and issues that could become serious if ignored.</li>
+        <li><strong>Stability Cushion:</strong> a small margin so that one unexpected bill doesn’t undo all the progress.</li>
+      </ul>
+      <p class="tagline">
+        In total, this is an <span class="highlight">$80,000–$100,000</span> scale problem.
+        I know most people can’t fix that alone — but many people together can.
+      </p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>How Your Contribution Helps</h2>
+    <p>
+      Any amount you are able to give moves us closer to stability:
+    </p>
+    <ul>
+      <li><strong>$10–$50</strong> helps with hauling fees, cleaning supplies, and small fixes.</li>
+      <li><strong>$100–$250</strong> helps cover portions of monthly tax payments or professional labor.</li>
+      <li><strong>$500+</strong> makes a real dent in back taxes or a specific repair project.</li>
+    </ul>
+    <p>
+      Donations go directly to me (David Lones) via PayPal, and will be used in this order of priority:
+    </p>
+    <ul>
+      <li>Stop the risk of losing the property to unpaid taxes.</li>
+      <li>Make the home safe, clean, and functional again.</li>
+      <li>Preserve this place for my family rather than seeing it lost after everything we’ve put into it.</li>
+    </ul>
+    <div class="pill-list">
+      <div class="pill">Direct to taxes</div>
+      <div class="pill">Repairs & cleanup</div>
+      <div class="pill">No platform “tip” required</div>
+      <div class="pill">Funds available immediately</div>
+    </div>
+
+    <div class="donate-block">
+      <!-- PayPal Donation Button -->
+      <form action="https://www.paypal.com/donate" method="post" target="_top">
+        <input type="hidden" name="business" value="6FTJ4V47X4G8N" />
+        <input type="hidden" name="no_recurring" value="0" />
+        <input type="hidden" name="item_name" value="Help us save our family home by catching up property taxes and repairing years of damage from medical and financial hardship." />
+        <input type="hidden" name="currency_code" value="USD" />
+        <input type="image"
+               src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"
+               border="0" name="submit"
+               title="Donate using PayPal"
+               alt="Donate with PayPal button" />
+        <img alt="" border="0"
+             src="https://www.paypal.com/en_US/i/scr/pixel.gif"
+             width="1" height="1" />
+      </form>
+      <div class="donate-note">
+        If you can’t donate, sharing this page still helps immensely.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      I know everyone is carrying their own worries these days. If you’ve read this far,
+      <strong>thank you</strong> for taking the time to understand ours.
+    </p>
+    <p>
+      I’ll post updates as progress is made — on taxes, on cleanup, and on every step that
+      brings this home back from the edge.
+    </p>
+  </footer>
+</main>
 </body>
 </html>
