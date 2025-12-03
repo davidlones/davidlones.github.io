@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help Us Save Our Home</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1a1f33, #0d0f18);
+      color: white;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2rem 2.5rem;
+      border-radius: 18px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 24px rgba(0, 0, 0, 0.45);
+      animation: fadeIn 1s ease forwards;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 1.05rem;
+      line-height: 1.55rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 480px) {
+      .container {
+        padding: 1.5rem 1.3rem;
+      }
+      h1 {
+        font-size: 1.55rem;
+      }
+      p {
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Help Us Save Our Family Home</h1>
+
+    <p>
+      We're working to catch up on overwhelming property taxes and repair years of 
+      damage caused by medical emergencies and financial hardship. Every contribution 
+      helps us hold onto the only home we have.
+    </p>
+
+    <!-- PayPal Donation Button -->
+    <form action="https://www.paypal.com/donate" method="post" target="_top">
+      <input type="hidden" name="business" value="6FTJ4V47X4G8N" />
+      <input type="hidden" name="no_recurring" value="0" />
+      <input type="hidden" name="item_name" value="Help us save our family home by catching up property taxes and repairing years of damage from medical and financial hardship." />
+      <input type="hidden" name="currency_code" value="USD" />
+      <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"
+             border="0" name="submit"
+             title="Donate using PayPal"
+             alt="Donate with PayPal button" />
+      <img alt="" border="0"
+           src="https://www.paypal.com/en_US/i/scr/pixel.gif"
+           width="1" height="1" />
+    </form>
+  </div>
+
+</body>
+</html>
