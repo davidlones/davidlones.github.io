@@ -9,8 +9,10 @@
       --bg1: #050716;
       --bg2: #11172b;
       --accent: #ffdd7c;
+      --accent-soft: rgba(255, 221, 124, 0.24);
       --card: rgba(15, 20, 40, 0.92);
       --muted: #c9cede;
+      --border-subtle: rgba(255, 255, 255, 0.08);
     }
 
     * {
@@ -33,7 +35,7 @@
 
     main {
       width: 100%;
-      max-width: 960px;
+      max-width: 1040px;
       margin: 2.5rem 1rem;
       background: radial-gradient(circle at top left, rgba(255,255,255,0.06), transparent 60%);
       border-radius: 24px;
@@ -57,7 +59,7 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(1.9rem, 2.6vw, 2.4rem);
+      font-size: clamp(1.9rem, 2.8vw, 2.6rem);
       font-weight: 650;
     }
 
@@ -66,6 +68,9 @@
       font-size: 1.02rem;
       color: var(--muted);
       line-height: 1.6;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .highlight {
@@ -88,7 +93,7 @@
       background: var(--card);
       border-radius: 18px;
       padding: 1.4rem 1.5rem 1.25rem;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
     }
 
     .card h2 {
@@ -146,6 +151,95 @@
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.16);
       color: #f4f4ff;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Tables & charts */
+    .data-section {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.3fr);
+      gap: 1.6rem;
+      align-items: flex-start;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    th, td {
+      padding: 0.5rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.86rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    td.label {
+      width: 55%;
+    }
+
+    td.amount {
+      text-align: right;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .est-note {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .bar-chart {
+      margin-top: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.86rem;
+    }
+
+    .bar-label {
+      flex: 0 0 110px;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      box-shadow: 0 0 10px rgba(255,221,124,0.3);
+    }
+
+    .bar-value {
+      flex: 0 0 70px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: #f3f4ff;
+      font-size: 0.86rem;
     }
 
     footer {
@@ -160,6 +254,12 @@
       font-weight: 600;
     }
 
+    @media (max-width: 900px) {
+      .data-section {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
     @media (max-width: 720px) {
       main {
         margin: 1.5rem 0.75rem 2rem;
@@ -171,6 +271,10 @@
       header {
         text-align: left;
       }
+      .subhead {
+        margin-left: 0;
+        margin-right: 0;
+      }
     }
   </style>
 </head>
@@ -180,9 +284,9 @@
     <div class="eyebrow">Weatherford, Texas • Family Home on the Line</div>
     <h1>Help Us Save Our Family Home</h1>
     <p class="subhead">
-      Our home is facing nearly <span class="highlight">$50,000</span> in property tax debt,
-      years of deferred repairs, and the aftermath of medical and financial crises.
-      I’ve reached the point where I cannot fix this alone.
+      Our home is facing nearly <span class="highlight">$50,000</span> in Parker County property tax debt
+      (including interest and penalties), years of deferred repairs, and the aftermath of medical
+      and financial crises. I’ve reached the point where I cannot fix this alone.
     </p>
   </header>
 
@@ -195,14 +299,16 @@
       </p>
       <p>
         The house was purchased in 2009 for around <span class="highlight">$300,000</span>.
-        Today, county appraisals have pushed its value to around <span class="highlight">$1,000,000</span>.
-        On paper, that looks like a success story. In reality, it has become a crushing tax burden.
+        Today, county appraisals have pushed its value to around
+        <span class="highlight">$1,000,000</span>. On paper, that looks like a success story.
+        In reality, it has become a crushing tax burden split across multiple entities
+        (including both Parker County and Tarrant County via school and shared districts).
       </p>
       <p>
-        Since around 2019, I have been the one covering the property taxes. Every bit of savings,
-        every bit of available credit, went toward keeping this home out of foreclosure while also
-        helping my mother through serious health issues. There wasn’t anything “extra” left for repairs,
-        organization, or the thousand little problems that slowly turn a home into a crisis.
+        Since around 2019, I have been the one covering the property taxes. Every bit of savings
+        and every available line of credit went toward keeping this home out of foreclosure while
+        also helping my mother through serious health issues. There wasn’t anything “extra” left
+        for repairs, organization, or the thousand small problems that slowly turn a home into a crisis.
       </p>
       <p>
         I tried to shoulder it quietly. Now I’m asking for help.
@@ -212,15 +318,156 @@
     <div class="card">
       <h2>Where Things Stand Now</h2>
       <ul>
-        <li>Back taxes and penalties together are approaching <span class="highlight">$50,000</span>.</li>
+        <li>Back Parker County taxes and penalties are around <span class="highlight">$50,000</span>.</li>
         <li>The house needs professional de-hoarding, deep cleaning, and hauling services.</li>
-        <li>Doors and windows need re-sealing and insulation to keep utilities and damage under control.</li>
+        <li>Doors and windows need re-sealing and insulation to control damage and utility costs.</li>
         <li>Plumbing issues have begun to surface after years of delayed maintenance.</li>
         <li>Caregiving, job loss, and medical emergencies have drained what little margin we had.</li>
       </ul>
       <p class="tagline">
-        This isn’t about cosmetic updates. It’s about stabilizing a home before the foundation of our lives disappears out from under us.
+        This isn’t about cosmetic upgrades. It’s about stabilizing a home before the foundation
+        of our lives disappears out from under us.
       </p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>By the Numbers (Approximate)</h2>
+    <p>
+      These are conservative estimates based on current appraisals, typical regional tax rates,
+      and quotes for cleanup and repair work on a house of this size. They’re meant to show
+      the scale of the problem, not every last dollar.
+    </p>
+
+    <div class="data-section">
+      <div>
+        <h3 style="margin: 0.75rem 0 0.4rem; font-size: 1rem;">Estimated Annual Property Tax Burden</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Component</th>
+              <th class="amount">Estimated / Year</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label">Parker County share</td>
+              <td class="amount">$8,000 – $12,000</td>
+            </tr>
+            <tr>
+              <td class="label">Tarrant + school &amp; other districts</td>
+              <td class="amount">$10,000 – $14,000</td>
+            </tr>
+            <tr>
+              <td class="label"><strong>Total annual taxes (current reality)</strong></td>
+              <td class="amount"><strong>$18,000 – $26,000</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="est-note">
+          Based on an approximate taxable value of $900,000–$1,100,000 and blended local tax rates.
+        </p>
+
+        <h3 style="margin: 1.1rem 0 0.4rem; font-size: 1rem;">How the Current Parker Balance Reached $50,000</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Year(s)</th>
+              <th class="amount">Rough Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label">2–3 years base Parker taxes</td>
+              <td class="amount">$16,000 – $30,000</td>
+            </tr>
+            <tr>
+              <td class="label">Penalties, interest &amp; collection fees</td>
+              <td class="amount">$15,000 – $25,000</td>
+            </tr>
+            <tr>
+              <td class="label"><strong>Current Parker balance</strong></td>
+              <td class="amount"><strong>≈ $50,000</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="est-note">
+          Texas delinquent tax accounts accumulate penalties, interest, and fees quickly once a year is missed.
+        </p>
+      </div>
+
+      <div>
+        <h3 style="margin: 0.75rem 0 0.4rem; font-size: 1rem;">What the Fundraising Goal Covers</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th class="amount">Estimated Range</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label">Parker back taxes (catch-up)</td>
+              <td class="amount">$50,000</td>
+            </tr>
+            <tr>
+              <td class="label">De-hoarding, cleanup &amp; hauling</td>
+              <td class="amount">$10,000 – $15,000</td>
+            </tr>
+            <tr>
+              <td class="label">Critical repairs (doors, windows, insulation, basics)</td>
+              <td class="amount">$15,000 – $20,000</td>
+            </tr>
+            <tr>
+              <td class="label">Plumbing &amp; safety fixes</td>
+              <td class="amount">$5,000 – $10,000</td>
+            </tr>
+            <tr>
+              <td class="label">Stability cushion &amp; contingencies</td>
+              <td class="amount">$5,000 – $10,000</td>
+            </tr>
+            <tr>
+              <td class="label"><strong>Total scale of need</strong></td>
+              <td class="amount"><strong>$80,000 – $100,000</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="bar-chart">
+          <div class="bar-row">
+            <div class="bar-label">Back taxes</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 60%;"></div>
+            </div>
+            <div class="bar-value">≈ $50k</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Cleanup</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 15%;"></div>
+            </div>
+            <div class="bar-value">$10–15k</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Repairs</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 18%;"></div>
+            </div>
+            <div class="bar-value">$15–20k</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Other</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width: 12%;"></div>
+            </div>
+            <div class="bar-value">$10–20k</div>
+          </div>
+        </div>
+
+        <p class="est-note">
+          Bars are proportional to a $90,000 midpoint goal (for visual context).
+        </p>
+      </div>
     </div>
   </section>
 
@@ -236,11 +483,12 @@
       <p>
         By 2023, I had effectively emptied my savings and maxed out what I could reasonably use in
         credit just trying to keep taxes current. Repairs around the house slowed, then stopped.
-        In a decade, rooms became overfilled with belongings no one had the bandwidth to sort. Every outbreak, every storm,
-        every leak, every broken fixture pushed more and more onto a list for “after that.”
+        In a decade, rooms became overfilled with belongings no one had the bandwidth to sort.
+        Every outbreak, every storm, every leak, every broken fixture pushed more and more onto a
+        list for “after that.”
       </p>
       <p>
-        In 2024, I quietly started a GoFundMe asking for <span class="highlight">$10,000</span>.
+        In 2024, I quietly started a fundraiser asking for <span class="highlight">$10,000</span>.
         At the time, that felt like the most I could justify asking for. That campaign eventually
         disappeared after inactivity — and the situation has only grown more urgent.
       </p>
@@ -250,65 +498,49 @@
     </div>
 
     <div class="card">
-      <h2>What Needs to Happen</h2>
-      <p>Here is a realistic picture of what we are trying to raise funds for:</p>
-      <ul>
-        <li><strong>Back Property Taxes:</strong> bring the account current and stop the risk of losing the home.</li>
-        <li><strong>De-hoarding & Cleanup:</strong> professional teams to clear, sort, and haul away accumulated items safely.</li>
-        <li><strong>Critical Repairs:</strong> doors, windows, insulation, and areas where weather and time have taken a toll.</li>
-        <li><strong>Plumbing & Safety:</strong> addressing leaks, clogs, and issues that could become serious if ignored.</li>
-        <li><strong>Stability Cushion:</strong> a small margin so that one unexpected bill doesn’t undo all the progress.</li>
-      </ul>
-      <p class="tagline">
-        In total, this is an <span class="highlight">$80,000–$100,000</span> scale problem.
-        I know most people can’t fix that alone — but many people together can.
+      <h2>How Your Contribution Helps</h2>
+      <p>
+        Any amount you’re able to give moves us closer to stability:
       </p>
-    </div>
-  </section>
+      <ul>
+        <li><strong>$10–$50</strong> helps with hauling fees, cleaning supplies, and small fixes.</li>
+        <li><strong>$100–$250</strong> helps cover portions of tax payments or professional labor.</li>
+        <li><strong>$500+</strong> makes a real dent in back taxes or a specific repair project.</li>
+      </ul>
+      <p>
+        Donations go directly to me (David Lones) via PayPal, and will be used in this order of priority:
+      </p>
+      <ul>
+        <li>Stop the risk of losing the property to unpaid Parker County taxes.</li>
+        <li>Make the home safe, clean, and functional again.</li>
+        <li>Preserve what we can for my family rather than seeing it lost after everything we’ve put into it.</li>
+      </ul>
+      <div class="pill-list">
+        <div class="pill">Direct to taxes</div>
+        <div class="pill">Repairs &amp; cleanup</div>
+        <div class="pill">No platform “tip” required</div>
+        <div class="pill">Funds available immediately</div>
+      </div>
 
-  <section class="card">
-    <h2>How Your Contribution Helps</h2>
-    <p>
-      Any amount you are able to give moves us closer to stability:
-    </p>
-    <ul>
-      <li><strong>$10–$50</strong> helps with hauling fees, cleaning supplies, and small fixes.</li>
-      <li><strong>$100–$250</strong> helps cover portions of monthly tax payments or professional labor.</li>
-      <li><strong>$500+</strong> makes a real dent in back taxes or a specific repair project.</li>
-    </ul>
-    <p>
-      Donations go directly to me (David Lones) via PayPal, and will be used in this order of priority:
-    </p>
-    <ul>
-      <li>Stop the risk of losing the property to unpaid taxes.</li>
-      <li>Make the home safe, clean, and functional again.</li>
-      <li>Preserve what we can for my family rather than seeing it lost after everything we’ve put into it.</li>
-    </ul>
-    <div class="pill-list">
-      <div class="pill">Direct to taxes</div>
-      <div class="pill">Repairs & cleanup</div>
-      <div class="pill">No platform “tip” required</div>
-      <div class="pill">Funds available immediately</div>
-    </div>
-
-    <div class="donate-block">
-      <!-- PayPal Donation Button -->
-      <form action="https://www.paypal.com/donate" method="post" target="_top">
-        <input type="hidden" name="business" value="6FTJ4V47X4G8N" />
-        <input type="hidden" name="no_recurring" value="0" />
-        <input type="hidden" name="item_name" value="Help us save our family home by catching up property taxes and repairing years of damage from medical and financial hardship." />
-        <input type="hidden" name="currency_code" value="USD" />
-        <input type="image"
-               src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"
-               border="0" name="submit"
-               title="Donate using PayPal"
-               alt="Donate with PayPal button" />
-        <img alt="" border="0"
-             src="https://www.paypal.com/en_US/i/scr/pixel.gif"
-             width="1" height="1" />
-      </form>
-      <div class="donate-note">
-        If you can’t donate, sharing this page still helps immensely.
+      <div class="donate-block">
+        <!-- PayPal Donation Button -->
+        <form action="https://www.paypal.com/donate" method="post" target="_top">
+          <input type="hidden" name="business" value="6FTJ4V47X4G8N" />
+          <input type="hidden" name="no_recurring" value="0" />
+          <input type="hidden" name="item_name" value="Help us save our family home by catching up property taxes and repairing years of damage from medical and financial hardship." />
+          <input type="hidden" name="currency_code" value="USD" />
+          <input type="image"
+                 src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif"
+                 border="0" name="submit"
+                 title="Donate using PayPal"
+                 alt="Donate with PayPal button" />
+          <img alt="" border="0"
+               src="https://www.paypal.com/en_US/i/scr/pixel.gif"
+               width="1" height="1" />
+        </form>
+        <div class="donate-note">
+          If you can’t donate, sharing this page still helps immensely.
+        </div>
       </div>
     </div>
   </section>
