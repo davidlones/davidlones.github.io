@@ -102,11 +102,26 @@
       font-weight: 600;
     }
 
+    .card h3 {
+      margin: 0.75rem 0 0.4rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
     p {
       margin: 0 0 0.75rem;
       font-size: 0.99rem;
       line-height: 1.65;
       color: #e2e5f5;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
     }
 
     ul {
@@ -334,14 +349,15 @@
   <section class="card">
     <h2>By the Numbers (Approximate)</h2>
     <p>
-      These are conservative estimates based on current appraisals, typical regional tax rates,
-      and quotes for cleanup and repair work on a house of this size. They’re meant to show
-      the scale of the problem, not every last dollar.
+      These are conservative estimates based on current appraisals and publicly available tax-rate
+      information from Parker County, the City of Weatherford, and Texas state resources
+      (see “Sources &amp; Methodology” below). They’re meant to show the scale of the problem, not
+      every last dollar.
     </p>
 
     <div class="data-section">
       <div>
-        <h3 style="margin: 0.75rem 0 0.4rem; font-size: 1rem;">Estimated Annual Property Tax Burden</h3>
+        <h3>Estimated Annual Property Tax Burden</h3>
         <table>
           <thead>
             <tr>
@@ -365,10 +381,11 @@
           </tbody>
         </table>
         <p class="est-note">
-          Based on an approximate taxable value of $900,000–$1,100,000 and blended local tax rates.
+          Based on an approximate taxable value of $900,000–$1,100,000 and blended local tax rates
+          typical for North Texas, where effective rates often fall near or above 1.6% of value.
         </p>
 
-        <h3 style="margin: 1.1rem 0 0.4rem; font-size: 1rem;">How the Current Parker Balance Reached $50,000</h3>
+        <h3>How the Current Parker Balance Reached $50,000</h3>
         <table>
           <thead>
             <tr>
@@ -392,12 +409,13 @@
           </tbody>
         </table>
         <p class="est-note">
-          Texas delinquent tax accounts accumulate penalties, interest, and fees quickly once a year is missed.
+          Texas delinquent tax accounts can see penalties up to 12% plus 1% interest per month,
+          with additional attorney fees, causing balances to grow rapidly once a year is missed.
         </p>
       </div>
 
       <div>
-        <h3 style="margin: 0.75rem 0 0.4rem; font-size: 1rem;">What the Fundraising Goal Covers</h3>
+        <h3>What the Fundraising Goal Covers</h3>
         <table>
           <thead>
             <tr>
@@ -543,6 +561,70 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="card">
+    <h2>Sources &amp; Methodology</h2>
+    <p>
+      These estimates are intended to be transparent and checkable. Anyone can verify or refine them
+      using the same public information:
+    </p>
+    <ul>
+      <li>
+        <strong>Parker County total tax rate:</strong>
+        Parker County’s 2024–2025 total county tax rate is listed as
+        $0.285070 per $100 valuation in its financial transparency reports:<br />
+        <a href="https://www.parkercountytx.gov/155/Financial-Transparency" target="_blank">
+          https://www.parkercountytx.gov/155/Financial-Transparency
+        </a>
+      </li>
+      <li>
+        <strong>School district &amp; local rates:</strong>
+        The Parker County Appraisal District publishes detailed tax-rate ordinances for
+        each school district and entity, including Weatherford ISD and other jurisdictions:<br />
+        <a href="https://iswdataclient.azurewebsites.net/pubs/parkercad/TAX%20RATES%20WITH%20M-O%20AND%20I-S/2024_Tax_Rates.pdf" target="_blank">
+          https://iswdataclient.azurewebsites.net/pubs/parkercad/TAX%20RATES%20WITH%20M-O%20AND%20I-S/2024_Tax_Rates.pdf
+        </a>
+      </li>
+      <li>
+        <strong>City of Weatherford tax rate:</strong>
+        The City of Weatherford lists its current property tax rate (per $100 valuation) and
+        notes that Parker County Appraisal District handles billing and collection:<br />
+        <a href="https://www.weatherfordtx.gov/FAQ.aspx?QID=333" target="_blank">
+          https://www.weatherfordtx.gov/FAQ.aspx?QID=333
+        </a>
+      </li>
+      <li>
+        <strong>Texas penalties &amp; interest on delinquent taxes:</strong>
+        The Texas Comptroller explains how penalties and interest accrue on unpaid property taxes,
+        including 6–12% penalties, 1% monthly interest, and potential attorney fees:<br />
+        <a href="https://comptroller.texas.gov/taxes/property-tax/bills/penalty-bills.php" target="_blank">
+          https://comptroller.texas.gov/taxes/property-tax/bills/penalty-bills.php
+        </a>
+      </li>
+      <li>
+        <strong>Growth of delinquent balances:</strong>
+        Independent summaries of Texas penalty and interest schedules show that, by December,
+        a delinquent balance can be roughly 40–47% higher than the original tax amount:<br />
+        <a href="https://www.hometaxsolutions.com/texas-property-tax-penalty-and-interest-chart/" target="_blank">
+          https://www.hometaxsolutions.com/texas-property-tax-penalty-and-interest-chart/
+        </a>
+      </li>
+      <li>
+        <strong>Texas effective tax rate context:</strong>
+        Reporting on Texas property taxes notes an average effective rate around 1.6% of value,
+        significantly above the U.S. average, which matches the scale of the estimates here:<br />
+        <a href="https://www.axios.com/local/dallas/2025/01/27/texas-property-tax-deadline" target="_blank">
+          https://www.axios.com/local/dallas/2025/01/27/texas-property-tax-deadline
+        </a>
+      </li>
+    </ul>
+    <p class="est-note">
+      Using those sources, the annual tax ranges shown above are derived by applying combined
+      county, city, school, and special-district rates to a conservative estimate of the current
+      taxable value of the property, then letting delinquent balances grow according to the
+      published penalty and interest rules.
+    </p>
   </section>
 
   <footer>
