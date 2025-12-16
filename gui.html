@@ -3,53 +3,58 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Audio Orb</title>
+  <title>HUE // One-Shot Audio Orb</title>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <style>
     html, body { height: 100%; margin: 0; background: #05060a; overflow: hidden; }
-    canvas { display:block; width: 100vw; height: 100vh; }
+    canvas { display:block; width: 100vw; height: 100vh; touch-action: manipulation; }
 
-    /* One-shot launcher dialog */
     .hud{
       position: fixed; left: 14px; bottom: 14px;
       font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      color: rgba(255,255,255,.82);
-      background: rgba(0,0,0,.40);
+      color: rgba(255,255,255,.84);
+      background: rgba(0,0,0,.42);
       border: 1px solid rgba(255,255,255,.12);
       padding: 10px 12px; border-radius: 12px;
       backdrop-filter: blur(10px);
       max-width: min(520px, calc(100vw - 28px));
     }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .hud input[type="file"]{ max-width: 320px; }
-    .hint{ opacity:.75; margin-top: 8px; }
     .btn{
       cursor:pointer; user-select:none;
-      padding: 6px 10px; border-radius: 10px;
+      padding: 7px 12px; border-radius: 10px;
       border: 1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.9);
+      color: rgba(255,255,255,.92);
     }
-    .btn:active{ transform: translateY(1px); }
     .btn[disabled]{ opacity: .45; cursor: not-allowed; }
+    .hint{ opacity:.75; margin-top: 8px; }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
 
-  <!-- ONLY this UI exists, and it is DESTROYED once playback begins -->
+  <!-- One-shot UI: file + Play only. Removed after successful play. -->
   <div class="hud" id="hud">
     <div class="row">
       <input id="file" type="file" accept="audio/mpeg,audio/mp3,audio/*" />
       <button class="btn" id="playBtn" disabled>Play</button>
     </div>
     <div class="hint">
-      Choose an MP3, then press <b>Play</b>. Tap the screen to pause/resume. Refresh to load a new file.
+      Choose an MP3, press <b>Play</b>. Tap the canvas to pause/resume. Refresh to load a new file.
     </div>
   </div>
 
-  <audio id="a" crossorigin="anonymous"></audio>
+  <audio id="a" crossorigin="anonymous" playsinline></audio>
 
   <script>
+    const BUILD = "HUE v3 // AGC+BEAT 2025-12-16";
+    const BUILD_SHOW_MS = 3000;
+
     const canvas = document.getElementById('c');
     const ctx = canvas.getContext('2d', { alpha: false });
 
@@ -69,16 +74,17 @@
 
     let ac, analyser, freq, timeData, srcNode;
     let graphReady = false;
-    let startedPlayback = false; // once true: HUD is gone, refresh to change track
+    let startedPlayback = false;
 
     function ensureAudioGraph() {
       if (graphReady) return;
       graphReady = true;
 
       ac = new (window.AudioContext || window.webkitAudioContext)();
+
       analyser = ac.createAnalyser();
       analyser.fftSize = 2048;
-      analyser.smoothingTimeConstant = 0.85;
+      analyser.smoothingTimeConstant = 0.60; // snappier than before
 
       srcNode = ac.createMediaElementSource(audioEl);
       srcNode.connect(analyser);
@@ -89,11 +95,9 @@
     }
 
     function destroyHUD() {
-      if (!hud) return;
-      hud.remove(); // actually removes it from DOM
+      if (hud && hud.parentNode) hud.parentNode.removeChild(hud);
     }
 
-    // Enable Play only after file is chosen
     fileEl.addEventListener('change', () => {
       if (startedPlayback) return;
       const f = fileEl.files && fileEl.files[0];
@@ -103,7 +107,6 @@
       playBtn.disabled = false;
     });
 
-    // Start playback, then remove HUD forever
     playBtn.addEventListener('click', async () => {
       if (startedPlayback) return;
       if (!audioEl.src) return;
@@ -119,20 +122,35 @@
       }
     });
 
-    // Tap anywhere on canvas toggles pause/resume (after first play has happened)
+    // Tap canvas toggles pause/resume (no UI)
     canvas.addEventListener('pointerdown', async () => {
-      if (!graphReady) return; // nothing loaded yet
+      if (!graphReady) return;
       if (ac && ac.state !== 'running') await ac.resume();
-
-      if (audioEl.paused) {
-        try { await audioEl.play(); } catch (e) {}
-      } else {
-        audioEl.pause();
-      }
+      if (audioEl.paused) { try { await audioEl.play(); } catch (e) {} }
+      else audioEl.pause();
     }, { passive: true });
 
-    // ====== SIGNAL MATH ======
+    // ===== Helpers =====
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+    function lerp(a,b,t){ return a + (b-a)*t; }
+
+    // HSV (0..1) -> RGB (0..1)
+    function hsv2rgb(h, s, v) {
+      h = (h % 1 + 1) % 1;
+      const i = Math.floor(h * 6);
+      const f = h * 6 - i;
+      const p = v * (1 - s);
+      const q = v * (1 - f * s);
+      const t = v * (1 - (1 - f) * s);
+      switch (i % 6) {
+        case 0: return [v, t, p];
+        case 1: return [q, v, p];
+        case 2: return [p, v, t];
+        case 3: return [p, q, v];
+        case 4: return [t, p, v];
+        case 5: return [v, p, q];
+      }
+    }
 
     function getAmplitudeRMS() {
       analyser.getByteTimeDomainData(timeData);
@@ -144,39 +162,72 @@
       return Math.sqrt(sumSq / timeData.length);
     }
 
-    function getBands() {
+    function avgRange(arr, a, b) {
+      let s = 0;
+      const n = Math.max(1, b - a);
+      for (let i = a; i < b; i++) s += arr[i];
+      return (s / n) / 255;
+    }
+
+    // Beat-ish bins (not Hz; “feel” tuned)
+    function getBandsBeat() {
       analyser.getByteFrequencyData(freq);
       const n = freq.length;
 
-      const lowEnd  = Math.floor(n * 0.18);
-      const midEnd  = Math.floor(n * 0.55);
+      const iKickA = Math.floor(n * 0.00), iKickB = Math.floor(n * 0.08);
+      const iLowA  = Math.floor(n * 0.08), iLowB  = Math.floor(n * 0.18);
+      const iMidA  = Math.floor(n * 0.18), iMidB  = Math.floor(n * 0.45);
+      const iHiA   = Math.floor(n * 0.45), iHiB   = n;
 
-      let low = 0, mid = 0, high = 0;
-      for (let i = 0; i < lowEnd; i++) low += freq[i];
-      for (let i = lowEnd; i < midEnd; i++) mid += freq[i];
-      for (let i = midEnd; i < n; i++) high += freq[i];
+      let kick = avgRange(freq, iKickA, iKickB);
+      let low  = avgRange(freq, iLowA,  iLowB);
+      let mid  = avgRange(freq, iMidA,  iMidB);
+      let high = avgRange(freq, iHiA,   iHiB);
 
-      low  /= (lowEnd * 255);
-      mid  /= ((midEnd - lowEnd) * 255);
-      high /= ((n - midEnd) * 255);
+      // punchier curves (less “always bright”)
+      kick = Math.pow(clamp01(kick), 0.72);
+      low  = Math.pow(clamp01(low),  0.82);
+      mid  = Math.pow(clamp01(mid),  0.78);
+      high = Math.pow(clamp01(high), 0.68);
 
-      low  = Math.pow(clamp01(low),  0.85);
-      mid  = Math.pow(clamp01(mid),  0.85);
-      high = Math.pow(clamp01(high), 0.85);
-
-      return { low, mid, high };
+      return { kick, low, mid, high };
     }
 
-    // ====== DRAWING ======
+    // ===== Visual state =====
     let t = 0;
+
+    // AGC: running peak normalizer (prevents constant max on loud masters)
+    let peak = 0.25;
+
+    // Beat / onset
+    let energySmooth = 0;
+    let prevEnergySmooth = 0;
+    let beatEnv = 0;
+
+    // Hue state
+    let hueBase = 0.62;
+
+    const startTime = performance.now();
+
     function draw() {
       t += 1;
 
       const w = innerWidth, h = innerHeight;
       const cx = w * 0.5, cy = h * 0.5;
 
+      // Background with slight persistence
       ctx.fillStyle = 'rgba(5,6,10,0.22)';
       ctx.fillRect(0, 0, w, h);
+
+      // Small build stamp that fades out after a few seconds
+      const now = performance.now();
+      const age = now - startTime;
+      if (age < BUILD_SHOW_MS) {
+        const a = 0.10 * (1 - age / BUILD_SHOW_MS);
+        ctx.fillStyle = `rgba(255,255,255,${a})`;
+        ctx.font = '600 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+        ctx.fillText(BUILD, 12, 22);
+      }
 
       if (!graphReady) {
         ctx.fillStyle = 'rgba(255,255,255,0.15)';
@@ -186,56 +237,103 @@
       }
 
       const amp = getAmplitudeRMS();
-      const { low, mid, high } = getBands();
+      const { kick, low, mid, high } = getBandsBeat();
 
-      const breath = 0.5 + 0.5 * Math.sin(t * 0.02);
-      const ampCurve = Math.pow(clamp01(amp * 2.2), 0.9);
-      const minR = Math.min(w, h) * 0.03;
-      const maxR = Math.min(w, h) * 0.28;
-      const radius = minR + (maxR - minR) * clamp01(ampCurve) + breath * 2;
+      // RAW energy (don’t clamp here)
+      const energyRaw =
+        0.28*low +
+        0.52*mid +
+        0.68*high +
+        1.05*kick +
+        0.35*amp;
 
-      const mag = Math.max(0.001, low + mid + high);
-      const r0 = low / mag, g0 = mid / mag, b0 = high / mag;
+      // AGC peak w/ decay (stops “perma-supernova”)
+      peak = Math.max(energyRaw, peak * 0.985);
+      const energy = clamp01(energyRaw / Math.max(0.12, peak));
 
-      const colorMix = clamp01(Math.pow(ampCurve, 0.8));
-      const r = (1 - colorMix) * 1.0 + colorMix * r0;
-      const g = (1 - colorMix) * 1.0 + colorMix * g0;
-      const b = (1 - colorMix) * 1.0 + colorMix * b0;
+      // Smooth energy (base motion)
+      prevEnergySmooth = energySmooth;
+      energySmooth = lerp(energySmooth, energy, 0.22);
 
-      const coreBright = 0.95;
-      const haloBright = 0.55 + 0.35 * (1 - clamp01(ampCurve));
+      // Beat/onset detection on normalized energy
+      const delta = energySmooth - prevEnergySmooth;
+      const thresh = 0.02 + 0.10 * (1 - energySmooth);
+      if (delta > thresh) beatEnv = 1.0;
+
+      // Beat envelope (fast, punchy)
+      beatEnv *= 0.70;
+      if (beatEnv < 0.001) beatEnv = 0;
+      const punch = Math.pow(clamp01(beatEnv), 0.55);
+
+      // Radius: smaller base + strong punch contrast
+      const minR = Math.min(w, h) * 0.018;
+      const maxR = Math.min(w, h) * 0.26;
+
+      const base = Math.pow(clamp01(energySmooth), 1.25);
+      const radius = minR + (maxR - minR) * base + punch * (Math.min(w,h) * 0.09);
+
+      // Hue targeting: kick->red/orange, mid->green, high->blue/purple
+      const rInflu = 1.9*kick + 1.0*low;
+      const gInflu = 1.7*mid;
+      const bInflu = 2.0*high;
+
+      const sum = Math.max(0.0001, rInflu + gInflu + bInflu);
+      const rn = rInflu / sum, gn = gInflu / sum, bn = bInflu / sum;
+
+      // Wider hue range; bias highs toward purple/blue
+      const hueTarget = rn*0.03 + gn*0.33 + bn*0.72;
+
+      // Hue snaps on beats, glides otherwise
+      const hueSpeed = 0.01 + 0.30 * punch;
+      hueBase = hueBase + (hueTarget - hueBase) * hueSpeed;
+
+      // Saturation/value: neon on hits, controlled otherwise
+      const sat = clamp01(0.10 + 0.75*Math.pow(energySmooth, 0.65) + 0.90*punch);
+      const val = clamp01(0.88 + 0.10*(1 - energySmooth) + 0.30*punch);
+
+      let [rr, gg, bb] = hsv2rgb(hueBase, sat, val);
+
+      // Quiet moments: drift toward white-hot, but not enough to wash everything yellow
+      const quietMix = clamp01(1 - Math.pow(energySmooth, 0.9));
+      rr = lerp(rr, 1, quietMix * 0.55);
+      gg = lerp(gg, 1, quietMix * 0.55);
+      bb = lerp(bb, 1, quietMix * 0.55);
+
+      const flash = clamp01(punch * 1.25);
+
+      // Core + halo gradients
+      const coreBright = 0.98;
 
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      const core = `rgba(${Math.round(255*coreBright)},${Math.round(255*coreBright)},${Math.round(255*coreBright)},1)`;
-      const midC = `rgba(${Math.round(255*r)},${Math.round(255*g)},${Math.round(255*b)},0.85)`;
-      const edge = `rgba(${Math.round(255*r)},${Math.round(255*g)},${Math.round(255*b)},0.0)`;
-      grad.addColorStop(0.00, core);
-      grad.addColorStop(0.22, core);
-      grad.addColorStop(0.55, midC);
-      grad.addColorStop(1.00, edge);
+      grad.addColorStop(0.00, `rgba(${Math.round(255*coreBright)},${Math.round(255*coreBright)},${Math.round(255*coreBright)},1)`);
+      grad.addColorStop(0.16, `rgba(${Math.round(255*coreBright)},${Math.round(255*coreBright)},${Math.round(255*coreBright)},1)`);
+      grad.addColorStop(0.55, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},${0.72 + 0.20*flash})`);
+      grad.addColorStop(1.00, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},0)`);
 
-      const haloR = radius * (1.6 + ampCurve * 1.2);
-      const halo = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, haloR);
-      halo.addColorStop(0.00, `rgba(${Math.round(255*r)},${Math.round(255*g)},${Math.round(255*b)},${0.35*haloBright})`);
-      halo.addColorStop(1.00, `rgba(${Math.round(255*r)},${Math.round(255*g)},${Math.round(255*b)},0)`);
+      const haloR = radius * (1.7 + 1.6*flash);
+      const halo = ctx.createRadialGradient(cx, cy, radius*0.2, cx, cy, haloR);
+      halo.addColorStop(0.00, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},${0.18 + 0.40*flash})`);
+      halo.addColorStop(1.00, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},0)`);
 
       ctx.globalCompositeOperation = 'lighter';
       ctx.fillStyle = halo;
-      ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI*2); ctx.fill();
 
       ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill();
 
-      const hlR = radius * 0.22;
-      const hx = cx - radius * 0.25;
-      const hy = cy - radius * 0.25;
+      // Specular highlight (pops on beats)
+      const hlR = radius * (0.18 + 0.10*flash);
+      const hx = cx - radius * 0.28;
+      const hy = cy - radius * 0.28;
       const hl = ctx.createRadialGradient(hx, hy, 0, hx, hy, hlR);
-      hl.addColorStop(0, 'rgba(255,255,255,0.55)');
+      hl.addColorStop(0, `rgba(255,255,255,${0.22 + 0.55*flash})`);
       hl.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = hl;
-      ctx.beginPath(); ctx.arc(hx, hy, hlR, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(hx, hy, hlR, 0, Math.PI*2); ctx.fill();
 
       ctx.globalCompositeOperation = 'source-over';
+
       requestAnimationFrame(draw);
     }
 
