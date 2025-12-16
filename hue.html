@@ -3,23 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Audio Orb</title>
+  <title>Audio Orb (One-Shot)</title>
+
+  <!-- Cache resistance (helps, but renaming the file is the real crowbar) -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <style>
     html, body { height: 100%; margin: 0; background: #05060a; overflow: hidden; }
-    canvas { display:block; width: 100vw; height: 100vh; }
+    canvas { display:block; width: 100vw; height: 100vh; touch-action: manipulation; }
 
+    /* Minimal one-shot dialog */
     .hud{
       position: fixed; left: 14px; bottom: 14px;
       font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       color: rgba(255,255,255,.82);
-      background: rgba(0,0,0,.35);
+      background: rgba(0,0,0,.40);
       border: 1px solid rgba(255,255,255,.12);
       padding: 10px 12px; border-radius: 12px;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
       max-width: min(520px, calc(100vw - 28px));
     }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .hint{ opacity:.75 }
     .btn{
       cursor:pointer; user-select:none;
       padding: 6px 10px; border-radius: 10px;
@@ -27,44 +33,29 @@
       background: rgba(255,255,255,.06);
       color: rgba(255,255,255,.9);
     }
-    .btn:active{ transform: translateY(1px); }
-
-    /* File picker wrapper so we can hide it cleanly */
-    #fileWrap { display: inline-flex; align-items: center; }
-    #fileWrap input[type="file"]{ max-width: 320px; }
-
-    /* When locked, the file picker is gone until refresh */
-    .locked #fileWrap { display: none !important; }
+    .btn[disabled]{ opacity: .45; cursor: not-allowed; }
+    .hint{ opacity:.75; margin-top: 8px; }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
 
+  <!-- ONLY UI, and it gets DESTROYED on first successful Play -->
   <div class="hud" id="hud">
     <div class="row">
-      <button class="btn" id="playBtn">Play / Resume</button>
-      <button class="btn" id="pauseBtn">Pause</button>
-
-      <!-- Wrap the file input so it can be hidden -->
-      <div id="fileWrap">
-        <input id="file" type="file" accept="audio/mpeg,audio/mp3,audio/*" />
-      </div>
+      <input id="file" type="file" accept="audio/mpeg,audio/mp3,audio/*" />
+      <button class="btn" id="playBtn" disabled>Play</button>
     </div>
-
-    <div class="hint" style="margin-top:8px" id="hint">
-      Tip: choose an MP3 file, then hit <b>Play / Resume</b> (some browsers require a click to start audio analysis).
-      <span id="lockHint" style="display:none"><br><b>Locked:</b> refresh the page to pick a new file.</span>
+    <div class="hint">
+      Choose an MP3, press <b>Play</b>. Tap the canvas to pause/resume. Refresh to load a new file.
     </div>
   </div>
 
-  <audio id="a" crossorigin="anonymous"></audio>
+  <audio id="a" crossorigin="anonymous" playsinline></audio>
 
   <script>
-    // ====== CONFIG ======
-    // Option A: set a direct URL (same-origin or CORS-enabled):
-    // document.getElementById('a').src = "yourfile.mp3";
-    //
-    // Option B (default): user picks a local file via the file input.
+    // ===== BUILD STAMP (so you can tell if you're seeing the right file) =====
+    const BUILD = "HUE ONE-SHOT vFINAL 2025-12-16";
 
     const canvas = document.getElementById('c');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -79,37 +70,23 @@
     resize();
 
     const hud = document.getElementById('hud');
-    const lockHint = document.getElementById('lockHint');
-
     const audioEl = document.getElementById('a');
     const fileEl = document.getElementById('file');
     const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
 
     let ac, analyser, freq, timeData, srcNode;
-    let started = false;
-
-    // Once a file is chosen (or playback begins), we "lock" the picker until refresh.
-    let pickerLocked = false;
-    function lockPicker() {
-      if (pickerLocked) return;
-      pickerLocked = true;
-      hud.classList.add('locked');
-      lockHint.style.display = 'inline';
-      // extra safety: disable it too, so even if CSS changes, it won't work.
-      fileEl.disabled = true;
-    }
+    let graphReady = false;
+    let startedPlayback = false;
 
     function ensureAudioGraph() {
-      if (started) return;
-      started = true;
+      if (graphReady) return;
+      graphReady = true;
 
       ac = new (window.AudioContext || window.webkitAudioContext)();
       analyser = ac.createAnalyser();
-      analyser.fftSize = 2048;                 // time resolution
-      analyser.smoothingTimeConstant = 0.85;   // visual smoothing
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.85;
 
-      // Connect: <audio> -> analyser -> speakers
       srcNode = ac.createMediaElementSource(audioEl);
       srcNode.connect(analyser);
       analyser.connect(ac.destination);
@@ -118,53 +95,64 @@
       timeData = new Uint8Array(analyser.fftSize);
     }
 
-    // Local file loading (locks immediately once a file is selected)
+    function destroyHUD() {
+      // physically remove the dialog so it cannot “remain”
+      if (hud && hud.parentNode) hud.parentNode.removeChild(hud);
+    }
+
+    // Enable Play only after choosing a file
     fileEl.addEventListener('change', () => {
+      if (startedPlayback) return;
       const f = fileEl.files && fileEl.files[0];
-      if (!f) return;
-
-      const url = URL.createObjectURL(f);
-      audioEl.src = url;
+      if (!f) { playBtn.disabled = true; return; }
+      audioEl.src = URL.createObjectURL(f);
       audioEl.load();
-
-      // Hide/disable file chooser until full refresh
-      lockPicker();
+      playBtn.disabled = false;
     });
 
+    // One-shot: when Play successfully starts, HUD is destroyed forever
     playBtn.addEventListener('click', async () => {
+      if (startedPlayback) return;
+      if (!audioEl.src) return;
+
       ensureAudioGraph();
       if (ac.state !== 'running') await ac.resume();
 
-      // If the audio already has a source (file chosen or URL set), lock the picker on first play.
-      // This matches your "commit to the track" rule.
-      if (audioEl.src && audioEl.src.trim().length > 0) lockPicker();
+      try { await audioEl.play(); } catch (e) { return; }
 
-      // If no file chosen and no src set, nothing plays—still harmless.
-      try { await audioEl.play(); } catch (e) { /* autoplay restrictions */ }
+      if (!audioEl.paused) {
+        startedPlayback = true;
+        destroyHUD();
+      }
     });
 
-    pauseBtn.addEventListener('click', () => audioEl.pause());
+    // Tap anywhere toggles pause/resume (no UI)
+    canvas.addEventListener('pointerdown', async () => {
+      if (!graphReady) return; // no file yet
+      if (ac && ac.state !== 'running') await ac.resume();
+      if (audioEl.paused) {
+        try { await audioEl.play(); } catch (e) {}
+      } else {
+        audioEl.pause();
+      }
+    }, { passive: true });
 
-    // ====== SIGNAL MATH ======
+    // ===== Signal math =====
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
 
-    // RMS amplitude from time domain (0..1)
     function getAmplitudeRMS() {
       analyser.getByteTimeDomainData(timeData);
       let sumSq = 0;
       for (let i = 0; i < timeData.length; i++) {
-        const v = (timeData[i] - 128) / 128; // -1..1
+        const v = (timeData[i] - 128) / 128;
         sumSq += v * v;
       }
-      return Math.sqrt(sumSq / timeData.length); // 0..~1
+      return Math.sqrt(sumSq / timeData.length);
     }
 
-    // Frequency energy split: lows/mids/highs -> 0..1 each
     function getBands() {
       analyser.getByteFrequencyData(freq);
-
       const n = freq.length;
-      // crude but effective band splits (by bins, not Hz)
       const lowEnd  = Math.floor(n * 0.18);
       const midEnd  = Math.floor(n * 0.55);
 
@@ -177,7 +165,6 @@
       mid  /= ((midEnd - lowEnd) * 255);
       high /= ((n - midEnd) * 255);
 
-      // gentle contrast curve
       low  = Math.pow(clamp01(low),  0.85);
       mid  = Math.pow(clamp01(mid),  0.85);
       high = Math.pow(clamp01(high), 0.85);
@@ -185,7 +172,7 @@
       return { low, mid, high };
     }
 
-    // ====== DRAWING ======
+    // ===== Drawing =====
     let t = 0;
     function draw() {
       t += 1;
@@ -193,58 +180,51 @@
       const w = innerWidth, h = innerHeight;
       const cx = w * 0.5, cy = h * 0.5;
 
-      // background fade (slight motion blur)
       ctx.fillStyle = 'rgba(5,6,10,0.22)';
       ctx.fillRect(0, 0, w, h);
 
-      if (!started) {
-        // idle: faint star-ish dot
+      // tiny build marker (top-left). If you don't see this, you're cached.
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.font = '600 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+      ctx.fillText(BUILD, 12, 22);
+
+      if (!graphReady) {
         ctx.fillStyle = 'rgba(255,255,255,0.15)';
         ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
         requestAnimationFrame(draw);
         return;
       }
 
-      const amp = getAmplitudeRMS();         // 0..1
-      const { low, mid, high } = getBands(); // 0..1
+      const amp = getAmplitudeRMS();
+      const { low, mid, high } = getBands();
 
-      // Radius: tiny when quiet, big when loud
-      // Add a little "breathing" to avoid perfectly static quiet.
       const breath = 0.5 + 0.5 * Math.sin(t * 0.02);
-      const ampCurve = Math.pow(clamp01(amp * 2.2), 0.9); // boost typical music
+      const ampCurve = Math.pow(clamp01(amp * 2.2), 0.9);
+
       const minR = Math.min(w, h) * 0.03;
       const maxR = Math.min(w, h) * 0.28;
       const radius = minR + (maxR - minR) * clamp01(ampCurve) + breath * 2;
 
-      // Color target from bands: lows->R, mids->G, highs->B
-      // Normalize so loud moments don't just turn gray.
       const mag = Math.max(0.001, low + mid + high);
-      const r0 = low / mag;
-      const g0 = mid / mag;
-      const b0 = high / mag;
+      const r0 = low / mag, g0 = mid / mag, b0 = high / mag;
 
-      // Blend: quiet -> white, loud -> band-color
       const colorMix = clamp01(Math.pow(ampCurve, 0.8));
       const r = (1 - colorMix) * 1.0 + colorMix * r0;
       const g = (1 - colorMix) * 1.0 + colorMix * g0;
       const b = (1 - colorMix) * 1.0 + colorMix * b0;
 
-      // Brightness: quiet should be bright white; loud can be less "white-hot"
       const coreBright = 0.95;
-      const haloBright = 0.55 + 0.35 * (1 - clamp01(ampCurve)); // slightly brighter when quiet
+      const haloBright = 0.55 + 0.35 * (1 - clamp01(ampCurve));
 
-      // Orb gradient (core -> edge)
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
       const core = `rgba(${Math.round(255 * coreBright)},${Math.round(255 * coreBright)},${Math.round(255 * coreBright)},1)`;
       const midC = `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0.85)`;
       const edge = `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0.0)`;
-
       grad.addColorStop(0.00, core);
       grad.addColorStop(0.22, core);
       grad.addColorStop(0.55, midC);
       grad.addColorStop(1.00, edge);
 
-      // Halo/glow pass
       const haloR = radius * (1.6 + ampCurve * 1.2);
       const halo = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, haloR);
       halo.addColorStop(0.00, `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},${0.35 * haloBright})`);
@@ -254,11 +234,10 @@
       ctx.fillStyle = halo;
       ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI * 2); ctx.fill();
 
-      // Orb body
       ctx.fillStyle = grad;
       ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
 
-      // Tiny specular highlight (makes it feel like “light”)
+      // small specular highlight
       const hlR = radius * 0.22;
       const hx = cx - radius * 0.25;
       const hy = cy - radius * 0.25;
