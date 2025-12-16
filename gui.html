@@ -20,11 +20,14 @@
       transition: opacity 500ms ease, transform 600ms ease;
       will-change: opacity, transform;
     }
-
+    .hud.hidden{
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .hud input[type="file"]{ max-width: 320px; }
     .hint{ opacity:.75 }
-
     .btn{
       cursor:pointer; user-select:none;
       padding: 6px 10px; border-radius: 10px;
@@ -33,38 +36,26 @@
       color: rgba(255,255,255,.9);
     }
     .btn:active{ transform: translateY(1px); }
-
-    /* HUD disappears cleanly once playback starts */
-    .hud.hidden{
-      opacity: 0;
-      transform: translateY(10px);
-      pointer-events: none;
-    }
+    .btn[disabled]{ opacity: .45; cursor: not-allowed; }
   </style>
 </head>
 <body>
   <canvas id="c"></canvas>
 
+  <!-- Minimal "one-shot" launcher: pick file + Play, then HUD vanishes until refresh -->
   <div class="hud" id="hud">
     <div class="row">
-      <button class="btn" id="playBtn">Play / Resume</button>
-      <button class="btn" id="pauseBtn">Pause</button>
       <input id="file" type="file" accept="audio/mpeg,audio/mp3,audio/*" />
+      <button class="btn" id="playBtn" disabled>Play</button>
     </div>
     <div class="hint" style="margin-top:8px">
-      Tip: choose an MP3 file, then hit <b>Play / Resume</b> (some browsers require a click to start audio analysis).
+      Choose an MP3, then press <b>Play</b>. (Refresh the page to load a different file.)
     </div>
   </div>
 
   <audio id="a" crossorigin="anonymous"></audio>
 
   <script>
-    // ====== CONFIG ======
-    // Option A: set a direct URL (same-origin or CORS-enabled):
-    // document.getElementById('a').src = "yourfile.mp3";
-    //
-    // Option B (default): user picks a local file via the file input.
-
     const canvas = document.getElementById('c');
     const ctx = canvas.getContext('2d', { alpha: false });
 
@@ -81,36 +72,32 @@
     const audioEl = document.getElementById('a');
     const fileEl = document.getElementById('file');
     const playBtn = document.getElementById('playBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
 
     let ac, analyser, freq, timeData, srcNode;
-    let started = false;          // audio graph created?
-    let lockedUI = false;         // once true: HUD/file chooser never returns until refresh
+    let graphReady = false;
+    let oneShotLocked = false;
 
-    function hideHUDForever() {
-      if (lockedUI) return;
-      lockedUI = true;
+    function lockAndHideHUD() {
+      if (oneShotLocked) return;
+      oneShotLocked = true;
+
       hud.classList.add('hidden');
-
-      // hard-disable file input so iOS won't show it again via focus
       fileEl.disabled = true;
+      playBtn.disabled = true;
 
-      // after fade-out, remove it from layout entirely (optional)
-      setTimeout(() => {
-        hud.style.display = 'none';
-      }, 700);
+      // Remove from layout after fade
+      setTimeout(() => { hud.style.display = 'none'; }, 700);
     }
 
     function ensureAudioGraph() {
-      if (started) return;
-      started = true;
+      if (graphReady) return;
+      graphReady = true;
 
       ac = new (window.AudioContext || window.webkitAudioContext)();
       analyser = ac.createAnalyser();
-      analyser.fftSize = 2048;                 // time resolution
-      analyser.smoothingTimeConstant = 0.85;   // visual smoothing
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.85;
 
-      // Connect: <audio> -> analyser -> speakers
       srcNode = ac.createMediaElementSource(audioEl);
       srcNode.connect(analyser);
       analyser.connect(ac.destination);
@@ -119,50 +106,51 @@
       timeData = new Uint8Array(analyser.fftSize);
     }
 
-    // Local file loading
+    // Enable Play only after a file is chosen
     fileEl.addEventListener('change', () => {
+      if (oneShotLocked) return;
+
       const f = fileEl.files && fileEl.files[0];
-      if (!f) return;
+      if (!f) {
+        playBtn.disabled = true;
+        return;
+      }
       const url = URL.createObjectURL(f);
       audioEl.src = url;
       audioEl.load();
-      // NOTE: we do NOT hide HUD on file select. We hide it when playback truly begins.
+      playBtn.disabled = false;
     });
 
+    // One-shot play: start audio + analysis, then HUD vanishes forever (until refresh)
     playBtn.addEventListener('click', async () => {
+      if (oneShotLocked) return;
+      if (!audioEl.src) return;
+
       ensureAudioGraph();
       if (ac.state !== 'running') await ac.resume();
 
-      try { await audioEl.play(); } catch (e) { /* autoplay restrictions */ }
-      // If playback successfully begins (or is already playing), hide HUD.
-      if (!audioEl.paused) hideHUDForever();
+      try { await audioEl.play(); } catch (e) { return; }
+      // Only hide once playback truly begins
+      if (!audioEl.paused) lockAndHideHUD();
     });
-
-    pauseBtn.addEventListener('click', () => audioEl.pause());
-
-    // Also hide HUD if playback starts by any other means (keyboard, OS controls, etc.)
-    audioEl.addEventListener('play', hideHUDForever);
 
     // ====== SIGNAL MATH ======
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
 
-    // RMS amplitude from time domain (0..1)
     function getAmplitudeRMS() {
       analyser.getByteTimeDomainData(timeData);
       let sumSq = 0;
       for (let i = 0; i < timeData.length; i++) {
-        const v = (timeData[i] - 128) / 128; // -1..1
+        const v = (timeData[i] - 128) / 128;
         sumSq += v * v;
       }
-      return Math.sqrt(sumSq / timeData.length); // 0..~1
+      return Math.sqrt(sumSq / timeData.length);
     }
 
-    // Frequency energy split: lows/mids/highs -> 0..1 each
     function getBands() {
       analyser.getByteFrequencyData(freq);
-
       const n = freq.length;
-      // crude but effective band splits (by bins, not Hz)
+
       const lowEnd  = Math.floor(n * 0.18);
       const midEnd  = Math.floor(n * 0.55);
 
@@ -175,7 +163,6 @@
       mid  /= ((midEnd - lowEnd) * 255);
       high /= ((n - midEnd) * 255);
 
-      // gentle contrast curve
       low  = Math.pow(clamp01(low),  0.85);
       mid  = Math.pow(clamp01(mid),  0.85);
       high = Math.pow(clamp01(high), 0.85);
@@ -191,84 +178,19 @@
       const w = innerWidth, h = innerHeight;
       const cx = w * 0.5, cy = h * 0.5;
 
-      // background fade (slight motion blur)
       ctx.fillStyle = 'rgba(5,6,10,0.22)';
       ctx.fillRect(0, 0, w, h);
 
-      if (!started) {
-        // idle: faint star-ish dot
+      if (!graphReady) {
         ctx.fillStyle = 'rgba(255,255,255,0.15)';
         ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
         requestAnimationFrame(draw);
         return;
       }
 
-      const amp = getAmplitudeRMS();         // 0..1
-      const { low, mid, high } = getBands(); // 0..1
+      const amp = getAmplitudeRMS();
+      const { low, mid, high } = getBands();
 
-      // Radius: tiny when quiet, big when loud
       const breath = 0.5 + 0.5 * Math.sin(t * 0.02);
-      const ampCurve = Math.pow(clamp01(amp * 2.2), 0.9); // boost typical music
-      const minR = Math.min(w, h) * 0.03;
-      const maxR = Math.min(w, h) * 0.28;
-      const radius = minR + (maxR - minR) * clamp01(ampCurve) + breath * 2;
-
-      // Color target from bands: lows->R, mids->G, highs->B
-      const mag = Math.max(0.001, low + mid + high);
-      const r0 = low / mag;
-      const g0 = mid / mag;
-      const b0 = high / mag;
-
-      // Blend: quiet -> white, loud -> band-color
-      const colorMix = clamp01(Math.pow(ampCurve, 0.8));
-      const r = (1 - colorMix) * 1.0 + colorMix * r0;
-      const g = (1 - colorMix) * 1.0 + colorMix * g0;
-      const b = (1 - colorMix) * 1.0 + colorMix * b0;
-
-      // Brightness: quiet should be bright white; loud can be less "white-hot"
-      const coreBright = 0.95;
-      const haloBright = 0.55 + 0.35 * (1 - clamp01(ampCurve)); // slightly brighter when quiet
-
-      // Orb gradient (core -> edge)
-      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      const core = `rgba(${Math.round(255 * coreBright)},${Math.round(255 * coreBright)},${Math.round(255 * coreBright)},1)`;
-      const midC = `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0.85)`;
-      const edge = `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0.0)`;
-
-      grad.addColorStop(0.00, core);
-      grad.addColorStop(0.22, core);
-      grad.addColorStop(0.55, midC);
-      grad.addColorStop(1.00, edge);
-
-      // Halo/glow pass
-      const haloR = radius * (1.6 + ampCurve * 1.2);
-      const halo = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, haloR);
-      halo.addColorStop(0.00, `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},${0.35 * haloBright})`);
-      halo.addColorStop(1.00, `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0)`);
-
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.fillStyle = halo;
-      ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI * 2); ctx.fill();
-
-      // Orb body
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
-
-      // Tiny specular highlight
-      const hlR = radius * 0.22;
-      const hx = cx - radius * 0.25;
-      const hy = cy - radius * 0.25;
-      const hl = ctx.createRadialGradient(hx, hy, 0, hx, hy, hlR);
-      hl.addColorStop(0, 'rgba(255,255,255,0.55)');
-      hl.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = hl;
-      ctx.beginPath(); ctx.arc(hx, hy, hlR, 0, Math.PI * 2); ctx.fill();
-
-      ctx.globalCompositeOperation = 'source-over';
-      requestAnimationFrame(draw);
-    }
-
-    requestAnimationFrame(draw);
-  </script>
-</body>
-</html>
+      const ampCurve = Math.pow(clamp01(amp * 2.2), 0.9);
+      const min
