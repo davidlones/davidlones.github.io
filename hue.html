@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Audio Orb (One-Shot)</title>
 
-  <!-- Cache resistance (helps, but renaming the file is the real crowbar) -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -14,7 +13,6 @@
     html, body { height: 100%; margin: 0; background: #05060a; overflow: hidden; }
     canvas { display:block; width: 100vw; height: 100vh; touch-action: manipulation; }
 
-    /* Minimal one-shot dialog */
     .hud{
       position: fixed; left: 14px; bottom: 14px;
       font: 12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -40,7 +38,6 @@
 <body>
   <canvas id="c"></canvas>
 
-  <!-- ONLY UI, and it gets DESTROYED on first successful Play -->
   <div class="hud" id="hud">
     <div class="row">
       <input id="file" type="file" accept="audio/mpeg,audio/mp3,audio/*" />
@@ -54,8 +51,8 @@
   <audio id="a" crossorigin="anonymous" playsinline></audio>
 
   <script>
-    // ===== BUILD STAMP (so you can tell if you're seeing the right file) =====
-    const BUILD = "HUE ONE-SHOT vFINAL 2025-12-16";
+    // ===== BUILD STAMP =====
+    const BUILD = "HUE ONE-SHOT vFINAL+BEAT 2025-12-16";
 
     const canvas = document.getElementById('c');
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -85,7 +82,7 @@
       ac = new (window.AudioContext || window.webkitAudioContext)();
       analyser = ac.createAnalyser();
       analyser.fftSize = 2048;
-      analyser.smoothingTimeConstant = 0.85;
+      analyser.smoothingTimeConstant = 0.70; // less smoothing = snappier beats
 
       srcNode = ac.createMediaElementSource(audioEl);
       srcNode.connect(analyser);
@@ -96,11 +93,9 @@
     }
 
     function destroyHUD() {
-      // physically remove the dialog so it cannot “remain”
       if (hud && hud.parentNode) hud.parentNode.removeChild(hud);
     }
 
-    // Enable Play only after choosing a file
     fileEl.addEventListener('change', () => {
       if (startedPlayback) return;
       const f = fileEl.files && fileEl.files[0];
@@ -110,7 +105,6 @@
       playBtn.disabled = false;
     });
 
-    // One-shot: when Play successfully starts, HUD is destroyed forever
     playBtn.addEventListener('click', async () => {
       if (startedPlayback) return;
       if (!audioEl.src) return;
@@ -126,9 +120,8 @@
       }
     });
 
-    // Tap anywhere toggles pause/resume (no UI)
     canvas.addEventListener('pointerdown', async () => {
-      if (!graphReady) return; // no file yet
+      if (!graphReady) return;
       if (ac && ac.state !== 'running') await ac.resume();
       if (audioEl.paused) {
         try { await audioEl.play(); } catch (e) {}
@@ -137,9 +130,29 @@
       }
     }, { passive: true });
 
-    // ===== Signal math =====
+    // ===== Helpers =====
     function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+    function lerp(a,b,t){ return a + (b-a)*t; }
 
+    // HSV (0..1) -> RGB (0..1)
+    function hsv2rgb(h, s, v) {
+      h = (h % 1 + 1) % 1;
+      const i = Math.floor(h * 6);
+      const f = h * 6 - i;
+      const p = v * (1 - s);
+      const q = v * (1 - f * s);
+      const t = v * (1 - (1 - f) * s);
+      switch (i % 6) {
+        case 0: return [v, t, p];
+        case 1: return [q, v, p];
+        case 2: return [p, v, t];
+        case 3: return [p, q, v];
+        case 4: return [t, p, v];
+        case 5: return [v, p, q];
+      }
+    }
+
+    // RMS amplitude from time domain (0..1)
     function getAmplitudeRMS() {
       analyser.getByteTimeDomainData(timeData);
       let sumSq = 0;
@@ -150,40 +163,56 @@
       return Math.sqrt(sumSq / timeData.length);
     }
 
-    function getBands() {
-      analyser.getByteFrequencyData(freq);
-      const n = freq.length;
-      const lowEnd  = Math.floor(n * 0.18);
-      const midEnd  = Math.floor(n * 0.55);
-
-      let low = 0, mid = 0, high = 0;
-      for (let i = 0; i < lowEnd; i++) low += freq[i];
-      for (let i = lowEnd; i < midEnd; i++) mid += freq[i];
-      for (let i = midEnd; i < n; i++) high += freq[i];
-
-      low  /= (lowEnd * 255);
-      mid  /= ((midEnd - lowEnd) * 255);
-      high /= ((n - midEnd) * 255);
-
-      low  = Math.pow(clamp01(low),  0.85);
-      mid  = Math.pow(clamp01(mid),  0.85);
-      high = Math.pow(clamp01(high), 0.85);
-
-      return { low, mid, high };
+    // Better beat-ish band splits
+    function avgRange(arr, a, b) {
+      let s = 0;
+      const n = Math.max(1, b - a);
+      for (let i = a; i < b; i++) s += arr[i];
+      return (s / n) / 255;
     }
 
-    // ===== Drawing =====
+    function getBandsBeat() {
+      analyser.getByteFrequencyData(freq);
+      const n = freq.length;
+
+      // bins (not Hz). tuned for “feel”
+      const iKickA = Math.floor(n * 0.00), iKickB = Math.floor(n * 0.08);
+      const iLowA  = Math.floor(n * 0.08), iLowB  = Math.floor(n * 0.18);
+      const iMidA  = Math.floor(n * 0.18), iMidB  = Math.floor(n * 0.45);
+      const iHiA   = Math.floor(n * 0.45), iHiB   = n;
+
+      let kick = avgRange(freq, iKickA, iKickB);
+      let low  = avgRange(freq, iLowA,  iLowB);
+      let mid  = avgRange(freq, iMidA,  iMidB);
+      let high = avgRange(freq, iHiA,   iHiB);
+
+      // punchier curves
+      kick = Math.pow(clamp01(kick), 0.65);
+      low  = Math.pow(clamp01(low),  0.75);
+      mid  = Math.pow(clamp01(mid),  0.70);
+      high = Math.pow(clamp01(high), 0.60);
+
+      return { kick, low, mid, high };
+    }
+
+    // ===== Beat/Onset state =====
     let t = 0;
+    let energySmooth = 0;
+    let prevEnergySmooth = 0;
+    let beatEnv = 0;     // transient envelope 0..1
+    let hueBase = 0.62;  // start near blue
+
     function draw() {
       t += 1;
 
       const w = innerWidth, h = innerHeight;
       const cx = w * 0.5, cy = h * 0.5;
 
+      // background fade
       ctx.fillStyle = 'rgba(5,6,10,0.22)';
       ctx.fillRect(0, 0, w, h);
 
-      // tiny build marker (top-left). If you don't see this, you're cached.
+      // build marker
       ctx.fillStyle = 'rgba(255,255,255,0.06)';
       ctx.font = '600 12px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
       ctx.fillText(BUILD, 12, 22);
@@ -196,58 +225,93 @@
       }
 
       const amp = getAmplitudeRMS();
-      const { low, mid, high } = getBands();
+      const { kick, low, mid, high } = getBandsBeat();
 
-      const breath = 0.5 + 0.5 * Math.sin(t * 0.02);
-      const ampCurve = Math.pow(clamp01(amp * 2.2), 0.9);
+      // energy emphasizes beat content (kick especially)
+      const energy = clamp01(0.40*low + 0.70*mid + 0.95*high + 1.35*kick);
 
-      const minR = Math.min(w, h) * 0.03;
-      const maxR = Math.min(w, h) * 0.28;
-      const radius = minR + (maxR - minR) * clamp01(ampCurve) + breath * 2;
+      // smooth for base size
+      prevEnergySmooth = energySmooth;
+      energySmooth = lerp(energySmooth, energy, 0.14);
 
-      const mag = Math.max(0.001, low + mid + high);
-      const r0 = low / mag, g0 = mid / mag, b0 = high / mag;
+      // onset detector: positive jump over threshold triggers beat envelope
+      const delta = energySmooth - prevEnergySmooth;
+      const thresh = 0.018 + 0.085 * (1 - energySmooth);
 
-      const colorMix = clamp01(Math.pow(ampCurve, 0.8));
-      const r = (1 - colorMix) * 1.0 + colorMix * r0;
-      const g = (1 - colorMix) * 1.0 + colorMix * g0;
-      const b = (1 - colorMix) * 1.0 + colorMix * b0;
+      if (delta > thresh) beatEnv = 1.0;
 
-      const coreBright = 0.95;
-      const haloBright = 0.55 + 0.35 * (1 - clamp01(ampCurve));
+      // decay (controls “punch length”)
+      beatEnv *= 0.78;
+      if (beatEnv < 0.001) beatEnv = 0;
 
+      const punch = Math.pow(clamp01(beatEnv), 0.55);
+
+      // radius: base + beat punch
+      const minR = Math.min(w, h) * 0.022;
+      const maxR = Math.min(w, h) * 0.36;
+
+      const base = Math.pow(clamp01(energySmooth * 1.7), 0.85);
+      const radius = minR + (maxR - minR) * clamp01(base) + punch * (Math.min(w,h) * 0.085);
+
+      // Hue targeting: kick->red/orange, mid->green, high->blue/purple
+      const rInflu = 1.8*kick + 1.0*low;
+      const gInflu = 1.6*mid;
+      const bInflu = 1.9*high;
+
+      const sum = Math.max(0.0001, rInflu + gInflu + bInflu);
+      const rn = rInflu / sum, gn = gInflu / sum, bn = bInflu / sum;
+
+      const hueTarget = rn*0.02 + gn*0.33 + bn*0.70; // stronger blue range
+      const hueSpeed = 0.02 + 0.34 * punch;          // snap on beats
+      hueBase = hueBase + (hueTarget - hueBase) * hueSpeed;
+
+      // Saturation/value: quiet -> whiter, beats -> neon
+      const sat = clamp01(0.08 + 0.92 * Math.pow(energySmooth, 0.65) + 0.95 * punch);
+      const val = clamp01(0.92 + 0.10 * (1 - energySmooth) + 0.35 * punch);
+
+      let [rr, gg, bb] = hsv2rgb(hueBase, sat, val);
+
+      // quiet core should lean white-hot
+      const quietMix = clamp01(1 - Math.pow(energySmooth, 0.55));
+      rr = lerp(rr, 1, quietMix * 0.85);
+      gg = lerp(gg, 1, quietMix * 0.85);
+      bb = lerp(bb, 1, quietMix * 0.85);
+
+      const flash = clamp01(punch * 1.25);
+
+      // gradients
+      const coreBright = 0.98;
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
-      const core = `rgba(${Math.round(255 * coreBright)},${Math.round(255 * coreBright)},${Math.round(255 * coreBright)},1)`;
-      const midC = `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0.85)`;
-      const edge = `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0.0)`;
-      grad.addColorStop(0.00, core);
-      grad.addColorStop(0.22, core);
-      grad.addColorStop(0.55, midC);
-      grad.addColorStop(1.00, edge);
+      grad.addColorStop(0.00, `rgba(${Math.round(255*coreBright)},${Math.round(255*coreBright)},${Math.round(255*coreBright)},1)`);
+      grad.addColorStop(0.18, `rgba(${Math.round(255*coreBright)},${Math.round(255*coreBright)},${Math.round(255*coreBright)},1)`);
+      grad.addColorStop(0.52, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},${0.78 + 0.18*flash})`);
+      grad.addColorStop(1.00, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},0)`);
 
-      const haloR = radius * (1.6 + ampCurve * 1.2);
-      const halo = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, haloR);
-      halo.addColorStop(0.00, `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},${0.35 * haloBright})`);
-      halo.addColorStop(1.00, `rgba(${Math.round(255 * r)},${Math.round(255 * g)},${Math.round(255 * b)},0)`);
+      // halo gets huge on beats
+      const haloR = radius * (1.85 + 1.7*flash);
+      const halo = ctx.createRadialGradient(cx, cy, radius*0.2, cx, cy, haloR);
+      halo.addColorStop(0.00, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},${0.22 + 0.42*flash})`);
+      halo.addColorStop(1.00, `rgba(${Math.round(255*rr)},${Math.round(255*gg)},${Math.round(255*bb)},0)`);
 
       ctx.globalCompositeOperation = 'lighter';
       ctx.fillStyle = halo;
-      ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI*2); ctx.fill();
 
       ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2); ctx.fill();
 
-      // small specular highlight
-      const hlR = radius * 0.22;
-      const hx = cx - radius * 0.25;
-      const hy = cy - radius * 0.25;
+      // specular highlight (also “pops” on beats)
+      const hlR = radius * (0.20 + 0.08*flash);
+      const hx = cx - radius * 0.28;
+      const hy = cy - radius * 0.28;
       const hl = ctx.createRadialGradient(hx, hy, 0, hx, hy, hlR);
-      hl.addColorStop(0, 'rgba(255,255,255,0.55)');
+      hl.addColorStop(0, `rgba(255,255,255,${0.30 + 0.45*flash})`);
       hl.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.fillStyle = hl;
-      ctx.beginPath(); ctx.arc(hx, hy, hlR, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(hx, hy, hlR, 0, Math.PI*2); ctx.fill();
 
       ctx.globalCompositeOperation = 'source-over';
+
       requestAnimationFrame(draw);
     }
 
