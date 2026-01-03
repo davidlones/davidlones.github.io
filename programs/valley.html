@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Household Cooperative Homestead Charter (One Page)</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --paper:#0f1722;
+      --ink:#e8eef7;
+      --muted:#a9b7c7;
+      --rule:rgba(232,238,247,.16);
+      --accent:#7dd3fc;
+      --accent2:#c4b5fd;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(125,211,252,.12), transparent 60%),
+        radial-gradient(1000px 700px at 90% 20%, rgba(196,181,253,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg), #070a0f);
+      color:var(--ink);
+      font-family:var(--sans);
+      line-height:1.45;
+      letter-spacing:.1px;
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 32px auto;
+      padding: 0 16px 40px;
+    }
+
+    .sheet{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow:
+        0 20px 60px rgba(0,0,0,.55),
+        inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    header{
+      padding: 26px 26px 18px;
+      border-bottom: 1px solid var(--rule);
+      background:
+        linear-gradient(90deg, rgba(125,211,252,.10), transparent 55%),
+        linear-gradient(270deg, rgba(196,181,253,.09), transparent 55%);
+    }
+
+    .kicker{
+      font-family: var(--mono);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+    }
+
+    h1{
+      margin: 10px 0 4px;
+      font-size: clamp(20px, 3vw, 30px);
+      line-height:1.15;
+    }
+
+    .sub{
+      margin: 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    main{
+      padding: 22px 26px 26px;
+    }
+
+    .section{
+      padding: 14px 0;
+      border-bottom: 1px dashed var(--rule);
+    }
+    .section:last-child{border-bottom:0}
+
+    h2{
+      margin:0 0 8px;
+      font-family: var(--mono);
+      font-size: 14px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    p{margin: 0 0 10px}
+    p:last-child{margin-bottom:0}
+
+    ul{
+      margin: 8px 0 10px 22px;
+      padding: 0;
+    }
+    li{margin: 5px 0}
+
+    .domain{
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .pill{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .pill b{
+      color: var(--ink);
+      font-weight: 650;
+    }
+
+    .emph{
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    footer{
+      padding: 16px 26px 22px;
+      border-top: 1px solid var(--rule);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .sigline{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .line{
+      min-width: 220px;
+      height: 1px;
+      background: rgba(232,238,247,.18);
+      position: relative;
+      top: 2px;
+    }
+
+    /* Print-friendly */
+    @media print{
+      :root{ --bg:#fff; --ink:#111; --muted:#444; --rule:#ddd; --paper:#fff; }
+      body{ background:#fff; color:#111; }
+      .wrap{ margin:0; padding:0; max-width:none; }
+      .sheet{ box-shadow:none; border:0; border-radius:0; }
+      header{ background:#fff; }
+      h2{ color:#000; }
+      .pill{ border:1px solid #ddd; background:#fff; }
+      footer{ color:#333; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <article class="sheet" role="document" aria-label="Household Cooperative Homestead Charter">
+      <header>
+        <div class="kicker">THE HOUSEHOLD COOPERATIVE HOMESTEAD CHARTER</div>
+        <h1>THE HOUSEHOLD COOPERATIVE HOMESTEAD CHARTER</h1>
+        <p class="sub">(One-Page Working Constitution)</p>
+      </header>
+
+      <main>
+        <section class="section" id="purpose">
+          <h2>I. Purpose</h2>
+          <p>This household exists as a <span class="emph">cooperative homestead</span>: a shared living system organized to provide shelter, safety, stability, and mutual support for its members.</p>
+          <p>The household is governed intentionally to reduce conflict, distribute load fairly, and withstand external stress.</p>
+        </section>
+
+        <section class="section" id="membership">
+          <h2>II. Membership</h2>
+          <p>Membership is granted to residents who materially depend on or contribute to the household.</p>
+          <p>Membership confers:</p>
+          <ul>
+            <li>Voice in household decisions</li>
+            <li>Access to shared resources</li>
+            <li>Shared responsibility for household continuity</li>
+          </ul>
+          <p>Membership does <span class="emph">not</span> require equal contribution, only <span class="emph">good-faith participation</span>.</p>
+        </section>
+
+        <section class="section" id="shared-assets">
+          <h2>III. Shared Assets &amp; Commons</h2>
+          <p>The household recognizes three domains:</p>
+
+          <div class="domain" role="list">
+            <div class="pill" role="listitem"><b>1. Personal Property</b> – private, inviolable absent emergency</div>
+            <div class="pill" role="listitem"><b>2. Shared Assets</b> – structure, utilities, appliances, vehicles, land</div>
+            <div class="pill" role="listitem"><b>3. Domestic Commons</b> – time, quiet, cleanliness, emotional safety, bandwidth</div>
+          </div>
+
+          <p>Shared assets and commons are governed collectively and stewarded in trust.</p>
+        </section>
+
+        <section class="section" id="contribution">
+          <h2>IV. Contribution &amp; Equity</h2>
+          <p>Contributions may include:</p>
+          <ul>
+            <li>Financial support</li>
+            <li>Physical labor</li>
+            <li>Caregiving or medical support</li>
+            <li>Administrative or institutional labor</li>
+            <li>Emotional regulation and coordination</li>
+          </ul>
+          <p>Equity is proportional, not identical.</p>
+          <p>Invisible labor counts.</p>
+        </section>
+
+        <section class="section" id="authority">
+          <h2>V. Authority &amp; Roles</h2>
+          <p>Authority exists only by delegation and may be assigned by domain (e.g., finance, maintenance, care coordination).</p>
+          <p>No role implies permanent control or moral superiority.</p>
+          <p>All roles are reviewable and revocable.</p>
+        </section>
+
+        <section class="section" id="decisions">
+          <h2>VI. Decision-Making</h2>
+          <p>Decisions affecting shared assets or commons require:</p>
+          <ul>
+            <li>Notice</li>
+            <li>Opportunity for input</li>
+            <li>Clear articulation of constraints</li>
+          </ul>
+          <p>Urgent matters may be handled expediently, with explanation given after.</p>
+        </section>
+
+        <section class="section" id="conflict">
+          <h2>VII. Conflict &amp; Due Process</h2>
+          <p>Conflict is addressed through:</p>
+          <ul>
+            <li>Direct communication where possible</li>
+            <li>Clear statement of grievance</li>
+            <li>Proportional response</li>
+            <li>Path to repair</li>
+          </ul>
+          <p>No member may weaponize dependency, illness, or past contribution.</p>
+        </section>
+
+        <section class="section" id="exit">
+          <h2>VIII. Exit, Change &amp; Continuity</h2>
+          <p>Members may exit the household without retaliation, subject to reasonable notice and logistics.</p>
+          <p>The household plans for illness, absence, and succession to ensure continuity.</p>
+        </section>
+
+        <section class="section" id="amendment">
+          <h2>IX. Amendment</h2>
+          <p>This charter may be amended by household consensus or supermajority, as defined by the members.</p>
+          <p>No rule is permanent if it ceases to serve the household’s purpose.</p>
+        </section>
+
+        <section class="section" id="closing">
+          <h2>X. Closing Principle</h2>
+          <p>Structure is not control.</p>
+          <p>Structure is <span class="emph">care made legible</span>.</p>
+        </section>
+      </main>
+
+      <footer>
+        <div>v0.1 • Working Draft • Print-safe</div>
+        <div class="sigline" aria-label="Signature line">
+          <span>Adopted:</span> <span class="line" aria-hidden="true"></span>
+        </div>
+      </footer>
+    </article>
+  </div>
+</body>
+</html>
