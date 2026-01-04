@@ -344,44 +344,85 @@
     a{ color: rgba(125,211,252,.95); text-decoration:none; }
     a:hover{ text-decoration:underline; }
 
-    /* Modal */
+    /* ====== MODAL (mobile-friendly) ====== */
     .modal-backdrop{
       position:fixed; inset:0;
       background: rgba(0,0,0,.58);
       display:none;
-      align-items:center;
+      align-items:stretch;          /* important for mobile */
       justify-content:center;
-      padding:18px;
+      padding: 12px;
       z-index:100;
     }
+
     .modal{
-      max-width:920px;
-      width:100%;
+      width: min(980px, 100%);
+      height: min(86vh, 720px);     /* keeps it within the viewport */
+      max-height: 86vh;
+      display:flex;
+      flex-direction:column;
       background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
       border:1px solid rgba(255,255,255,.12);
       border-radius: 18px;
       box-shadow: var(--shadow);
       overflow:hidden;
     }
+
+    /* Sticky header with always-visible close button */
     .modal .hd{
-      padding:14px;
+      position:sticky;
+      top:0;
+      z-index:2;
+      padding: 12px 12px;
       display:flex;
       justify-content:space-between;
       align-items:center;
       gap:10px;
       border-bottom:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
     }
-    .modal .hd h3{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .modal .hd h3{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+      line-height:1.2;
+    }
+
+    .modal .hd .close{
+      position:relative;
+      flex: 0 0 auto;
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+
+    /* Scrollable body */
     .modal .bd{
-      padding:14px;
+      flex:1 1 auto;
+      overflow:auto;                /* key: body scrolls, header stays */
+      -webkit-overflow-scrolling: touch;
+      padding: 12px;
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:14px;
+      gap:12px;
     }
+
     @media (max-width: 860px){
-      .modal .bd{ grid-template-columns: 1fr; }
+      .modal-backdrop{ padding: 10px; }
+      .modal{
+        height: 92vh;               /* more room on phones */
+        max-height: 92vh;
+        border-radius: 16px;
+      }
+      .modal .bd{
+        grid-template-columns: 1fr; /* single column on phone */
+        padding: 10px;
+      }
     }
+
+    /* Cards within glossary */
     .card{
       border:1px solid rgba(255,255,255,.10);
       border-radius: 14px;
@@ -389,11 +430,23 @@
       padding:12px;
     }
     .card h4{ margin:0 0 8px; font-size:13px; }
-    .card p{ margin:0; color:rgba(232,234,240,.9); font-size:13px; }
-    .card code{
-      font-family:var(--mono);
-      font-size:12px;
-      color: rgba(232,234,240,.9);
+    .card p{ margin:0; color:rgba(232,234,240,.9); font-size:13px; line-height:1.35; }
+    .card code{ font-family:var(--mono); font-size:12px; color: rgba(232,234,240,.9); }
+
+    /* Extra: make modal close easier to hit */
+    .tap-bar{
+      display:none;
+    }
+    @media (max-width: 860px){
+      .tap-bar{
+        display:block;
+        padding: 10px 12px;
+        border-top:1px solid rgba(255,255,255,.10);
+        background: rgba(0,0,0,.25);
+        color: rgba(232,234,240,.85);
+        font-size:12px;
+        text-align:center;
+      }
     }
 
     /* “Dice” */
@@ -551,12 +604,13 @@
 
   <!-- Glossary Modal -->
   <div class="modal-backdrop" id="modalBack" role="dialog" aria-modal="true" aria-label="Glossary and rules">
-    <div class="modal">
+    <div class="modal" role="document">
       <div class="hd">
         <h3>Glossary / Rules of the House</h3>
-        <button id="btnClose">Close</button>
+        <button id="btnClose" class="close" type="button" aria-label="Close glossary">Close</button>
       </div>
-      <div class="bd">
+
+      <div class="bd" id="modalScroll">
         <div class="card">
           <h4>The Table</h4>
           <p>
@@ -565,6 +619,7 @@
             No comfort-fudging. Consequences teach.
           </p>
         </div>
+
         <div class="card">
           <h4>The Forum</h4>
           <p>
@@ -572,6 +627,7 @@
             Goal: clarity, not victory. Change of mind is logged, not shamed.
           </p>
         </div>
+
         <div class="card">
           <h4>Good Faith (minimum viable sacredness)</h4>
           <p>
@@ -579,6 +635,7 @@
             Don’t perform. Don’t caricature. Don’t dehumanize.
           </p>
         </div>
+
         <div class="card">
           <h4>The Priest (process steward)</h4>
           <p>
@@ -586,6 +643,7 @@
             consistency, fairness, and the right to revise.
           </p>
         </div>
+
         <div class="card">
           <h4>Ritual Structure</h4>
           <p>
@@ -594,6 +652,7 @@
             3) Reflection: what changed, what remains unclear
           </p>
         </div>
+
         <div class="card">
           <h4>Editing this page</h4>
           <p>
@@ -601,6 +660,27 @@
             Replace text, add choices, change stats, rename everything.
           </p>
         </div>
+
+        <!-- Optional: add more cards without breaking mobile scrolling -->
+        <div class="card">
+          <h4>Update Conditions</h4>
+          <p>
+            Before arguing, state what evidence or reasoning would change your mind.
+            If “nothing” would change it, you’re not debating — you’re testifying.
+          </p>
+        </div>
+
+        <div class="card">
+          <h4>Forfeit the Floor</h4>
+          <p>
+            Bad faith is behavior, not identity. If it persists after warning,
+            the host pauses the exchange and ends the mic time — to keep the channel clean.
+          </p>
+        </div>
+      </div>
+
+      <div class="tap-bar">
+        Tap outside the panel or press Escape to close.
       </div>
     </div>
   </div>
@@ -1228,12 +1308,34 @@ Then tell me what would change your mind."`;
     // -------------------------
     // Modal controls
     // -------------------------
-    const modalBack = $("#modalBack");
-    function openGlossary(){ modalBack.style.display = "flex"; }
-    function closeGlossary(){ modalBack.style.display = "none"; }
+    const modalBack = document.querySelector("#modalBack");
+    const btnClose  = document.querySelector("#btnClose");
+    const modalScroll = document.querySelector("#modalScroll");
 
+    function openGlossary(){
+      modalBack.style.display = "flex";
+      // Always start at top for mobile sanity
+      if (modalScroll) modalScroll.scrollTop = 0;
+      // Prevent background scroll while modal open
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeGlossary(){
+      modalBack.style.display = "none";
+      document.body.style.overflow = "";
+    }
+
+    // Close button always reachable now (sticky header)
+    btnClose.addEventListener("click", closeGlossary);
+
+    // Tap outside closes (but not when tapping inside)
     modalBack.addEventListener("click", (e)=>{
       if (e.target === modalBack) closeGlossary();
+    });
+
+    // Escape closes
+    window.addEventListener("keydown", (e)=>{
+      if (e.key === "Escape" && modalBack.style.display === "flex") closeGlossary();
     });
 
     // -------------------------
@@ -1246,7 +1348,6 @@ Then tell me what would change your mind."`;
     });
     $("#btnRoll").addEventListener("click", rollRitualDice);
     $("#btnGlossary").addEventListener("click", openGlossary);
-    $("#btnClose").addEventListener("click", closeGlossary);
     $("#btnExport").addEventListener("click", copyExplainer);
     $("#btnDebate").addEventListener("click", runForumSim);
 
@@ -1263,7 +1364,6 @@ Then tell me what would change your mind."`;
           renderScene(choice.go);
         }
       }
-      if (e.key === "Escape") closeGlossary();
     });
 
     // Initialize
