@@ -1,0 +1,1277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>The Table & The Forum — An Interactive Introduction</title>
+  <meta name="description" content="A playful, philosophical splash page that behaves like a tiny adventure game introducing The Table & The Forum." />
+  <style>
+    :root{
+      --bg:#0b0c10;
+      --panel:#11131a;
+      --panel2:#0f1117;
+      --text:#e8eaf0;
+      --muted:#a7adbe;
+      --accent:#7dd3fc;
+      --accent2:#a78bfa;
+      --good:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --line:rgba(255,255,255,.10);
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(167,139,250,.14), transparent 55%),
+                  radial-gradient(1000px 700px at 80% 30%, rgba(125,211,252,.12), transparent 52%),
+                  radial-gradient(900px 700px at 50% 85%, rgba(52,211,153,.10), transparent 58%),
+                  var(--bg);
+      color:var(--text);
+      font-family:var(--sans);
+      line-height:1.35;
+      overflow-x:hidden;
+    }
+
+    /* Subtle moving “stained glass” shimmer */
+    .shimmer{
+      position:fixed; inset:-20%;
+      background:
+        linear-gradient(115deg,
+          rgba(125,211,252,.06) 0%,
+          rgba(167,139,250,.05) 28%,
+          rgba(52,211,153,.04) 56%,
+          rgba(251,191,36,.04) 75%,
+          rgba(251,113,133,.03) 100%);
+      filter: blur(28px) saturate(120%);
+      opacity:.65;
+      transform: translate3d(0,0,0);
+      animation: drift 18s linear infinite;
+      pointer-events:none;
+      mix-blend-mode: screen;
+      z-index:0;
+    }
+    @keyframes drift{
+      0%{ transform: translate(-3%, -2%) rotate(0deg); }
+      50%{ transform: translate(3%, 2%) rotate(5deg); }
+      100%{ transform: translate(-3%, -2%) rotate(0deg); }
+    }
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      min-height:100%;
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+    }
+
+    header{
+      padding:28px 18px 14px;
+      max-width:1100px;
+      margin:0 auto;
+      width:100%;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      user-select:none;
+    }
+    .sigil{
+      width:42px; height:42px;
+      border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(125,211,252,.9), rgba(125,211,252,.0) 55%),
+        radial-gradient(circle at 70% 70%, rgba(167,139,250,.85), rgba(167,139,250,.0) 60%),
+        linear-gradient(145deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .sigil::after{
+      content:"";
+      position:absolute; inset:-60%;
+      background: conic-gradient(from 90deg,
+        rgba(125,211,252,.0),
+        rgba(125,211,252,.22),
+        rgba(167,139,250,.0),
+        rgba(52,211,153,.18),
+        rgba(125,211,252,.0));
+      animation: spin 8s linear infinite;
+      opacity:.75;
+    }
+    @keyframes spin { to { transform: rotate(360deg);} }
+
+    .brand h1{
+      font-size:16px;
+      margin:0;
+      letter-spacing:.3px;
+      font-weight:700;
+    }
+    .brand p{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .top-actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+
+    button, .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+      font-size:13px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+    }
+    button:hover, .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(125,211,252,.35);
+    }
+    button:active, .btn:active{
+      transform: translateY(0px) scale(.99);
+    }
+    button.primary{
+      border-color: rgba(125,211,252,.40);
+      background: linear-gradient(180deg, rgba(125,211,252,.14), rgba(255,255,255,.02));
+    }
+    button.good{ border-color: rgba(52,211,153,.45); }
+    button.warn{ border-color: rgba(251,191,36,.45); }
+    button.bad{ border-color: rgba(251,113,133,.45); }
+
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 18px 28px;
+      width:100%;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+      align-items:start;
+    }
+
+    @media (max-width: 980px){
+      main{ grid-template-columns: 1fr; }
+    }
+
+    .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .panel .hd{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      padding:14px 14px;
+      border-bottom:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+    }
+    .panel .hd h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .panel .bd{
+      padding:14px;
+    }
+
+    .scene{
+      min-height: 420px;
+      position:relative;
+    }
+
+    .typebox{
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:14px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.02);
+    }
+    .typebox .label{
+      font-family: var(--mono);
+      font-size:12px;
+      color:rgba(232,234,240,.85);
+      letter-spacing:.4px;
+      margin-bottom:8px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .typebox .label .dot{
+      width:8px; height:8px; border-radius:99px;
+      background: var(--good);
+      box-shadow: 0 0 0 6px rgba(52,211,153,.10);
+    }
+
+    .narrative{
+      font-size:15px;
+      color:rgba(232,234,240,.95);
+      margin:0;
+      white-space:pre-wrap;
+    }
+
+    .choices{
+      margin-top:12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .pillrow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      color: rgba(232,234,240,.9);
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+    .pill b{ color: var(--accent); font-weight:700;}
+    .pill .k{
+      color:rgba(167,173,190,.95);
+      font-weight:600;
+    }
+
+    .side-grid{
+      display:grid;
+      gap:16px;
+    }
+
+    .meter{
+      display:grid;
+      gap:10px;
+    }
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(125,211,252,.8), rgba(167,139,250,.8));
+      transition: width .35s ease;
+    }
+    .meter .row{
+      display:flex; justify-content:space-between; align-items:center;
+      color:var(--muted);
+      font-size:12px;
+      font-family:var(--mono);
+    }
+    .meter .row strong{ color: var(--text); font-weight:700; }
+
+    .log{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:12px;
+      border-radius:14px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.10);
+      height: 180px;
+      overflow:auto;
+      white-space:pre-wrap;
+    }
+    .log .t{ color: rgba(125,211,252,.95); }
+    .log .g{ color: rgba(52,211,153,.95); }
+    .log .y{ color: rgba(251,191,36,.95); }
+    .log .r{ color: rgba(251,113,133,.95); }
+    .log .m{ color: rgba(167,139,250,.95); }
+
+    .kbd{
+      font-family:var(--mono);
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.12);
+      padding:2px 6px;
+      border-radius:8px;
+      background: rgba(0,0,0,.25);
+      color: rgba(232,234,240,.9);
+    }
+
+    .tiny{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    footer{
+      max-width:1100px;
+      margin:0 auto;
+      padding: 0 18px 26px;
+      width:100%;
+      color:rgba(167,173,190,.85);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    a{ color: rgba(125,211,252,.95); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    /* Modal */
+    .modal-backdrop{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.58);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:100;
+    }
+    .modal{
+      max-width:920px;
+      width:100%;
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal .hd{
+      padding:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+    }
+    .modal .hd h3{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .modal .bd{
+      padding:14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+    @media (max-width: 860px){
+      .modal .bd{ grid-template-columns: 1fr; }
+    }
+    .card{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      background: rgba(0,0,0,.18);
+      padding:12px;
+    }
+    .card h4{ margin:0 0 8px; font-size:13px; }
+    .card p{ margin:0; color:rgba(232,234,240,.9); font-size:13px; }
+    .card code{
+      font-family:var(--mono);
+      font-size:12px;
+      color: rgba(232,234,240,.9);
+    }
+
+    /* “Dice” */
+    .dice{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+    }
+    .die{
+      width:38px; height:38px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      font-family:var(--mono);
+      font-weight:800;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      box-shadow: 0 12px 24px rgba(0,0,0,.25);
+      transition: transform .2s ease;
+    }
+    .die.roll{ transform: rotate(10deg) scale(1.05); }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .shimmer{ animation:none; }
+      button, .btn, .bar > div{ transition:none; }
+      .die{ transition:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shimmer" aria-hidden="true"></div>
+
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="sigil" aria-hidden="true"></div>
+        <div>
+          <h1>The Table & The Forum</h1>
+          <p>A church of inquiry — ritualized good-faith debate + role-play as ethical simulation</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="primary" id="btnStart" title="Restart the experience"><span>↻</span> Restart</button>
+        <button class="good" id="btnRoll" title="Roll the ceremonial dice"><span>🎲</span> Roll Dice</button>
+        <button id="btnGlossary" title="Open glossary / rules"><span>📜</span> Glossary</button>
+        <button class="warn" id="btnExport" title="Copy a one-paragraph explainer"><span>⎘</span> Copy Explainer</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Left: Adventure Scene -->
+      <section class="panel">
+        <div class="hd">
+          <h2>Entrance Rite (Interactive)</h2>
+          <div class="tiny">Tip: press <span class="kbd">1</span>, <span class="kbd">2</span>, <span class="kbd">3</span> to choose. Press <span class="kbd">G</span> for Glossary.</div>
+        </div>
+        <div class="bd scene">
+          <div class="typebox" role="region" aria-label="Narration">
+            <div class="label"><span class="dot" id="statusDot"></span><span id="statusText">PROCESS: READY</span></div>
+            <p class="narrative" id="narrative"></p>
+            <div class="pillrow" id="pillrow"></div>
+            <div class="choices" id="choices"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Dashboard -->
+      <aside class="side-grid">
+        <section class="panel">
+          <div class="hd">
+            <h2>Ritual Dashboard</h2>
+            <div class="dice" aria-label="Dice">
+              <div class="die" id="dieA">—</div>
+              <div class="die" id="dieB">—</div>
+            </div>
+          </div>
+          <div class="bd">
+            <div class="meter" aria-label="Process meters">
+              <div class="row"><span>Curiosity</span><strong id="mCur">0</strong></div>
+              <div class="bar" aria-hidden="true"><div id="bCur"></div></div>
+
+              <div class="row"><span>Good Faith</span><strong id="mGood">0</strong></div>
+              <div class="bar" aria-hidden="true"><div id="bGood"></div></div>
+
+              <div class="row"><span>Clarity</span><strong id="mClar">0</strong></div>
+              <div class="bar" aria-hidden="true"><div id="bClar"></div></div>
+
+              <div class="row"><span>Humility</span><strong id="mHum">0</strong></div>
+              <div class="bar" aria-hidden="true"><div id="bHum"></div></div>
+            </div>
+
+            <div style="height:12px"></div>
+
+            <div class="tiny">Session Log</div>
+            <div class="log" id="log" role="region" aria-label="Session log"></div>
+
+            <div style="height:12px"></div>
+
+            <div class="tiny">
+              This page is a self-contained “mini-adventure” intro. Customize the text in <span class="kbd">SCENES</span> below to fit your own canon.
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="hd">
+            <h2>The Forum Simulator</h2>
+            <button id="btnDebate" class="primary" title="Run a short, structured debate check">Run</button>
+          </div>
+          <div class="bd">
+            <div class="tiny" style="margin-bottom:8px">
+              A bite-sized model of the priest-host enforcing debate rules. Choose a topic, then test “epistemic hygiene.”
+            </div>
+
+            <label class="tiny" for="topic">Topic</label>
+            <input id="topic" type="text" value="Is moral truth discovered or invented?"
+              style="width:100%; margin:6px 0 10px; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.22); color: var(--text); outline:none;"
+            />
+
+            <div class="tiny" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+              <span>Mode:</span>
+              <label style="display:flex; gap:6px; align-items:center; cursor:pointer;">
+                <input type="radio" name="mode" value="steelman" checked />
+                <span>Steelman-first</span>
+              </label>
+              <label style="display:flex; gap:6px; align-items:center; cursor:pointer;">
+                <input type="radio" name="mode" value="clarify" />
+                <span>Define-terms</span>
+              </label>
+              <label style="display:flex; gap:6px; align-items:center; cursor:pointer;">
+                <input type="radio" name="mode" value="evidence" />
+                <span>Evidence-weighted</span>
+              </label>
+            </div>
+
+            <div style="height:10px"></div>
+            <div class="typebox">
+              <div class="label"><span class="dot" style="background:var(--accent); box-shadow:0 0 0 6px rgba(125,211,252,.10)"></span><span>FORUM OUTPUT</span></div>
+              <p class="narrative" id="debateOut" style="font-size:13px"></p>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <footer>
+      <div>© <span id="year"></span> The Table & The Forum (prototype splash page). Built to be edited. No gods were harmed in the making of this UI.</div>
+      <div>
+        Keyboard: <span class="kbd">1</span>/<span class="kbd">2</span>/<span class="kbd">3</span> choose • <span class="kbd">R</span> restart • <span class="kbd">G</span> glossary
+      </div>
+    </footer>
+  </div>
+
+  <!-- Glossary Modal -->
+  <div class="modal-backdrop" id="modalBack" role="dialog" aria-modal="true" aria-label="Glossary and rules">
+    <div class="modal">
+      <div class="hd">
+        <h3>Glossary / Rules of the House</h3>
+        <button id="btnClose">Close</button>
+      </div>
+      <div class="bd">
+        <div class="card">
+          <h4>The Table</h4>
+          <p>
+            Role-play and scenario simulation used as ethical practice.
+            Dice = humility; outcomes must be honored.
+            No comfort-fudging. Consequences teach.
+          </p>
+        </div>
+        <div class="card">
+          <h4>The Forum</h4>
+          <p>
+            A one-on-one, moderated dialogue after the game.
+            Goal: clarity, not victory. Change of mind is logged, not shamed.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Good Faith (minimum viable sacredness)</h4>
+          <p>
+            Steelman before rebuttal. Define terms. Admit uncertainty.
+            Don’t perform. Don’t caricature. Don’t dehumanize.
+          </p>
+        </div>
+        <div class="card">
+          <h4>The Priest (process steward)</h4>
+          <p>
+            Not an oracle. A moderator who protects the rules of inquiry:
+            consistency, fairness, and the right to revise.
+          </p>
+        </div>
+        <div class="card">
+          <h4>Ritual Structure</h4>
+          <p>
+            1) Shared simulation at the Table<br/>
+            2) The Forum: recorded debate, hosted<br/>
+            3) Reflection: what changed, what remains unclear
+          </p>
+        </div>
+        <div class="card">
+          <h4>Editing this page</h4>
+          <p>
+            Search for <code>SCENES</code> in the source.
+            Replace text, add choices, change stats, rename everything.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // The Table & The Forum
+    // Interactive Splash Page
+    // =========================
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+    const narrativeEl = $("#narrative");
+    const choicesEl = $("#choices");
+    const pillrowEl = $("#pillrow");
+    const logEl = $("#log");
+
+    const statusDot = $("#statusDot");
+    const statusText = $("#statusText");
+
+    const dieA = $("#dieA");
+    const dieB = $("#dieB");
+
+    const meters = {
+      curiosity: { val: 0, labelEl: $("#mCur"), barEl: $("#bCur") },
+      goodfaith: { val: 0, labelEl: $("#mGood"), barEl: $("#bGood") },
+      clarity:   { val: 0, labelEl: $("#mClar"), barEl: $("#bClar") },
+      humility:  { val: 0, labelEl: $("#mHum"), barEl: $("#bHum") },
+    };
+
+    const clamp = (n, a=0, b=100) => Math.max(a, Math.min(b, n));
+    const now = () => new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+
+    function log(msg, tone="t"){
+      const line = document.createElement("div");
+      line.className = tone;
+      line.textContent = `[${now()}] ${msg}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function setStatus(text, color="good"){
+      statusText.textContent = text;
+      const map = {
+        good: "var(--good)",
+        accent: "var(--accent)",
+        warn: "var(--warn)",
+        bad: "var(--bad)"
+      };
+      statusDot.style.background = map[color] || map.good;
+      statusDot.style.boxShadow = `0 0 0 6px ${color==="warn" ? "rgba(251,191,36,.10)" :
+                                            color==="bad"  ? "rgba(251,113,133,.10)" :
+                                            color==="accent" ? "rgba(125,211,252,.10)" :
+                                            "rgba(52,211,153,.10)"}`;
+    }
+
+    function bump(stat, delta){
+      meters[stat].val = clamp(meters[stat].val + delta);
+      renderMeters();
+    }
+
+    function renderMeters(){
+      for (const key in meters){
+        const m = meters[key];
+        m.labelEl.textContent = m.val;
+        m.barEl.style.width = `${m.val}%`;
+      }
+    }
+
+    function rollDie(sides=20){
+      return 1 + Math.floor(Math.random() * sides);
+    }
+
+    function animateDie(el, value){
+      el.classList.add("roll");
+      el.textContent = value;
+      setTimeout(()=> el.classList.remove("roll"), 220);
+    }
+
+    function rollRitualDice(){
+      const a = rollDie(20);
+      const b = rollDie(20);
+      animateDie(dieA, a);
+      animateDie(dieB, b);
+      log(`Rolled the ceremonial dice: ${a} and ${b}.`, "m");
+
+      // Use rolls to nudge the meters (because randomness is humility wearing a hoodie).
+      bump("humility", Math.max(1, Math.floor((a+b)/10)));
+      bump("curiosity", Math.max(1, Math.floor(Math.abs(a-b)/2)));
+      bump("clarity", Math.max(1, Math.floor(Math.min(a,b)/4)));
+      bump("goodfaith", 2);
+
+      // Tiny flavor
+      if (a === 20 || b === 20) log("Nat 20: the universe briefly admits it is weird on purpose.", "g");
+      if (a === 1 || b === 1) log("Nat 1: the universe reminds you you’re not the main character. (Good.)", "y");
+    }
+
+    // -------------------------
+    // SCENES (edit me!)
+    // -------------------------
+    const SCENES = {
+      start: {
+        title: "Threshold",
+        text:
+`You stand before an old building with new habits.
+
+No steeple-tower propaganda. No velvet certainty.
+Just stained glass, a warm hum of conversation, and — most suspiciously — laughter.
+
+A brass plate reads:
+
+  THE TABLE & THE FORUM
+  "Truth is approached together."
+
+A door is ajar. Inside, a circle of chairs surrounds a heavy wooden table.
+
+What do you do?`,
+        pills: [
+          ["RITUAL", "Begins with a choice"],
+          ["RULE", "Good faith required"],
+          ["OBJECT", "The Table (relic)"]
+        ],
+        choices: [
+          { label:"Enter quietly. Observe the Table.", go:"table", effect(){ bump("curiosity", 10); bump("humility", 6); log("You enter as an observer. The room does not demand obedience; it offers attention.", "t"); } },
+          { label:"Ask: 'What do you people worship?'", go:"what_is_sacred", effect(){ bump("clarity", 8); log("You ask the dangerous question: what is sacred here?", "t"); } },
+          { label:"Announce: 'Debate me.' (bold move)", go:"challenge", effect(){ bump("goodfaith", 4); bump("humility", 2); log("You request the most fragile thing in modern life: a clean disagreement.", "t"); } }
+        ]
+      },
+
+      table: {
+        title: "The Table",
+        text:
+`The Table is scarred with years: dice dents, ink stains, coffee rings.
+A map lies open. Miniatures stand like tiny moral choices with paint jobs.
+
+A facilitator looks up — not a judge, not a guru.
+More like a librarian of consequences.
+
+They gesture to an empty seat.
+
+"Welcome. Tonight we test values by simulating pressure.
+What we do at the Table, we examine in the Forum."
+
+How do you join?`,
+        pills: [
+          ["THE TABLE", "Ethical simulation"],
+          ["DICE", "Humility, randomness"],
+          ["CONSEQUENCE", "No comfort-fudging"]
+        ],
+        choices: [
+          { label:"Sit and play: 'Give me a character sheet.'", go:"play", effect(){ bump("curiosity", 12); bump("goodfaith", 6); log("You sit at the Table. That alone is an argument for hope.", "g"); } },
+          { label:"Ask about the rules (good instincts).", go:"rules", effect(){ bump("clarity", 10); bump("goodfaith", 4); log("You ask for definitions. Ambiguity hates this one weird trick.", "t"); } },
+          { label:"Roll the dice as a vow.", go:"vow", effect(){ rollRitualDice(); bump("humility", 8); log("You treat randomness like a priest treats incense: as a reminder of limits.", "m"); } }
+        ]
+      },
+
+      rules: {
+        title: "Rules of the House",
+        text:
+`A small placard sits by the books:
+
+1) Steelman before rebuttal.
+2) Define terms before fighting over them.
+3) Admit uncertainty when it shows up.
+4) No one is reducible to their ideas.
+5) If the debate turns into performance, pause and reset.
+
+The facilitator adds:
+"We don’t protect feelings by lying. We protect people by staying human."
+
+What do you want to test first?`,
+        pills: [
+          ["GOOD FAITH", "Steelman-first"],
+          ["SAFETY", "Human-first"],
+          ["TRUTH", "No comfort-lies"]
+        ],
+        choices: [
+          { label:"Test an ethical dilemma at the Table.", go:"play", effect(){ bump("curiosity", 8); bump("clarity", 6); log("You opt for simulation: ethics with consequences.", "t"); } },
+          { label:"Skip to the Forum (recorded debate).", go:"forum_intro", effect(){ bump("clarity", 10); bump("goodfaith", 8); log("You move toward the microphones — the altar of accountability.", "m"); } },
+          { label:"Open the Glossary.", go:"glossary_open", effect(){ openGlossary(); bump("clarity", 4); log("You consult the canon: definitions and process.", "t"); } }
+        ]
+      },
+
+      vow: {
+        title: "The Vow",
+        text:
+`You place both hands near the dice — not to command them, but to accept them.
+
+The facilitator speaks plainly:
+"Here, we don’t pledge allegiance to answers.
+We pledge allegiance to honest methods.
+
+Speak in good faith.
+Change your mind when warranted.
+Leave people more real than you found them."
+
+Do you accept the vow?`,
+        pills: [
+          ["VOW", "Method over dogma"],
+          ["PRACTICE", "Revision is allowed"],
+          ["WITNESS", "Public record"]
+        ],
+        choices: [
+          { label:"I accept.", go:"play", effect(){ bump("goodfaith", 12); bump("humility", 8); log("Vow accepted: you pledge to the process, not the tribe.", "g"); } },
+          { label:"I accept, but I’m skeptical.", go:"play", effect(){ bump("curiosity", 10); bump("clarity", 6); log("Skepticism is welcome—so long as it’s curious rather than smug.", "t"); } },
+          { label:"I refuse (for now).", go:"challenge", effect(){ bump("clarity", 4); log("Refusal noted. The door remains open; coercion is not the house style.", "y"); } }
+        ]
+      },
+
+      play: {
+        title: "Session: The Village With Two Truths",
+        text:
+`Scenario: A village is split by rumor. Two factions insist they are defending “the good.”
+A third party benefits from the chaos.
+
+You discover evidence that both sides are partly right… and dangerously wrong.
+
+The table falls quiet. Someone asks:
+"What would a compassionate lie do here? What would an honest truth do?"
+
+Your move?`,
+        pills: [
+          ["SCENARIO", "Truth vs peace"],
+          ["TENSION", "Tradeoffs exist"],
+          ["CHOICE", "Consequences logged"]
+        ],
+        choices: [
+          { label:"Tell the truth publicly. Let it burn clean.", go:"after_table", effect(){ bump("humility", 6); bump("clarity", 10); log("You choose the clean fire: truth in daylight, consequences included.", "t"); } },
+          { label:"Privately mediate. Reduce harm first.", go:"after_table", effect(){ bump("goodfaith", 10); bump("curiosity", 6); log("You choose harm-reduction: truth deployed like medicine, not a grenade.", "t"); } },
+          { label:"Investigate the third party. Change the whole game.", go:"after_table", effect(){ bump("curiosity", 12); bump("clarity", 6); log("You suspect the incentives. Excellent. Systems thinking is a kind of prayer.", "g"); } }
+        ]
+      },
+
+      after_table: {
+        title: "After the Table",
+        text:
+`The session ends. No one “wins.” Everyone learned something sharp.
+
+Then the ritual shifts.
+
+Two chairs are set beneath a modest light.
+Two microphones click on.
+The facilitator becomes the Priest — not an oracle, a moderator.
+
+"Welcome to the Forum," they say.
+"Tonight: one topic, two minds, good faith or forfeiture."
+
+Do you step into the microphones?`,
+        pills: [
+          ["THE FORUM", "One-on-one dialogue"],
+          ["RECORD", "Oral tradition"],
+          ["DISCIPLINE", "No performance"]
+        ],
+        choices: [
+          { label:"Yes. Host me.", go:"forum_start", effect(){ bump("goodfaith", 12); bump("clarity", 10); log("You step into the Forum: disagreement with witnesses.", "m"); } },
+          { label:"Listen first.", go:"forum_listen", effect(){ bump("humility", 10); bump("curiosity", 6); log("You listen. In a loud world, that’s a minor miracle.", "t"); } },
+          { label:"Ask what happens if someone argues in bad faith.", go:"badfaith", effect(){ bump("clarity", 8); log("You ask about enforcement — where ideals meet behavior.", "t"); } }
+        ]
+      },
+
+      forum_listen: {
+        title: "Forum: You Listen",
+        text:
+`Two speakers begin. The Priest-host interrupts gently:
+
+"Steelman that."
+"Define your terms."
+"How confident are you, and why?"
+"Are you arguing for truth or for status?"
+
+No yelling. No dunks. No audience bait.
+Just the slow, rare sound of minds actually touching.
+
+Do you join now?`,
+        pills: [
+          ["HOST", "Enforces hygiene"],
+          ["FLOW", "Clarity over victory"],
+          ["OPTION", "Join or reflect"]
+        ],
+        choices: [
+          { label:"Join the microphones.", go:"forum_start", effect(){ bump("goodfaith", 10); bump("clarity", 8); log("You join after watching the rules in action.", "g"); } },
+          { label:"Return to the Table.", go:"table", effect(){ bump("curiosity", 6); log("You loop back: some questions are best asked with dice and consequences.", "t"); } },
+          { label:"Restart the rite.", go:"start", effect(){ resetAll(true); log("You begin again, with new eyes.", "t"); } }
+        ]
+      },
+
+      badfaith: {
+        title: "Bad Faith Clause",
+        text:
+`The Priest-host answers:
+
+"Bad faith is not a belief. It’s a behavior.
+It looks like dodging definitions, misrepresenting opponents, and performing certainty.
+
+We interrupt. We slow it down.
+If it continues, the speaker forfeits the floor.
+Not as punishment — as sanitation."
+
+The room nods. Not angry. Just… serious about the method.
+
+Proceed to the Forum?`,
+        pills: [
+          ["SANITATION", "Keep the channel clean"],
+          ["BOUNDARY", "Forfeit the floor"],
+          ["CARE", "Human-first"]
+        ],
+        choices: [
+          { label:"Proceed.", go:"forum_start", effect(){ bump("clarity", 10); bump("goodfaith", 8); log("You accept boundaries. Without them, truth-seeking collapses into sport.", "t"); } },
+          { label:"Ask for an example of good faith.", go:"goodfaith_example", effect(){ bump("curiosity", 6); bump("clarity", 6); log("You request a concrete example. Excellent instinct.", "t"); } },
+          { label:"Return to the Table.", go:"table", effect(){ bump("humility", 4); log("You choose simulation over microphones—for now.", "t"); } }
+        ]
+      },
+
+      goodfaith_example: {
+        title: "Good Faith, Demonstrated",
+        text:
+`The Priest-host offers a simple template:
+
+1) "Here is the strongest version of your view, as I understand it..."
+2) "Here is where I think it fails, and what evidence would change my mind..."
+3) "Here is my confidence level, and why..."
+4) "Here is the part of your view I admire..."
+
+They add: "Good faith is the opposite of possession."
+
+Enter the Forum?`,
+        pills: [
+          ["TEMPLATE", "Steelman-first"],
+          ["UPDATE", "Evidence can move you"],
+          ["RESPECT", "Not dehumanizing"]
+        ],
+        choices: [
+          { label:"Enter the Forum.", go:"forum_start", effect(){ bump("goodfaith", 12); bump("humility", 6); log("You enter with a template. Less chaos. More signal.", "g"); } },
+          { label:"Practice the template silently first.", go:"forum_listen", effect(){ bump("humility", 8); log("You rehearse the virtue before performing it. Respect.", "t"); } },
+          { label:"Restart.", go:"start", effect(){ resetAll(true); log("You reset the ritual arc.", "t"); } }
+        ]
+      },
+
+      forum_intro: {
+        title: "Toward the Microphones",
+        text:
+`You approach the Forum area early. The equipment is simple, almost austere.
+
+A small sign reads:
+"Victory is not the goal. Clarity is."
+
+The Priest-host greets you with a question that is not a trap:
+"What topic do you actually want examined — and are you willing to revise?"
+
+What do you answer?`,
+        pills: [
+          ["FORUM", "Clarity-first"],
+          ["WILLINGNESS", "Revision allowed"],
+          ["TOPIC", "Any subject"]
+        ],
+        choices: [
+          { label:"'Meaning.' I want to examine meaning.", go:"forum_start", effect(){ bump("curiosity", 8); bump("clarity", 8); log("Topic chosen: meaning. The oldest wound in the room.", "m"); } },
+          { label:"'Power.' I want to examine power.", go:"forum_start", effect(){ bump("clarity", 10); bump("goodfaith", 6); log("Topic chosen: power. The hidden hand gets a spotlight.", "m"); } },
+          { label:"'Truth.' I want to examine truth itself.", go:"forum_start", effect(){ bump("humility", 10); bump("curiosity", 6); log("Topic chosen: truth. Dangerous. Necessary.", "m"); } }
+        ]
+      },
+
+      forum_start: {
+        title: "Forum: First Exchange",
+        text:
+`The red light turns on.
+
+The Priest-host says:
+"State your view in one minute.
+Then state the strongest version of the opposing view in one minute.
+Then we talk."
+
+This is not a duel. It’s an experiment with witnesses.
+
+And here, in the quiet, you realize:
+This place doesn’t worship answers.
+
+It worships the act of checking.
+
+— END OF INTRO RITE —
+
+(You can restart, open the Glossary, or run the Forum Simulator on the right.)`,
+        pills: [
+          ["CORE", "Method over dogma"],
+          ["SACRED", "Corrigibility"],
+          ["BEGIN", "Restart anytime"]
+        ],
+        choices: [
+          { label:"Restart the experience.", go:"start", effect(){ resetAll(true); log("Restarting: truth is iterative.", "t"); } },
+          { label:"Open Glossary.", go:"glossary_open", effect(){ openGlossary(); log("Glossary opened.", "t"); } },
+          { label:"Roll the dice for fun.", go:"forum_start", effect(){ rollRitualDice(); log("Dice rolled. The universe approves of your refusal to be too serious.", "m"); } }
+        ]
+      },
+
+      what_is_sacred: {
+        title: "What is Sacred Here?",
+        text:
+`Someone smiles — not smugly, just… relieved you asked directly.
+
+They point to the table.
+
+"That’s the relic. Not because it’s magic.
+Because it forces us to confront ourselves without hiding behind abstraction."
+
+They point to two microphones.
+
+"That’s the altar. Not because it grants authority.
+Because it makes us accountable to clarity."
+
+They look back at you.
+
+"So: do you want comfort, or do you want honesty?"`,
+        pills: [
+          ["RELIC", "The Table"],
+          ["ALTAR", "The Mic"],
+          ["OFFER", "Comfort vs honesty"]
+        ],
+        choices: [
+          { label:"Honesty. Show me the Table.", go:"table", effect(){ bump("goodfaith", 8); bump("humility", 6); log("You choose honesty. Comfort often arrives later, weirdly enough.", "g"); } },
+          { label:"Comfort (for now). I just want community.", go:"table", effect(){ bump("humility", 6); bump("goodfaith", 4); log("You choose community first. Fair. Humans are social mammals with existential software bugs.", "t"); } },
+          { label:"I want both. (Bold.)", go:"rules", effect(){ bump("curiosity", 6); bump("clarity", 6); log("You choose both: warmth + rigor. That’s the whole design goal.", "g"); } }
+        ]
+      },
+
+      challenge: {
+        title: "The Challenge",
+        text:
+`Your words land like a coin on a stone floor.
+
+No one flinches.
+
+The Priest-host says:
+"Great. The rules apply to you too."
+
+They gesture to a chalkboard that reads:
+  DEFINE TERMS
+  STEELMAN FIRST
+  CONFIDENCE LEVELS
+  UPDATE CONDITIONS
+
+"Choose your arena," they say.
+
+Table or Forum?`,
+        pills: [
+          ["CHALLENGE", "Accepted"],
+          ["RULES", "Apply to all"],
+          ["CHOICE", "Table vs Forum"]
+        ],
+        choices: [
+          { label:"Table. Put my values under pressure.", go:"table", effect(){ bump("curiosity", 10); bump("humility", 6); log("You choose the Table: ethics as lived constraint.", "t"); } },
+          { label:"Forum. Put my arguments on record.", go:"forum_intro", effect(){ bump("clarity", 10); bump("goodfaith", 8); log("You choose the Forum: rhetoric stripped down to signal.", "m"); } },
+          { label:"I retract the challenge and ask sincerely.", go:"rules", effect(){ bump("humility", 10); bump("goodfaith", 6); log("Retraction in public: rare, healthy, sacred-by-default.", "g"); } }
+        ]
+      },
+
+      glossary_open: {
+        title: "Glossary",
+        text:
+`The Glossary is open.
+
+(Use it as canon, or as a starting point. Nothing here is immune to revision — except the requirement of good faith.)`,
+        pills: [
+          ["GLOSSARY", "Open"],
+          ["CANON", "Editable"],
+          ["RULE", "Good faith"]
+        ],
+        choices: [
+          { label:"Close glossary and continue.", go:"rules", effect(){ closeGlossary(); bump("clarity", 2); log("Glossary closed.", "t"); } },
+          { label:"Restart.", go:"start", effect(){ closeGlossary(); resetAll(true); log("Restarted after consulting definitions.", "t"); } },
+          { label:"Go to the Table.", go:"table", effect(){ closeGlossary(); bump("curiosity", 4); log("Back to the Table.", "t"); } }
+        ]
+      }
+    };
+
+    // -------------------------
+    // Engine
+    // -------------------------
+    let currentScene = "start";
+
+    function renderScene(key){
+      const scene = SCENES[key];
+      if (!scene) return;
+
+      currentScene = key;
+      setStatus(`SCENE: ${scene.title.toUpperCase()}`, "accent");
+
+      // Pills
+      pillrowEl.innerHTML = "";
+      (scene.pills || []).forEach(([k,v])=>{
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.innerHTML = `<span class="k">${k}</span> <b>${v}</b>`;
+        pillrowEl.appendChild(pill);
+      });
+
+      // Narrative (typed-ish)
+      typeText(scene.text);
+
+      // Choices
+      choicesEl.innerHTML = "";
+      (scene.choices || []).slice(0,3).forEach((ch, idx)=>{
+        const btn = document.createElement("button");
+        btn.className = idx === 0 ? "primary" : "";
+        btn.innerHTML = `<span class="kbd">${idx+1}</span> ${ch.label}`;
+        btn.addEventListener("click", ()=>{
+          if (typeof ch.effect === "function") ch.effect();
+          renderScene(ch.go);
+        });
+        choicesEl.appendChild(btn);
+      });
+    }
+
+    let typingTimer = null;
+    function typeText(text){
+      if (typingTimer) clearInterval(typingTimer);
+      narrativeEl.textContent = "";
+      const chars = Array.from(text);
+      let i = 0;
+
+      // Faster on mobile / long text
+      const speed = Math.max(6, Math.min(14, Math.floor(4200 / Math.max(1, chars.length))));
+      setStatus(`PROCESS: SPEAKING (${speed}ms/char)`, "good");
+
+      typingTimer = setInterval(()=>{
+        narrativeEl.textContent += chars[i++] || "";
+        if (i >= chars.length){
+          clearInterval(typingTimer);
+          typingTimer = null;
+          setStatus("PROCESS: READY", "good");
+        }
+      }, speed);
+    }
+
+    function resetAll(quiet=false){
+      for (const k in meters) meters[k].val = 0;
+      renderMeters();
+      dieA.textContent = "—";
+      dieB.textContent = "—";
+      logEl.innerHTML = "";
+      if(!quiet){
+        log("Reset complete.", "t");
+      }
+    }
+
+    // -------------------------
+    // Forum Simulator
+    // -------------------------
+    function runForumSim(){
+      const topic = ($("#topic").value || "").trim();
+      const mode = ($$("input[name='mode']").find(r=>r.checked)?.value) || "steelman";
+      const a = rollDie(20);
+      const b = rollDie(20);
+
+      animateDie(dieA, a);
+      animateDie(dieB, b);
+
+      const hygiene = clamp(Math.floor((a + b) * 2.5)); // 0..100-ish
+      const tension = clamp(Math.floor(Math.abs(a - b) * 6)); // 0..100-ish
+
+      // Update meters in a way that feels “ritual”
+      bump("goodfaith", Math.floor(hygiene/12));
+      bump("clarity", Math.floor(hygiene/15));
+      bump("humility", Math.floor(tension/20));
+      bump("curiosity", Math.floor((100 - tension)/25));
+
+      let opening = "";
+      if (mode === "steelman") opening = "Rule 1: each speaker must steelman the other before critiquing.";
+      if (mode === "clarify") opening = "Rule 1: define terms until both speakers agree what the words are doing.";
+      if (mode === "evidence") opening = "Rule 1: claims must be weighted by evidence; confidence must be stated.";
+
+      const grade =
+        hygiene >= 80 ? "Clean signal. Minimal grandstanding." :
+        hygiene >= 55 ? "Mixed signal. Some rhetoric leaks in." :
+        "Noisy channel. Pause and reset before it becomes sport.";
+
+      const intervention =
+        tension >= 70 ? "Host intervention: slow down, restate, and remove sarcasm before continuing." :
+        tension >= 40 ? "Host intervention: clarify definitions and state update-conditions." :
+        "Host intervention: proceed; keep it precise.";
+
+      const out =
+`Topic: ${topic || "(no topic)"}
+Mode: ${mode}
+${opening}
+
+Epistemic hygiene score: ${hygiene}/100
+Heat/tension estimate: ${tension}/100
+
+Assessment: ${grade}
+${intervention}
+
+Host prompt:
+"Give your view in 60 seconds.
+Then give the strongest version of theirs in 60 seconds.
+Then tell me what would change your mind."`;
+
+      $("#debateOut").textContent = out;
+
+      log(`Forum sim ran on "${topic || "no topic"}" — hygiene ${hygiene}/100, tension ${tension}/100.`, hygiene>=80 ? "g" : hygiene>=55 ? "y" : "r");
+    }
+
+    // -------------------------
+    // Clipboard Explainer
+    // -------------------------
+    async function copyExplainer(){
+      const txt =
+`The Table & The Forum is a community built around philosophical inquiry and disciplined good-faith disagreement. Gatherings begin at “the Table,” where role-play and scenario simulation (with dice and consequences) are used to stress-test values under constraint. Afterward, the ritual shifts to “the Forum”: a recorded one-on-one dialogue hosted by a priest-moderator whose job is not to declare truth, but to enforce clarity—define terms, steelman before rebuttal, state confidence levels, and treat change of mind as a virtue. No fixed doctrine beyond the method: all claims are examinable, no person is reducible to their ideas, and truth is approached together.`;
+
+      try{
+        await navigator.clipboard.writeText(txt);
+        log("Copied explainer paragraph to clipboard.", "g");
+      }catch(e){
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        log("Copied explainer (fallback).", "g");
+      }
+    }
+
+    // -------------------------
+    // Modal controls
+    // -------------------------
+    const modalBack = $("#modalBack");
+    function openGlossary(){ modalBack.style.display = "flex"; }
+    function closeGlossary(){ modalBack.style.display = "none"; }
+
+    modalBack.addEventListener("click", (e)=>{
+      if (e.target === modalBack) closeGlossary();
+    });
+
+    // -------------------------
+    // Wire up UI
+    // -------------------------
+    $("#btnStart").addEventListener("click", ()=>{
+      resetAll();
+      renderScene("start");
+      log("Rite restarted.", "t");
+    });
+    $("#btnRoll").addEventListener("click", rollRitualDice);
+    $("#btnGlossary").addEventListener("click", openGlossary);
+    $("#btnClose").addEventListener("click", closeGlossary);
+    $("#btnExport").addEventListener("click", copyExplainer);
+    $("#btnDebate").addEventListener("click", runForumSim);
+
+    // Keyboard shortcuts
+    window.addEventListener("keydown", (e)=>{
+      if (e.key.toLowerCase() === "g") openGlossary();
+      if (e.key.toLowerCase() === "r") { resetAll(); renderScene("start"); }
+      if (["1","2","3"].includes(e.key)){
+        const idx = parseInt(e.key,10)-1;
+        const scene = SCENES[currentScene];
+        const choice = (scene.choices || [])[idx];
+        if (choice){
+          if (typeof choice.effect === "function") choice.effect();
+          renderScene(choice.go);
+        }
+      }
+      if (e.key === "Escape") closeGlossary();
+    });
+
+    // Initialize
+    $("#year").textContent = new Date().getFullYear();
+    resetAll(true);
+    log("Welcome. This is a prototype intro-rite UI.", "t");
+    log("Press 1/2/3 to choose. Press G for Glossary.", "t");
+    renderScene("start");
+  </script>
+</body>
+</html>
