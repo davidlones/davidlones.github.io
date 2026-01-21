@@ -1,6 +1,6 @@
 {
   "posts": [
-    {"id":"forecast","title":"weather and road forecast","date":"2026-01-20","file":"deer-valley-forecast.html"},
+    {"id":"forecast","title":"weatherbug","date":"2026-01-20","file":"deer-valley-forecast.html"},
     {"id":"timeline","title":"Project Analytica 2025","date":"2025-11-07","file":"posts/timeline.html"},
     {"id":"2025","title":"awareness economy","date":"2025-11-07","file":"posts/2025.md"},
     {"id":"test","title":"awareness test","date":"2025-11-13","file":"posts/test.md"}
