@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Deer Valley Rd / Tucker — 7-Day Weather + Road Conditions Brief</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#0f1620;
+      --panel2:#0c131c;
+      --ink:#e8eef7;
+      --muted:#a8b3c7;
+      --thin:#2a3a52;
+      --accent:#7dd3fc;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --doom:#a855f7;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(125,211,252,.12), transparent 55%),
+        radial-gradient(700px 420px at 80% 25%, rgba(168,85,247,.12), transparent 55%),
+        radial-gradient(900px 600px at 45% 110%, rgba(34,197,94,.08), transparent 60%),
+        var(--bg);
+      color:var(--ink);
+      line-height:1.45;
+    }
+    header{
+      padding:32px 18px 16px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .kicker{
+      font-family:var(--mono);
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    h1{
+      margin:10px 0 8px;
+      font-size:clamp(26px, 3vw, 40px);
+      line-height:1.1;
+      letter-spacing:-.02em;
+    }
+    .sub{
+      color:var(--muted);
+      max-width:80ch;
+      font-size:15px;
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px 18px 50px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:16px;
+    }
+    @media (max-width: 960px){
+      .wrap{grid-template-columns:1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid rgba(125,211,252,.12);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(42,58,82,.7);
+      background: rgba(15,22,32,.65);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .hd b{
+      font-size:14px;
+      letter-spacing:.02em;
+    }
+    .card .bd{
+      padding:16px;
+      background: rgba(12,19,28,.55);
+    }
+    .pill{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .pill.ok{border-color:rgba(34,197,94,.45); color:rgba(34,197,94,.9)}
+    .pill.warn{border-color:rgba(245,158,11,.55); color:rgba(245,158,11,.95)}
+    .pill.bad{border-color:rgba(239,68,68,.55); color:rgba(239,68,68,.95)}
+    .pill.doom{border-color:rgba(168,85,247,.55); color:rgba(168,85,247,.95)}
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 560px){
+      .grid2{grid-template-columns:1fr}
+    }
+    ul{
+      margin:10px 0 0;
+      padding-left:18px;
+      color:var(--muted);
+    }
+    li{margin:6px 0}
+    .timeline{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .day{
+      border:1px solid rgba(42,58,82,.75);
+      background: rgba(15,22,32,.4);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .day .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(42,58,82,.55);
+      background: rgba(15,22,32,.55);
+    }
+    .day .top .left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .day .top .title{
+      font-weight:700;
+      letter-spacing:.01em;
+      font-size:14px;
+    }
+    .day .top .meta{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .day .body{
+      padding:12px 14px 14px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 760px){
+      .day .body{grid-template-columns:1fr}
+    }
+    .box{
+      border:1px dashed rgba(125,211,252,.18);
+      border-radius:14px;
+      padding:10px 12px;
+      background: rgba(12,19,28,.45);
+    }
+    .box h3{
+      margin:0 0 6px;
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(125,211,252,.9);
+      font-family:var(--mono);
+    }
+    .box p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .callout{
+      border:1px solid rgba(168,85,247,.3);
+      background: rgba(168,85,247,.08);
+      border-radius:16px;
+      padding:14px 16px;
+    }
+    .callout b{color:rgba(216,180,254,.95)}
+    .kbd{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:2px 6px;
+      border:1px solid rgba(255,255,255,.16);
+      border-bottom-color:rgba(255,255,255,.08);
+      border-radius:8px;
+      background: rgba(255,255,255,.06);
+      color:var(--ink);
+      white-space:nowrap;
+    }
+    .footer{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 18px 40px;
+      color:var(--muted);
+      font-size:12px;
+      font-family:var(--mono);
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .small{font-size:12px; color:var(--muted)}
+    .divider{height:1px; background:rgba(42,58,82,.7); margin:12px 0}
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="kicker">Rural Microclimate Brief • Weatherford TX Fringe • Deer Valley Rd / Tucker</div>
+    <h1>7-Day Weather + Road Conditions Forecast</h1>
+    <p class="sub">
+      This is a <b>terrain-aware</b> forecast for the immediate Deer Valley Rd / Tucker area: hills, low dips, creek cuts,
+      shade pockets, and the rural reality of limited road treatment. The goal isn’t “pretty weather,” it’s
+      “will this road behave like a road.”
+    </p>
+  </header>
+
+  <main class="wrap">
+    <!-- LEFT COLUMN -->
+    <section class="card">
+      <div class="hd">
+        <b>Daily Timeline (Weather × Road Reality)</b>
+        <span class="pill warn">microclimate bias: colder than town</span>
+      </div>
+      <div class="bd">
+        <div class="callout">
+          <b>Core idea:</b> A “foot of snow” is optional. A thin glaze of freezing rain + sleet on steep rural grades is
+          already a full-featured disaster. Snow often just hides the ice so you can meet it at speed.
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="timeline">
+
+          <!-- Day 1 -->
+          <article class="day">
+            <div class="top">
+              <div class="left">
+                <div class="title">Day 1 — Friday</div>
+                <div class="meta">rain → freezing rain/sleet as temps slide through 30s</div>
+              </div>
+              <span class="pill warn">Risk: HIGH</span>
+            </div>
+            <div class="body">
+              <div class="box">
+                <h3>Weather</h3>
+                <p>
+                  Wet early, then a transition window where precipitation changes type as temperatures drop.
+                  Expect the “it was fine 2 hours ago” trap.
+                </p>
+              </div>
+              <div class="box">
+                <h3>Roads</h3>
+                <p>
+                  Pavement starts wet, then <b>flash-freeze after sunset</b>.
+                  Bridges, low dips, shaded curves ice first. Rural roads typically get zero help.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Day 2 -->
+          <article class="day">
+            <div class="top">
+              <div class="left">
+                <div class="title">Day 2 — Friday Night</div>
+                <div class="meta">freezing rain + sleet; temps in the 20s</div>
+              </div>
+              <span class="pill bad">Risk: VERY HIGH</span>
+            </div>
+            <div class="body">
+              <div class="box">
+                <h3>Weather</h3>
+                <p>
+                  This is the classic icing phase: liquid/partials freezing on contact and sleet compacting into a base layer.
+                </p>
+              </div>
+              <div class="box">
+                <h3>Roads</h3>
+                <p>
+                  <b>Worst traction phase.</b> Short steep inclines near creek cuts become “spin and slide.”
+                  Stopping mid-hill can become a one-way commitment.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Day 3 -->
+          <article class="day">
+            <div class="top">
+              <div class="left">
+                <div class="title">Day 3 — Saturday</div>
+                <div class="meta">sleet / snow showers / freezing rain mix; windy</div>
+              </div>
+              <span class="pill bad">Risk: VERY HIGH</span>
+            </div>
+            <div class="body">
+              <div class="box">
+                <h3>Weather</h3>
+                <p>
+                  Cold enough for snow, but often still mixed. Wind adds drift and visibility issues on exposed segments.
+                </p>
+              </div>
+              <div class="box">
+                <h3>Roads</h3>
+                <p>
+                  No meaningful melt. Snow may hide the ice layer.
+                  Downhill braking = slide. Uphill traction = unreliable even with AWD.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Day 4 -->
+          <article class="day">
+            <div class="top">
+              <div class="left">
+                <div class="title">Day 4 — Saturday Night</div>
+                <div class="meta">clearing trend; temps crash to single digits/teens</div>
+              </div>
+              <span class="pill doom">Risk: EXTREME</span>
+            </div>
+            <div class="body">
+              <div class="box">
+                <h3>Weather</h3>
+                <p>
+                  Precip tapers, but the temperature drop hardens everything. Any wet surface becomes a skating rink.
+                </p>
+              </div>
+              <div class="box">
+                <h3>Roads</h3>
+                <p>
+                  Everything freezes solid. Ruts become ice rails. Any earlier melt refreezes invisibly.
+                  This is the “quietly lethal” window.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Day 5 -->
+          <article class="day">
+            <div class="top">
+              <div class="left">
+                <div class="title">Day 5 — Sunday</div>
+                <div class="meta">mostly sunny; still very cold</div>
+              </div>
+              <span class="pill warn">Risk: HIGH</span>
+            </div>
+            <div class="body">
+              <div class="box">
+                <h3>Weather</h3>
+                <p>
+                  Sun returns, but air stays cold. No new precip doesn’t mean “safe.”
+                </p>
+              </div>
+              <div class="box">
+                <h3>Roads</h3>
+                <p>
+                  Ridge tops may improve slightly in sun.
+                  <b>Shaded valleys and north-facing slopes remain icy all day.</b>
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Day 6 -->
+          <article class="day">
+            <div class="top">
+              <div class="left">
+                <div class="title">Day 6 — Monday</div>
+                <div class="meta">highs near/just above freezing; nights below</div>
+              </div>
+              <span class="pill warn">Risk: HIGH</span>
+            </div>
+            <div class="body">
+              <div class="box">
+                <h3>Weather</h3>
+                <p>
+                  Partial daytime thaw in the sun, with overnight refreeze.
+                  The freeze/thaw cycle manufactures black ice.
+                </p>
+              </div>
+              <div class="box">
+                <h3>Roads</h3>
+                <p>
+                  Day melt → night refreeze. Morning travel is the most dangerous.
+                  Expect slick spots to migrate as water runs into dips.
+                </p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Day 7 -->
+          <article class="day">
+            <div class="top">
+              <div class="left">
+                <div class="title">Day 7 — Tuesday</div>
+                <div class="meta">warming trend; residual ice in shade</div>
+              </div>
+              <span class="pill warn">Risk: MODERATE–HIGH</span>
+            </div>
+            <div class="body">
+              <div class="box">
+                <h3>Weather</h3>
+                <p>
+                  Meaningful thaw begins. Still watch overnight lows hovering near freezing.
+                </p>
+              </div>
+              <div class="box">
+                <h3>Roads</h3>
+                <p>
+                  Ice retreats to the usual suspects: shaded curves, creek dips, bridge decks.
+                  Mud appears where shoulders soften.
+                </p>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN -->
+    <aside class="card">
+      <div class="hd">
+        <b>Terrain & Decision Aids</b>
+        <span class="pill warn">Deer Valley / Tucker</span>
+      </div>
+      <div class="bd">
+
+        <div class="grid2">
+          <div class="box">
+            <h3>Assumptions</h3>
+            <ul>
+              <li>Rural temp runs <b>~2–5°F colder</b> than town at night.</li>
+              <li>No reliable road pretreatment on side roads.</li>
+              <li>Short steep grades exist near creek cuts and draws.</li>
+              <li>Main hazard: <b>ice > snow depth</b>.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>Highest-Risk Spots</h3>
+            <ul>
+              <li>Creek crossings & low dips (cold air pools).</li>
+              <li>Short steep climbs after low points.</li>
+              <li>Tree-covered curves (shade = ice persistence).</li>
+              <li>Bridge decks & culverts (freeze first).</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="box">
+          <h3>Go / No-Go Rules (Quick)</h3>
+          <ul>
+            <li><span class="kbd">NO-GO</span> if freezing rain is falling or just ended <b>after sunset</b>.</li>
+            <li><span class="kbd">NO-GO</span> if you must stop mid-incline (traffic) on Tucker/steep hills.</li>
+            <li><span class="kbd">CAUTION</span> if daytime melt occurred and temps drop below 32°F at night.</li>
+            <li><span class="kbd">BEST WINDOW</span> is midday sun on Sunday/Monday <i>only if</i> temps rise and stay up.</li>
+          </ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="box">
+          <h3>Prep Checklist</h3>
+          <ul>
+            <li>Fuel up early; assume limited travel later.</li>
+            <li>Charge devices + power banks; keep flashlights handy.</li>
+            <li>Ice risk: plan for downed branches/lines on rural roads.</li>
+            <li>Stock 2–3 days of basics (food, meds, pet needs).</li>
+            <li>Keep a traction plan: salt/sand kitty litter, shovel, tow strap.</li>
+          </ul>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="small">
+          <b>Note:</b> This document is terrain-aware but not a substitute for live observations.
+          For “hyper local,” compare nearby personal weather stations (PWS) to see if your area is running colder than town.
+        </p>
+
+      </div>
+    </aside>
+  </main>
+
+  <div class="footer">
+    Generated brief • Purpose: practical safety decisions for rural roads in winter weather •
+    Style: “don’t get surprised by physics.”
+  </div>
+</body>
+</html>
