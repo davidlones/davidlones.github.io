@@ -144,6 +144,12 @@
       .controls{align-items:stretch; min-width:auto}
       .note{text-align:left; max-width:none}
     }
+    @media (max-width: 640px){
+      header{flex-direction:column}
+      .grid{display:block}
+      nav.toc{position:static; margin-bottom:16px}
+      .toc a{padding:6px 8px}
+    }
 
     nav.toc{
       border:1px solid var(--line);
