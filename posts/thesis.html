@@ -48,10 +48,11 @@
                   var(--bg);
       color:var(--text);
       line-height:1.55;
+      overflow-x:hidden;
     }
     a{color:var(--accent); text-decoration:none}
     a:hover{text-decoration:underline}
-    .wrap{max-width:1080px; margin:0 auto; padding:28px 18px 80px}
+    .wrap{max-width:1080px; margin:0 auto; padding:24px 18px 72px}
     header{
       display:flex; gap:18px; align-items:flex-start; justify-content:space-between;
       padding:22px 22px; border:1px solid var(--line);
@@ -135,20 +136,95 @@
 
     .grid{
       display:grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
       gap:16px;
       margin-top:16px;
+      align-items:start;
     }
     @media (max-width: 920px){
       .grid{grid-template-columns:1fr}
       .controls{align-items:stretch; min-width:auto}
       .note{text-align:left; max-width:none}
+      nav.toc{position:static; margin-bottom:16px}
+    }
+    @media (max-width: 860px){
+      header{flex-direction:column; align-items:stretch}
+      .controls{flex-direction:row; flex-wrap:wrap; align-items:stretch}
+      .controls button{flex:1 1 160px}
+      .note{text-align:left}
     }
     @media (max-width: 640px){
-      header{flex-direction:column}
+      .wrap{padding:18px 12px 48px}
+      header{flex-direction:column; padding:16px}
+      .titleblock{max-width:100%}
       .grid{display:block}
       nav.toc{position:static; margin-bottom:16px}
       .toc a{padding:6px 8px}
+      .controls{flex-direction:column}
+      button{font-size:11px; padding:8px 10px}
+      main{padding:14px}
+      section{padding:12px 6px}
+    }
+    @media (max-height: 700px){
+      .wrap{padding-top:16px}
+      header{padding:16px}
+      .grid{gap:12px}
+      nav.toc{max-height:45vh; overflow:auto}
+    }
+    @media (max-height: 700px), (max-width: 920px){
+      nav.toc{
+        position:static;
+        max-height:none;
+      }
+    }
+    @media (max-height: 520px), (max-width: 720px){
+      header{
+        padding:10px 12px;
+        gap:10px;
+      }
+      .kicker{
+        font-size:10px;
+        margin-bottom:4px;
+      }
+      h1{
+        font-size:18px;
+        line-height:1.15;
+        margin-bottom:6px;
+      }
+      .subtitle{
+        font-size:12px;
+        max-width:100%;
+        margin-bottom:6px;
+      }
+      .meta{
+        gap:6px;
+        font-size:10px;
+      }
+      .pill{padding:4px 8px}
+      .controls{
+        flex-direction:row;
+        gap:6px;
+      }
+      button{
+        padding:6px 8px;
+        font-size:10px;
+      }
+    }
+    @media (max-height: 520px){
+      main{padding:10px}
+      section{padding:8px 4px}
+      h2{
+        font-size:15px;
+        margin-bottom:4px;
+      }
+      h3{
+        font-size:11px;
+        margin-top:10px;
+      }
+      p, li{
+        font-size:13px;
+        line-height:1.45;
+      }
     }
 
     nav.toc{
@@ -158,6 +234,7 @@
       padding:16px 16px;
       position:sticky; top:14px;
       height:fit-content;
+      min-width:0;
     }
     .toc h2{
       margin:0 0 10px;
@@ -187,6 +264,7 @@
       border-radius:18px;
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       padding:18px 18px;
+      min-width:0;
     }
     section{
       padding:14px 10px;
@@ -272,6 +350,9 @@
       background:rgba(255,255,255,.04);
       color:var(--muted);
     }
+    body.focus main > section:not(.active){
+      display:none;
+    }
     .printHint{display:none}
     @media print{
       body{background:#fff; color:#000}
@@ -309,6 +390,7 @@
 
       <div class="controls">
         <button id="btnPrint" type="button">Print / Save as PDF</button>
+        <button id="btnFocus" type="button">Reading mode</button>
         <button id="btnExpand" type="button">Expand all sections</button>
         <button id="btnCollapse" type="button">Collapse all sections</button>
         <div class="note">
@@ -346,7 +428,7 @@
       </nav>
 
       <main id="paper" aria-label="Thesis document">
-        <section id="abstract" class="foldable">
+        <section id="abstract" class="foldable" data-collapsed="1">
           <h2>Abstract</h2>
           <p>
             We propose a speculative framework in which the universe is a <em>nested, cyclical</em> system whose
@@ -615,6 +697,14 @@ Cycle n (encoded topology) → scaffold growth → archival saturation → confo
       sec.dataset.collapsed = collapsed ? "1" : "0";
       const body = Array.from(sec.children).slice(1);
       body.forEach(el => el.style.display = collapsed ? "none" : "");
+      if (document.body.classList.contains("focus")) {
+        if (collapsed) {
+          sec.classList.remove("active");
+        } else {
+          sections.forEach(s => s.classList.remove("active"));
+          sec.classList.add("active");
+        }
+      }
     }
     function expandAll(){ sections.forEach(s => setCollapsed(s, false)); }
     function collapseAll(){ sections.forEach(s => setCollapsed(s, true)); }
@@ -628,15 +718,35 @@ Cycle n (encoded topology) → scaffold growth → archival saturation → confo
       h.addEventListener("click", () => {
         const collapsed = sec.dataset.collapsed === "1";
         setCollapsed(sec, !collapsed);
+        if (document.body.classList.contains("focus")) {
+          sections.forEach(s => s.classList.remove("active"));
+          sec.classList.add("active");
+        }
       });
     });
 
     document.getElementById("btnPrint").addEventListener("click", () => window.print());
+    document.getElementById("btnFocus").addEventListener("click", () => {
+      const next = !document.body.classList.contains("focus");
+      document.body.classList.toggle("focus", next);
+      if (next) {
+        const active = sections.find(sec => sec.dataset.collapsed !== "1") || sections[0];
+        sections.forEach(sec => sec.classList.remove("active"));
+        if (active) active.classList.add("active");
+      } else {
+        sections.forEach(sec => sec.classList.remove("active"));
+      }
+    });
     document.getElementById("btnExpand").addEventListener("click", expandAll);
     document.getElementById("btnCollapse").addEventListener("click", collapseAll);
 
-    // Start expanded by default
-    expandAll();
+    // Start expanded by default, collapse when windowed (iframe)
+    const IS_WINDOWED = window.self !== window.top;
+    if (IS_WINDOWED) {
+      collapseAll();
+    } else {
+      expandAll();
+    }
 
     // Gentle UX: focus browser find with "/" like some docs sites
     window.addEventListener("keydown", (e) => {
