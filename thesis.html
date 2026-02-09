@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>A Cyclical, Nested Cosmology — Working Thesis (Draft)</title>
+  <style>
+    :root{
+      --bg:#0b0e14;
+      --card:#111826;
+      --card2:#0f1420;
+      --text:#e8eefc;
+      --muted:#a8b3cf;
+      --dim:#7f8aa7;
+      --line:rgba(255,255,255,.12);
+      --accent:#7cc7ff;
+      --accent2:#b58bff;
+      --good:#71f0c1;
+      --warn:#ffd37a;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    }
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f6f8ff;
+        --card:#ffffff;
+        --card2:#fbfcff;
+        --text:#101627;
+        --muted:#384562;
+        --dim:#59698d;
+        --line:rgba(16,22,39,.12);
+        --accent:#0077ff;
+        --accent2:#6a2dff;
+        --good:#0c9f6f;
+        --warn:#b36b00;
+      }
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1100px 700px at 20% -10%, rgba(124,199,255,.18), transparent 55%),
+                  radial-gradient(900px 600px at 110% 0%, rgba(181,139,255,.16), transparent 60%),
+                  radial-gradient(1200px 900px at 40% 120%, rgba(113,240,193,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.55;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:1080px; margin:0 auto; padding:28px 18px 80px}
+    header{
+      display:flex; gap:18px; align-items:flex-start; justify-content:space-between;
+      padding:22px 22px; border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-radius:18px;
+      position:relative;
+      overflow:hidden;
+    }
+    header::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        linear-gradient(90deg, transparent, rgba(124,199,255,.18), transparent),
+        linear-gradient(90deg, transparent, rgba(181,139,255,.14), transparent);
+      opacity:.7;
+      filter: blur(12px);
+      pointer-events:none;
+      transform: translateX(-45%);
+      animation: sweep 10s linear infinite;
+    }
+    @keyframes sweep{
+      0%{transform:translateX(-60%)}
+      100%{transform:translateX(60%)}
+    }
+    .titleblock{position:relative; z-index:1; max-width:760px}
+    .kicker{
+      font-family:var(--mono);
+      font-size:12px;
+      letter-spacing:.12em;
+      color:var(--muted);
+      text-transform:uppercase;
+      margin:0 0 8px;
+    }
+    h1{
+      margin:0 0 10px;
+      font-size: clamp(28px, 3.1vw, 42px);
+      line-height:1.12;
+      font-weight:800;
+    }
+    .subtitle{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size:15px;
+      max-width:70ch;
+    }
+    .meta{
+      display:flex; flex-wrap:wrap; gap:10px;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--dim);
+    }
+    .pill{
+      border:1px solid var(--line);
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+    }
+    .controls{
+      position:relative; z-index:1;
+      display:flex; flex-direction:column; gap:10px; align-items:flex-end;
+      min-width:220px;
+    }
+    button{
+      font-family:var(--mono);
+      font-size:12px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+      cursor:pointer;
+      width:100%;
+    }
+    button:hover{background:rgba(255,255,255,.08)}
+    .note{
+      font-size:12px;
+      color:var(--dim);
+      text-align:right;
+      max-width:220px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:16px;
+      margin-top:16px;
+    }
+    @media (max-width: 920px){
+      .grid{grid-template-columns:1fr}
+      .controls{align-items:stretch; min-width:auto}
+      .note{text-align:left; max-width:none}
+    }
+
+    nav.toc{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:16px 16px;
+      position:sticky; top:14px;
+      height:fit-content;
+    }
+    .toc h2{
+      margin:0 0 10px;
+      font-size:14px;
+      font-family:var(--mono);
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    .toc a{
+      display:block;
+      padding:8px 10px;
+      border-radius:12px;
+      color:var(--text);
+    }
+    .toc a:hover{
+      background:rgba(255,255,255,.06);
+      text-decoration:none;
+    }
+    .toc .sub{
+      margin-left:10px;
+      border-left:1px solid var(--line);
+      padding-left:10px;
+    }
+    main{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      padding:18px 18px;
+    }
+    section{
+      padding:14px 10px;
+      border-top:1px dashed rgba(255,255,255,.10);
+    }
+    section:first-child{border-top:none}
+    h2{
+      margin:0 0 8px;
+      font-size:20px;
+      line-height:1.2;
+    }
+    h3{
+      margin:16px 0 8px;
+      font-size:15px;
+      color:var(--muted);
+      font-family:var(--mono);
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+    p{margin:10px 0}
+    ul{margin:10px 0 10px 18px}
+    li{margin:6px 0}
+    .callout{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      border-radius:16px;
+      padding:12px 12px;
+      margin:12px 0;
+    }
+    .callout strong{color:var(--accent)}
+    .warn strong{color:var(--warn)}
+    .good strong{color:var(--good)}
+    .quote{
+      font-family:var(--serif);
+      font-size:18px;
+      color:var(--text);
+      padding:14px 14px;
+      border-left:4px solid var(--accent2);
+      background:linear-gradient(90deg, rgba(181,139,255,.14), transparent 55%);
+      border-radius:14px;
+      margin:14px 0;
+    }
+    .equation{
+      font-family:var(--mono);
+      font-size:13px;
+      color:var(--muted);
+      background:rgba(0,0,0,.18);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px;
+      overflow:auto;
+      margin:10px 0;
+      white-space:pre;
+    }
+    .small{font-size:13px; color:var(--muted)}
+    .footnotes{
+      font-size:12px; color:var(--dim);
+      border-top:1px solid var(--line);
+      margin-top:14px; padding-top:12px;
+    }
+    .divider{
+      height:1px; background:var(--line);
+      margin:14px 0;
+    }
+    .badgeRow{
+      display:flex; flex-wrap:wrap; gap:8px; margin:10px 0;
+      font-family:var(--mono); font-size:12px;
+    }
+    .badge{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+    }
+    .kbd{
+      font-family:var(--mono);
+      border:1px solid var(--line);
+      border-bottom-width:2px;
+      border-radius:8px;
+      padding:1px 6px;
+      background:rgba(255,255,255,.04);
+      color:var(--muted);
+    }
+    .printHint{display:none}
+    @media print{
+      body{background:#fff; color:#000}
+      header, nav.toc, .controls{border:1px solid #ccc; background:#fff}
+      header::before{display:none}
+      a{color:#000; text-decoration:underline}
+      main{border:1px solid #ccc; background:#fff}
+      .callout,.equation{border:1px solid #ccc; background:#fff}
+      .quote{border-left-color:#666; background:#fff}
+      .printHint{display:block; font-family:var(--mono); font-size:12px; color:#333}
+      button{display:none}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="titleblock">
+        <p class="kicker">Working Thesis • Draft v0.2</p>
+        <h1>A Cyclical, Nested Cosmology with Persistent Gravitational Topology<br/>and Temporal-Archival Black Holes</h1>
+        <p class="subtitle">
+          A speculative framework synthesizing early-epoch topology (CMB / potential GW background),
+          dark-matter scaffolding revealed by lensing (e.g., JWST),
+          and a reinterpretation of black holes as surface-bound temporal archives that drive late-time convergence.
+        </p>
+        <div class="meta">
+          <span class="pill">Status: Working theory (not established physics)</span>
+          <span class="pill">Scope: Conceptual / falsifiability-oriented</span>
+          <span class="pill">Focus: Topology → Metric → Tracer → Archive → Recursion</span>
+        </div>
+        <div class="divider"></div>
+        <div class="printHint">Print-friendly mode: use your browser’s Print dialog (backgrounds removed automatically).</div>
+      </div>
+
+      <div class="controls">
+        <button id="btnPrint" type="button">Print / Save as PDF</button>
+        <button id="btnExpand" type="button">Expand all sections</button>
+        <button id="btnCollapse" type="button">Collapse all sections</button>
+        <div class="note">
+          Tip: click any section title to fold it.<br/>
+          Shortcut: <span class="kbd">/</span> focuses “Find in page”.
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <nav class="toc" aria-label="Table of contents">
+        <h2>Contents</h2>
+        <a href="#abstract">Abstract</a>
+        <a href="#intro">1. Introduction</a>
+        <a href="#encoding">2. Early Encoding of Topology</a>
+        <div class="sub">
+          <a href="#cmbgw">2.1 CMB & GW background as constraints</a>
+        </div>
+        <a href="#dm">3. Dark Matter as Persistent Metric Geometry</a>
+        <div class="sub">
+          <a href="#snapshot">3.1 Static snapshot → probabilistic paths</a>
+        </div>
+        <a href="#baryons">4. Baryons as Tracers</a>
+        <a href="#branching">5. Nested Branching & Degeneracy</a>
+        <a href="#bh">6. Black Holes as Temporal Mirror Archives</a>
+        <div class="sub">
+          <a href="#horizon">6.1 Horizon as index surface</a>
+        </div>
+        <a href="#convergence">7. Horizon Merging & Late-Time Convergence</a>
+        <a href="#recursion">8. Conformal Inversion & Cosmic Recursion</a>
+        <a href="#implications">9. Implications</a>
+        <a href="#falsifiability">10. Falsifiability & Pressure Points</a>
+        <a href="#conclusion">11. Conclusion</a>
+        <a href="#appendix">Appendix: Compression statements</a>
+      </nav>
+
+      <main id="paper" aria-label="Thesis document">
+        <section id="abstract" class="foldable">
+          <h2>Abstract</h2>
+          <p>
+            We propose a speculative framework in which the universe is a <em>nested, cyclical</em> system whose
+            large-scale structure is governed by <strong>persistent gravitational topology</strong> rather than
+            continuously novel initial conditions. In this model, topology is encoded at an early epoch
+            (inflationary perturbations; observable constraints via relic radiation anisotropies and potentially a primordial
+            gravitational-wave background), preserved and amplified by a collisionless metric component
+            interpreted here as <strong>dark-matter geometry</strong>, and revealed by baryonic matter as a late-arriving tracer.
+          </p>
+          <p>
+            Black holes are reinterpreted as <strong>temporal mirror inversions</strong>: surface-bound archives encoding the
+            past worldlines of absorbed matter as horizon data. Over cosmic time, entropy drives
+            convergence into horizon-dominated states in which micro-historical differences become operationally
+            indistinguishable. The terminal state of a cycle is argued to be conformally equivalent to an inverted
+            initial condition, enabling cosmological recursion. Dark matter is thus treated as
+            <strong>gravitational memory</strong> (long-lived curvature modes / interference structure) rather than missing luminous matter,
+            exotic particles, or cross-universe forces.
+          </p>
+
+          <div class="callout warn">
+            <strong>Scope note:</strong> This document is a working thesis, not established physics. It aims to be conceptually coherent,
+            compatible with standard observational successes at the level of large-scale structure, and falsifiability-oriented.
+          </div>
+        </section>
+
+        <section id="intro" class="foldable">
+          <h2>1. Introduction</h2>
+          <p>
+            Standard cosmology (inflation + ΛCDM) explains a broad range of observations yet leaves foundational questions
+            open: the origin and robustness of large-scale topology, the nature of dark matter, the ultimate fate of information,
+            and whether cosmic history is fundamentally one-shot or recursive.
+          </p>
+          <p>
+            This thesis proposes a reallocation of explanatory roles: treat early-epoch perturbations as the
+            <em>topological seed</em>, dark matter as a <em>topology-preserving metric scaffold</em>,
+            baryons as <em>late tracers</em>, and black holes as <em>temporal archives</em> that drive
+            late-time convergence and allow (via conformal equivalence) a cycle-to-cycle inheritance of curvature modes.
+          </p>
+
+          <div class="quote">
+            “The universe does not invent structure every morning; it unfolds it.”
+          </div>
+        </section>
+
+        <section id="encoding" class="foldable">
+          <h2>2. Early Encoding of Topology</h2>
+          <p>
+            The thesis begins with the claim that cosmic topology—connectivity of peaks, filaments, saddles, and voids—is
+            encoded very early as correlated perturbations. This “graph” is not a detailed blueprint of galaxies; it is a
+            constraint surface that limits how structure can form.
+          </p>
+
+          <div class="equation" aria-label="Conceptual pipeline equation">
+Topology (early perturbations) → Metric scaffold (collisionless curvature modes) → Tracer dynamics (baryons) → Archive saturation (black holes) → Conformal inversion → Recursion
+          </div>
+
+          <h3 id="cmbgw">2.1 CMB & GW background as constraints</h3>
+          <p>
+            In orthodox terms: scalar perturbations appear in the CMB anisotropy field; tensor perturbations (if measured) would
+            constrain primordial spacetime ripples. In this thesis: these are treated as complementary projections of the early constraint geometry.
+          </p>
+          <ul>
+            <li><strong>CMB:</strong> linear snapshot of the early correlation graph (density/temperature anisotropies).</li>
+            <li><strong>Primordial GW background (hypothetical/undetected at present):</strong> constraints on tensor degrees of freedom—geometry’s “stiffness,” symmetry, and coherence.</li>
+          </ul>
+          <div class="callout good">
+            <strong>Claim:</strong> later structure formation largely sharpens and amplifies this graph, rather than redrawing its connectivity.
+          </div>
+        </section>
+
+        <section id="dm" class="foldable">
+          <h2>3. Dark Matter as Persistent Metric Geometry</h2>
+          <p>
+            Here “dark matter” is interpreted as the long-lived, collisionless component that preserves and amplifies the early topological constraints.
+            Rather than positing a new particle species (or cross-world forces), the thesis treats the observed dark-matter distribution as a
+            <strong>persistent curvature field</strong>—a gravitational memory that survives across cosmic epochs.
+          </p>
+
+          <ul>
+            <li>Explains why the “scaffold” gravitates yet remains electromagnetically dark.</li>
+            <li>Explains smooth halos/filaments as long-wavelength curvature modes (short-scale detail is erased).</li>
+            <li>Explains robustness of cosmic web topology across realizations as inheritance of constraint geometry.</li>
+          </ul>
+
+          <h3 id="snapshot">3.1 Static snapshot → probabilistic paths (no DM time series required)</h3>
+          <p>
+            A static mass distribution inferred from lensing can be treated as a gravitational landscape. From a potential-like field Φ(x),
+            one can infer a drift field that constrains where baryons plausibly came from and may go next—<em>as probability bundles</em>.
+          </p>
+
+          <div class="equation" aria-label="Conceptual gradient relationship">
+Given a potential-like landscape Φ(x), a constrained flow is suggested by:
+
+a(x) ∝ −∇Φ(x)
+
+Interpretation: not a single trajectory, but a family of likely paths (“corridors”) toward attractors (nodes/halos), with uncertainty from baryonic physics + measurement noise.
+          </div>
+
+          <div class="callout">
+            <strong>Key move:</strong> the present dark-matter scaffold acts as a prior over past and future baryon distributions because it encodes
+            attractors (minima), corridors (filaments), and basin boundaries (separatrices).
+          </div>
+        </section>
+
+        <section id="baryons" class="foldable">
+          <h2>4. Baryons as Tracers (Not Architects)</h2>
+          <p>
+            Baryonic matter is dissipative and complex (cooling, shocks, feedback), but statistically it settles into the scaffold’s
+            attractors and flows along its corridors. In this thesis, luminous structure is “ink on paper”: it reveals a geometry that existed first.
+          </p>
+          <ul>
+            <li>Galaxies light up nodes where potentials are deep and cooling is effective.</li>
+            <li>Gas preferentially moves along filamentary channels.</li>
+            <li>Offsets between baryons and the scaffold are expected (pressure, feedback, stripping), widening uncertainty without erasing topology.</li>
+          </ul>
+        </section>
+
+        <section id="branching" class="foldable">
+          <h2>5. Nested Branching & Micro-Historical Degeneracy</h2>
+          <p>
+            “Nested” here refers to implied microcosms: fine-scale, causally limited realizations that may branch into near-identical histories.
+            Crucially, these branches are not interacting universes; they are <em>adjacent solutions</em> that remain operationally inaccessible.
+          </p>
+          <div class="callout">
+            <strong>Branching → not proliferation:</strong> differences accumulate locally but are later compressed away as cosmic degrees of freedom converge into horizon-dominated end states.
+          </div>
+          <p class="small">
+            In this view, “merging” of branches occurs by <em>loss of distinguishability</em>, not by causal interaction.
+          </p>
+        </section>
+
+        <section id="bh" class="foldable">
+          <h2>6. Black Holes as Temporal Mirror Archives</h2>
+          <p>
+            Black holes are reinterpreted as temporal mirror inversions. The event horizon is treated as a surface of archival inscription:
+            the full past worldline of absorbed matter is mapped to horizon data. The interior is not framed as a separate universe,
+            but as a compressed, time-inverted description—an inaccessible “archive depth.”
+          </p>
+
+          <h3 id="horizon">6.1 Horizon as index surface</h3>
+          <ul>
+            <li><strong>Horizon = archive boundary:</strong> an index of everything absorbed, expressed as boundary geometry/entropy.</li>
+            <li><strong>Interior = inverted ordering:</strong> not a forward-evolving narrative; a compressed ordering of prior states.</li>
+            <li><strong>“Bubbles of archive”:</strong> each black hole becomes a localized memory bubble in the cosmic ledger.</li>
+          </ul>
+
+          <div class="quote">
+            “A black hole is not a hole in space; it is a mirror in time—an archive written on a surface.”
+          </div>
+        </section>
+
+        <section id="convergence" class="foldable">
+          <h2>7. Horizon Merging & Late-Time Convergence</h2>
+          <p>
+            Over cosmic timescales, entropy funnels matter into black holes. As black holes merge, their horizons merge—archives coalesce.
+            Meanwhile, expansion pushes regions beyond causal contact. The result is a universe increasingly dominated by:
+          </p>
+          <ul>
+            <li>horizons and boundary terms,</li>
+            <li>causal disconnection,</li>
+            <li>loss of local clocks and operationally meaningful distinctions.</li>
+          </ul>
+          <div class="callout">
+            <strong>Convergence mechanism:</strong> disparate micro-histories approach the same observational equivalence class as accessible structure disappears into horizon archives.
+          </div>
+        </section>
+
+        <section id="recursion" class="foldable">
+          <h2>8. Conformal Inversion & Cosmic Recursion</h2>
+          <p>
+            As the far-future limit is approached, scale loses meaning and the universe trends toward a conformally invariant regime.
+            In this thesis, that terminal regime becomes equivalent (under conformal transformation) to an “inverted initial condition,”
+            enabling a cycle-to-cycle recursion.
+          </p>
+          <p>
+            The cycle does not replay identical matter; it re-expresses a shared basis. Long-wavelength curvature modes persist; short-scale
+            details are reset or erased. The next cycle inherits a constraint geometry—hence persistent topology.
+          </p>
+
+          <div class="equation" aria-label="Conceptual recurrence statement">
+Cycle n (encoded topology) → scaffold growth → archival saturation → conformal equivalence → Cycle n+1 (re-expression of inherited constraints)
+          </div>
+        </section>
+
+        <section id="implications" class="foldable">
+          <h2>9. Implications</h2>
+
+          <div class="badgeRow" aria-label="Implication badges">
+            <span class="badge">Dark matter = gravitational memory</span>
+            <span class="badge">Cosmic web = standing-wave topology</span>
+            <span class="badge">Black holes = horizon archives</span>
+            <span class="badge">Branching resolves into equivalence</span>
+            <span class="badge">Cycles = conformal recursion</span>
+          </div>
+
+          <p>
+            If this framework is even approximately correct, then:
+          </p>
+          <ul>
+            <li>Large-scale structure is robust because it is constrained by inherited topology.</li>
+            <li>Dark matter correlations reflect persistent curvature modes rather than missing luminous matter.</li>
+            <li>Black holes are the universe’s archival mechanism: they compress local distinctions into surface data.</li>
+            <li>“As within, so without” becomes a technical statement about nested scales: micro-branching vs macro-cycling, both governed by constraint geometry and convergence.</li>
+          </ul>
+        </section>
+
+        <section id="falsifiability" class="foldable">
+          <h2>10. Falsifiability & Pressure Points</h2>
+          <p>
+            This thesis earns its keep only if it can be cornered by data. Proposed pressure points include:
+          </p>
+          <ul>
+            <li><strong>Topology mismatch:</strong> statistically significant inconsistencies between early-epoch correlation topology (CMB + future tensor constraints) and late-time lensing topology.</li>
+            <li><strong>Filament connectivity anomalies:</strong> connectivity / saddle statistics inconsistent with inheritance of long-wavelength curvature modes.</li>
+            <li><strong>Unexpected phase coherence:</strong> large-scale alignments incompatible with stochastic inflationary initial conditions and standard structure growth.</li>
+            <li><strong>Horizon-archive predictions:</strong> any observational signatures implying information is not merely lost/thermalized but structured as boundary data (hard; likely indirect).</li>
+          </ul>
+
+          <div class="callout warn">
+            <strong>Hard truth:</strong> Much of this lives near the boundary of observability. If it cannot produce distinctive statistical predictions beyond ΛCDM + known systematics, it collapses into philosophy.
+          </div>
+        </section>
+
+        <section id="conclusion" class="foldable">
+          <h2>11. Conclusion</h2>
+          <p>
+            We compiled a unified working thesis: the universe is a recursive, memory-bearing system in which early-epoch topology constrains
+            later evolution; dark matter functions as persistent metric geometry; baryons trace rather than invent cosmic structure; and black holes
+            act as temporal-archival mirrors that compress histories into horizon surfaces, driving late-time convergence and enabling conformal recursion.
+          </p>
+
+          <div class="quote">
+            “The universe explores difference when it can, and forgets difference when it must.”
+          </div>
+
+          <p class="small">
+            Next steps would involve tightening the formalism: defining topology measures (e.g., persistent homology / graph invariants) for early vs late fields,
+            and specifying predictions testable with lensing surveys and next-generation CMB/GW constraints.
+          </p>
+        </section>
+
+        <section id="appendix" class="foldable">
+          <h2>Appendix: Compression Statements</h2>
+          <ul>
+            <li><strong>Constraint pipeline:</strong> Topology → Metric → Tracer → Archive → Recursion.</li>
+            <li><strong>Dark matter:</strong> not missing stuff; long-lived curvature structure.</li>
+            <li><strong>Black holes:</strong> temporal mirrors; surface archives of absorbed worldlines.</li>
+            <li><strong>Cycles:</strong> conformal equivalence between terminal and initial regimes; re-expression, not replay.</li>
+          </ul>
+
+          <div class="footnotes">
+            <p>
+              <strong>Note:</strong> This HTML is intentionally self-contained (static). You can drop it on a web server, open it locally,
+              or print to PDF. If you want citations and a bibliography section, we can add an annotated references block and link it to claims above.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Minimal, optional UX: fold/unfold sections + print.
+    const sections = Array.from(document.querySelectorAll("section.foldable"));
+    function setCollapsed(sec, collapsed){
+      sec.dataset.collapsed = collapsed ? "1" : "0";
+      const body = Array.from(sec.children).slice(1);
+      body.forEach(el => el.style.display = collapsed ? "none" : "");
+    }
+    function expandAll(){ sections.forEach(s => setCollapsed(s, false)); }
+    function collapseAll(){ sections.forEach(s => setCollapsed(s, true)); }
+
+    // Click heading to toggle
+    sections.forEach(sec => {
+      const h = sec.querySelector("h2");
+      if(!h) return;
+      h.style.cursor = "pointer";
+      h.title = "Click to fold/unfold";
+      h.addEventListener("click", () => {
+        const collapsed = sec.dataset.collapsed === "1";
+        setCollapsed(sec, !collapsed);
+      });
+    });
+
+    document.getElementById("btnPrint").addEventListener("click", () => window.print());
+    document.getElementById("btnExpand").addEventListener("click", expandAll);
+    document.getElementById("btnCollapse").addEventListener("click", collapseAll);
+
+    // Start expanded by default
+    expandAll();
+
+    // Gentle UX: focus browser find with "/" like some docs sites
+    window.addEventListener("keydown", (e) => {
+      if(e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey){
+        e.preventDefault();
+        // Most browsers don't allow programmatic open of find UI; hint user instead:
+        // We'll flash the note.
+        const note = document.querySelector(".note");
+        note.style.opacity = "0.3";
+        setTimeout(()=> note.style.opacity = "", 180);
+      }
+    });
+  </script>
+</body>
+</html>
