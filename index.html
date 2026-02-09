@@ -841,7 +841,7 @@
 
   // Load posts at boot, then auto-open the first HTML post (or 'timeline' if present)
   loadPosts().then(() => {
-    const p = POSTS.find(x => x.id === 'forecast') || HTML_POSTS[0];
+    const p = POSTS.find(x => x.id === 'thesis') || HTML_POSTS[0];
     if (p && p.type === 'html') {
       openHtmlDocumentWindow(p);
       // const w = document.getElementById('doc-' + p.id);
