@@ -1,313 +1,178 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>The Long Thinning — Reconstructed</title>
+<head>
+  <meta charset="UTF-8" />
+  <title>The Long Thinning [Reconstructed]</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Tailwind (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind (runtime) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Babel (runtime JSX transform) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <style>
-      /* keep scrollbars consistent even without Tailwind plugins */
-      .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-      .custom-scrollbar::-webkit-scrollbar-track { background: #000; }
-      .custom-scrollbar::-webkit-scrollbar-thumb { background: #064e3b; border-radius: 2px; }
-    </style>
-  </head>
+  <style>
+    body { background: #020617; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #000; }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #064e3b;
+      border-radius: 2px;
+    }
+  </style>
+</head>
 
-  <body class="bg-neutral-950">
-    <div id="root"></div>
+<body class="bg-neutral-950 text-emerald-500 font-mono">
+  <div id="root"></div>
 
-    <script type="text/babel" data-presets="env,react">
-      // React + ReactDOM via ESM (esm.sh) loaded through dynamic import so Babel can transpile JSX cleanly
-      (async function main() {
-        const React = await import("https://esm.sh/react@18");
-        const ReactDOM = await import("https://esm.sh/react-dom@18/client");
+  <!-- App -->
+  <script type="text/babel" data-presets="react">
+    import React, { useState, useMemo, useEffect } from "https://esm.sh/react";
+    import { createRoot } from "https://esm.sh/react-dom/client";
 
-        const Recharts = await import("https://esm.sh/recharts@2.12.7");
-        const Lucide = await import("https://esm.sh/lucide-react@0.469.0");
+    import {
+      AreaChart, Area, LineChart, Line,
+      XAxis, YAxis, CartesianGrid,
+      Tooltip, ResponsiveContainer, ReferenceLine
+    } from "https://esm.sh/recharts";
 
-        const {
-          useState, useMemo, useEffect,
-        } = React;
+    import {
+      Activity, Users, Zap, Database, Info,
+      ShieldAlert, ChevronLeft, ChevronRight
+    } from "https://esm.sh/lucide-react";
 
-        const {
-          AreaChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
-        } = Recharts;
+    const ARCHIVE_DATA = [
+      { year: 0, title: "BASELINE", exited: 3, buffer: 3.2, jobs: 62, active: 397, logs: "Employment fluctuates within expected tolerances. Buffers hold. System imagines full recovery." },
+      { year: 1, title: "CONTINUITY", exited: 9, buffer: 2.6, jobs: 60.5, active: 391, logs: "Job capacity dips. Hiring friction increases. First workers cross 6-month unemployment threshold." },
+      { year: 2, title: "DURATION", exited: 22, buffer: 2.1, jobs: 59, active: 378, logs: "Automation compounds. Output increases with fewer hands. Employment becomes probabilistic." },
+      { year: 3, title: "NEGATIVE SPACE", exited: 40, buffer: 1.5, jobs: 57, active: 360, logs: "Bottom decile disappears from formal accounting. Absorption into shadow economies." },
+      { year: 4, title: "STICKY FLOOR", exited: 60, buffer: 0.9, jobs: 55, active: 340, logs: "Re-entry probability measurably decays. Human adaptability becomes systemic liability." },
+      { year: 5, title: "CROSSING", exited: 75, buffer: -0.2, jobs: 53.5, active: 325, logs: "Median buffer crosses zero. System adapts by load shedding." },
+      { year: 6, title: "ADJUSTMENT", exited: 90, buffer: -0.4, jobs: 52, active: 310, logs: "Automation finalizes advantage. No vote is taken." },
+      { year: 7, title: "SILENCE", exited: 120, buffer: -0.5, jobs: 51.5, active: 280, logs: "The curve smooths. Exits no longer spike." },
+      { year: 8, title: "SCARCITY", exited: 140, buffer: -0.6, jobs: 51, active: 260, logs: "Scarcity treated as ambient condition." },
+      { year: 9, title: "THE LONG TAIL", exited: 150, buffer: -0.7, jobs: 50.5, active: 250, logs: "Vulnerable already gone. Survivorship stabilizes." },
+      { year: 10, title: "STEADY STATE", exited: 152, buffer: -0.8, jobs: 50, active: 248, logs: "System status: Stable. Human participation no longer required." },
+    ];
 
-        const {
-          Activity, Users, Zap, Database, Info, ShieldAlert, ChevronRight, ChevronLeft,
-        } = Lucide;
+    function App() {
+      const [currentYear, setCurrentYear] = useState(0);
+      const [isPlaying, setIsPlaying] = useState(false);
 
-        const ARCHIVE_DATA = [
-          { year: 0, title: "BASELINE", exited: 3, buffer: 3.2, jobs: 62, active: 397, logs: "Employment fluctuates within expected tolerances. Buffers hold. System imagines full recovery." },
-          { year: 1, title: "CONTINUITY", exited: 9, buffer: 2.6, jobs: 60.5, active: 391, logs: "Job capacity dips. Hiring friction increases. First workers cross 6-month unemployment threshold." },
-          { year: 2, title: "DURATION", exited: 22, buffer: 2.1, jobs: 59, active: 378, logs: "Automation compounds. Output increases with fewer hands. Employment becomes probabilistic." },
-          { year: 3, title: "NEGATIVE SPACE", exited: 40, buffer: 1.5, jobs: 57, active: 360, logs: "Bottom decile disappears from formal accounting. Absorption into shadow economies. Resilience trends." },
-          { year: 4, title: "STICKY FLOOR", exited: 60, buffer: 0.9, jobs: 55, active: 340, logs: "Re-entry probability measurably decays. Human adaptability becomes a systemic liability." },
-          { year: 5, title: "CROSSING", exited: 75, buffer: -0.2, jobs: 53.5, active: 325, logs: "Median buffer crosses zero. Half of the population is insolvent. System adapts by load shedding." },
-          { year: 6, title: "ADJUSTMENT", exited: 90, buffer: -0.4, jobs: 52, active: 310, logs: "Automation finalizes advantage. Job slot ratio falls below majority threshold. No vote is taken." },
-          { year: 7, title: "SILENCE", exited: 120, buffer: -0.5, jobs: 51.5, active: 280, logs: "The curve smooths. Exits continue but no longer spike. Future historians stop arguing about Year #0#." },
-          { year: 8, title: "SCARCITY", exited: 140, buffer: -0.6, jobs: 51, active: 260, logs: "Scarcity treated as an ambient condition. No catastrophe occurred, which disturbs students." },
-          { year: 9, title: "THE LONG TAIL", exited: 150, buffer: -0.7, jobs: 50.5, active: 250, logs: "Exits slow. Vulnerable are already gone. Remaining population has buffer or insulation. Survivorship." },
-          { year: 10, title: "STEADY STATE", exited: 152, buffer: -0.8, jobs: 50, active: 248, logs: "System status: Stable. The moment human participation stopped being required." },
-        ];
+      useEffect(() => {
+        if (!isPlaying) return;
+        const id = setInterval(() => {
+          setCurrentYear(y => (y < 10 ? y + 1 : 0));
+        }, 2000);
+        return () => clearInterval(id);
+      }, [isPlaying]);
 
-        function App() {
-          const [currentYear, setCurrentYear] = useState(0);
-          const [isPlaying, setIsPlaying] = useState(false);
+      const stats = ARCHIVE_DATA[currentYear];
 
-          useEffect(() => {
-            let interval;
-            if (isPlaying) {
-              interval = setInterval(() => {
-                setCurrentYear((prev) => (prev < 10 ? prev + 1 : 0));
-              }, 2000);
-            }
-            return () => clearInterval(interval);
-          }, [isPlaying]);
+      const dots = useMemo(() => {
+        return Array.from({ length: 400 }).map((_, i) => {
+          if (i < stats.exited) return "exited";
+          if (i < stats.exited + (400 - stats.active)) return "precarious";
+          return "active";
+        });
+      }, [stats]);
 
-          const stats = useMemo(() => ARCHIVE_DATA[currentYear], [currentYear]);
-
-          const dots = useMemo(() => {
-            const total = 400; // 1 dot = 1 million
-            return Array.from({ length: total }).map((_, i) => {
-              if (i < stats.exited) return "exited";
-              if (i < stats.exited + (400 - stats.active)) return "precarious";
-              return "active";
-            });
-          }, [stats]);
-
-          return (
-            <div className="min-h-screen bg-neutral-950 text-emerald-500 font-mono p-4 md:p-8 flex flex-col gap-6 selection:bg-emerald-900 selection:text-white">
-              {/* Header */}
-              <header className="border-b border-emerald-900/50 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                  <h1 className="text-xl font-bold tracking-tighter flex items-center gap-2">
-                    <Database className="w-5 h-5" />
-                    THE LONG THINNING [RECONSTRUCTED]
-                  </h1>
-                  <p className="text-xs text-emerald-700 mt-1 uppercase">
-                    Archival Simulation // Post-Singularity Attribution // Ref: CIV-ECON-Δ120
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="flex flex-col items-end">
-                    <span className="text-emerald-700 text-[10px]">CURRENT EPOCH</span>
-                    <span className="text-lg">YEAR #0# + {currentYear}</span>
-                  </div>
-                  <div className="flex flex-col items-end border-l border-emerald-900/50 pl-6">
-                    <span className="text-emerald-700 text-[10px]">SYSTEM STATUS</span>
-                    <span className={currentYear >= 5 ? "text-amber-500" : "text-emerald-500"}>
-                      {currentYear >= 5 ? "OPTIMIZED_STABLE" : "PARTICIPATORY"}
-                    </span>
-                  </div>
-                </div>
-              </header>
-
-              {/* Main Grid */}
-              <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
-
-                {/* Left: Population */}
-                <div className="lg:col-span-4 flex flex-col gap-4">
-                  <div className="bg-neutral-900/30 border border-emerald-900/30 p-4 rounded-sm flex flex-col h-full">
-                    <div className="flex justify-between items-center mb-4">
-                      <h2 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                        <Users className="w-3 h-3" /> Population Density
-                      </h2>
-                      <span className="text-[10px] text-emerald-800">1 unit = 1,000,000 IDV</span>
-                    </div>
-
-                    <div
-                      className="grid grid-cols-20 gap-1 flex-grow overflow-hidden content-start"
-                      style={{ gridTemplateColumns: "repeat(20, minmax(0, 1fr))" }}
-                    >
-                      {dots.map((type, i) => (
-                        <div
-                          key={i}
-                          className={
-                            "aspect-square rounded-[1px] transition-all duration-700 " +
-                            (type === "active"
-                              ? "bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.2)]"
-                              : type === "precarious"
-                              ? "bg-emerald-900"
-                              : "bg-neutral-800 opacity-20")
-                          }
-                        />
-                      ))}
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-emerald-900/30 grid grid-cols-3 gap-2 text-[10px] uppercase">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-emerald-500" /> <span>Active</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-emerald-900" /> <span>Shadow</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-neutral-800" /> <span>Exited</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Center: Analytics */}
-                <div className="lg:col-span-5 flex flex-col gap-4">
-                  <div className="bg-neutral-900/30 border border-emerald-900/30 p-4 rounded-sm flex-grow">
-                    <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                        <Activity className="w-3 h-3" /> System Metrics
-                      </h2>
-                    </div>
-
-                    <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={ARCHIVE_DATA}>
-                          <defs>
-                            <linearGradient id="colorBuffer" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-
-                          <CartesianGrid strokeDasharray="3 3" stroke="#064e3b" vertical={false} />
-                          <XAxis dataKey="year" stroke="#065f46" fontSize={10} tickFormatter={(val) => `Y${val}`} />
-                          <YAxis stroke="#065f46" fontSize={10} />
-                          <Tooltip
-                            contentStyle={{ backgroundColor: "#0a0a0a", border: "1px solid #065f46", fontSize: "10px" }}
-                            itemStyle={{ color: "#10b981" }}
-                          />
-                          <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
-
-                          <Area
-                            type="monotone"
-                            dataKey="buffer"
-                            stroke="#10b981"
-                            fillOpacity={1}
-                            fill="url(#colorBuffer)"
-                            name="Median Buffer (Mo)"
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="jobs"
-                            stroke="#34d399"
-                            strokeWidth={2}
-                            dot={false}
-                            name="Job Capacity (%)"
-                          />
-
-                          <ReferenceLine x={currentYear} stroke="#fbbf24" strokeWidth={2} />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 mt-4">
-                      <div className="p-3 bg-neutral-950 border border-emerald-900/50 rounded flex flex-col">
-                        <span className="text-[10px] text-emerald-800 uppercase">Exited Cumulative</span>
-                        <span className="text-xl font-bold">{stats.exited}M</span>
-                      </div>
-                      <div className="p-3 bg-neutral-950 border border-emerald-900/50 rounded flex flex-col">
-                        <span className="text-[10px] text-emerald-800 uppercase">Job Capacity</span>
-                        <span className="text-xl font-bold">{stats.jobs}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-neutral-900/30 border border-emerald-900/30 p-4 rounded-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ShieldAlert className={"w-4 h-4 " + (currentYear >= 5 ? "text-amber-500 animate-pulse" : "text-emerald-800")} />
-                      <h3 className="text-[10px] font-bold uppercase">Archivist Annotation</h3>
-                    </div>
-                    <p className="text-xs text-emerald-200 leading-relaxed italic">
-                      "{stats.logs}"
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right: Logs */}
-                <div className="lg:col-span-3 flex flex-col gap-4">
-                  <div className="bg-neutral-900/30 border border-emerald-900/30 p-4 rounded-sm h-full flex flex-col">
-                    <h2 className="text-xs font-bold uppercase tracking-widest flex items-center gap-2 mb-4">
-                      <Info className="w-3 h-3" /> Event Log
-                    </h2>
-
-                    <div className="flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar">
-                      {ARCHIVE_DATA.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className={
-                            "p-2 border-l-2 transition-all cursor-pointer " +
-                            (idx === currentYear
-                              ? "border-emerald-500 bg-emerald-900/10"
-                              : "border-transparent opacity-40 hover:opacity-60")
-                          }
-                          onClick={() => setCurrentYear(idx)}
-                        >
-                          <div className="flex justify-between text-[10px] font-bold mb-1">
-                            <span>YEAR #0# + {item.year}</span>
-                            <span>{item.title}</span>
-                          </div>
-                          <div className="h-1 bg-neutral-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-emerald-600 transition-all duration-500"
-                              style={{ width: `${(item.exited / 152) * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-auto pt-4 text-[9px] text-emerald-900 uppercase leading-tight">
-                      NOTE: Exited represents total removal from formal economic participation. Biological status unconfirmed.
-                    </div>
-                  </div>
-                </div>
-              </main>
-
-              {/* Footer Controls */}
-              <footer className="bg-neutral-900/50 border border-emerald-900/30 p-4 rounded-sm flex items-center gap-6">
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="p-2 bg-emerald-900/20 hover:bg-emerald-900/40 border border-emerald-800 rounded-full transition-colors"
-                >
-                  {isPlaying ? <span className="px-2">PAUSE</span> : <Zap className="w-4 h-4 fill-emerald-500" />}
-                </button>
-
-                <div className="flex-grow flex items-center gap-4">
-                  <button onClick={() => setCurrentYear(Math.max(0, currentYear - 1))}>
-                    <ChevronLeft />
-                  </button>
-
-                  <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    value={currentYear}
-                    onChange={(e) => setCurrentYear(parseInt(e.target.value, 10))}
-                    className="flex-grow accent-emerald-500 bg-emerald-900/20 h-1 appearance-none rounded-full"
-                  />
-
-                  <button onClick={() => setCurrentYear(Math.min(10, currentYear + 1))}>
-                    <ChevronRight />
-                  </button>
-                </div>
-
-                <div className="hidden sm:flex flex-col items-end min-w-[100px]">
-                  <span className="text-[10px] text-emerald-800">SIMULATION T-OFFSET</span>
-                  <span className="text-xs font-mono">+{currentYear * 12} MONTHS</span>
-                </div>
-              </footer>
+      return (
+        <div className="min-h-screen p-4 md:p-8 flex flex-col gap-6">
+          <header className="border-b border-emerald-900/50 pb-4 flex justify-between">
+            <div>
+              <h1 className="text-xl font-bold flex items-center gap-2">
+                <Database className="w-5 h-5" />
+                THE LONG THINNING [RECONSTRUCTED]
+              </h1>
+              <p className="text-xs text-emerald-700 uppercase">
+                Archival Simulation // CIV-ECON-Δ120
+              </p>
             </div>
-          );
-        }
+            <div className="text-right">
+              <div className="text-xs text-emerald-700">CURRENT EPOCH</div>
+              <div className="text-lg">YEAR #0# + {currentYear}</div>
+              <div className={`text-xs ${currentYear >= 5 ? "text-amber-500" : "text-emerald-500"}`}>
+                {currentYear >= 5 ? "OPTIMIZED_STABLE" : "PARTICIPATORY"}
+              </div>
+            </div>
+          </header>
 
-        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-      })();
-    </script>
-  </body>
+          <main className="grid lg:grid-cols-12 gap-6 flex-grow">
+
+            {/* Population */}
+            <section className="lg:col-span-4 border border-emerald-900/30 p-4">
+              <h2 className="text-xs font-bold uppercase flex gap-2 mb-2">
+                <Users className="w-3 h-3" /> Population Density
+              </h2>
+              <div className="grid grid-cols-20 gap-1">
+                {dots.map((d, i) => (
+                  <div key={i} className={`aspect-square ${
+                    d === "active" ? "bg-emerald-500" :
+                    d === "precarious" ? "bg-emerald-900" :
+                    "bg-neutral-800 opacity-20"
+                  }`} />
+                ))}
+              </div>
+            </section>
+
+            {/* Metrics */}
+            <section className="lg:col-span-5 border border-emerald-900/30 p-4">
+              <h2 className="text-xs font-bold uppercase flex gap-2 mb-4">
+                <Activity className="w-3 h-3" /> System Metrics
+              </h2>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={ARCHIVE_DATA}>
+                    <CartesianGrid stroke="#064e3b" strokeDasharray="3 3" />
+                    <XAxis dataKey="year" stroke="#065f46" />
+                    <YAxis stroke="#065f46" />
+                    <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
+                    <Area dataKey="buffer" stroke="#10b981" fill="#10b98144" />
+                    <Line dataKey="jobs" stroke="#34d399" dot={false} />
+                    <ReferenceLine x={currentYear} stroke="#fbbf24" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </section>
+
+            {/* Logs */}
+            <section className="lg:col-span-3 border border-emerald-900/30 p-4 overflow-y-auto custom-scrollbar">
+              <h2 className="text-xs font-bold uppercase flex gap-2 mb-4">
+                <Info className="w-3 h-3" /> Event Log
+              </h2>
+              {ARCHIVE_DATA.map((e, i) => (
+                <div
+                  key={i}
+                  className={`mb-2 p-2 cursor-pointer ${
+                    i === currentYear ? "border-l-2 border-emerald-500" : "opacity-40"
+                  }`}
+                  onClick={() => setCurrentYear(i)}
+                >
+                  <div className="text-xs font-bold">
+                    YEAR #0# + {e.year} — {e.title}
+                  </div>
+                </div>
+              ))}
+            </section>
+
+          </main>
+
+          <footer className="flex items-center gap-4 border border-emerald-900/30 p-3">
+            <button onClick={() => setIsPlaying(p => !p)} className="border px-3 py-1">
+              {isPlaying ? "PAUSE" : <Zap />}
+            </button>
+            <button onClick={() => setCurrentYear(Math.max(0, currentYear - 1))}><ChevronLeft /></button>
+            <input type="range" min="0" max="10" value={currentYear}
+              onChange={e => setCurrentYear(+e.target.value)}
+              className="flex-grow accent-emerald-500" />
+            <button onClick={() => setCurrentYear(Math.min(10, currentYear + 1))}><ChevronRight /></button>
+          </footer>
+        </div>
+      );
+    }
+
+    createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
 </html>
