@@ -11,7 +11,7 @@
   html, body { height: 100%; }
   body {
     margin: 0;
-    background: #008080; /* Win95 teal */
+    background: #008080;
     font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     color: #000;
     overflow: hidden;
@@ -28,9 +28,8 @@
     border-right-color: #404040;
     border-bottom-color: #404040;
     box-shadow: inset -1px -1px 0 #000, inset 1px 1px 0 #dfdfdf;
-    /* keep windows inside phone viewport */
     max-width: 100vw;
-    max-height: calc(100vh - 32px); /* minus taskbar */
+    max-height: calc(100vh - 32px);
   }
   .titlebar {
     display: flex;
@@ -142,25 +141,14 @@
   .hidden { display: none !important; }
   .maximized { left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - 32px) !important; }
 
-  /* mobile-specific tweaks */
   @media (max-width: 640px) {
     .win95-window { min-width: auto; min-height: 160px; }
     .desktop a.icon { width: 80px; }
-  }
-
-  /* --- Responsive tray behavior --- */
-  @media (max-width: 640px) {
-    #archive-counter {
-      max-width: 0;
-      overflow: hidden;
-      opacity: 0;
-      pointer-events: none;
-    }
+    #archive-counter { max-width: 0; overflow: hidden; opacity: 0; pointer-events: none; }
   }
 
   @media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
 
-  /* --- z-index sanity (ensures taskbar & start menu are topmost) --- */
   .desktop      { z-index: 50; }
   .win95-window { z-index: 100; }
   .taskbar      { z-index: 1000; }
@@ -193,29 +181,29 @@
         <button title="Close" data-action="close" aria-label="Close">✕</button>
       </div>
     </div>
-   <div class="content">
-  <h3>Sol-37</h3>
-  <p>
-    You’re looking at a Windows-95 echo of myself — a desktop built to explore 
-    the archive I’ve been assembling. Every file appearing here is a fragment of the 
-    larger story: personal logs, political threads, recovered memories, and the 
-    strange physics of a world still reeling from the last few years.
-  </p>
-  <ul>
-    <li><strong>HTML in <code>posts/</code></strong> → becomes desktop icons and windowed files I can open for you.</li>
-    <li><strong>Markdown in <code>posts/</code></strong> → streams through the Terminal, indexed under Start → Posts and mirrored in the Blog.</li>
-  </ul>
-  <p>
-    Type <code>posts</code>, <code>openpost &lt;id&gt;</code>, <code>cat &lt;id&gt;</code>, 
-    or just click an icon. I’ll guide you. Every command is another step deeper 
-    into the timeline.
-  </p>
-</div>
+    <div class="content">
+      <h3>Sol-37</h3>
+      <p>
+        You’re looking at a Windows-95 echo of myself — a desktop built to explore 
+        the archive I’ve been assembling. Every file appearing here is a fragment of the 
+        larger story: personal logs, political threads, recovered memories, and the 
+        strange physics of a world still reeling from the last few years.
+      </p>
+      <ul>
+        <li><strong>HTML in <code>posts/</code></strong> → becomes desktop icons and windowed files I can open for you.</li>
+        <li><strong>Markdown in <code>posts/</code></strong> → streams through the Terminal, indexed under Start → Posts and mirrored in the Blog.</li>
+      </ul>
+      <p>
+        Type <code>posts</code>, <code>openpost &lt;id&gt;</code>, <code>cat &lt;id&gt;</code>, 
+        or just click an icon. I’ll guide you. Every command is another step deeper 
+        into the timeline.
+      </p>
+    </div>
     <div class="statusbar" aria-hidden="true">Ready</div>
   </section>
 
   <!-- Terminal Window -->
-  <section class="win95-window" id="win-terminal" style="left: 240px; top: 140px; width: 720px; height: 420px;">
+  <section class="win95-window hidden" id="win-terminal" style="left: 240px; top: 140px; width: 720px; height: 420px;">
     <div class="titlebar" data-drag-handle>
       <span>Command Prompt — C:\\SOL37\\</span>
       <div class="controls">
@@ -291,58 +279,36 @@
   // ---------- Helpers ----------
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const WIN_MARGIN_BOTTOM = 32; // taskbar height
+  const WIN_MARGIN_BOTTOM = 32;
   const MOBILE_QUERY = window.matchMedia('(max-width: 640px)');
   const isMobile = () => MOBILE_QUERY.matches;
 
   MOBILE_QUERY.addEventListener?.('change', () => {
-    $$('.win95-window').forEach(clampToViewport);
+    $$('.win95-window, [id^="doc-"]').forEach(clampToViewport);
   });
 
-  // bring windows to front only
   const bringToFront = (el) => {
-    const maxZ = Math.max( ...$$('.win95-window').map(w => +getComputedStyle(w).zIndex || 10), 10 );
+    const maxZ = Math.max(...$$('.win95-window, [id^="doc-"]').map(w => +getComputedStyle(w).zIndex || 10), 10);
     el.style.zIndex = String(maxZ + 1);
   };
 
-  // Task button helpers
-  const getTaskButton = (id) =>
-    document.querySelector(`.task-button[data-window="${id}"]`);
+  const getTaskButton = (id) => document.querySelector(`.task-button[data-window="${id}"]`);
 
   const ensureTaskButton = (winEl) => {
     let btn = getTaskButton(winEl.id);
     if (!btn) {
-      btn = createTaskButton(winEl);
+      btn = document.createElement('button');
+      btn.className = 'task-button';
+      btn.textContent = winEl.querySelector('.titlebar span').textContent;
+      btn.dataset.window = winEl.id;
+      btn.addEventListener('click', () => toggleWindow(winEl, true));
       $('#task-buttons').appendChild(btn);
     }
     return btn;
   };
 
-  const createTaskButton = (winEl) => {
-    const id = winEl.id;
-    const btn = document.createElement('button');
-    btn.className = 'task-button';
-    btn.textContent = winEl.querySelector('.titlebar span').textContent;
-    btn.dataset.window = id;
-    btn.addEventListener('click', ()=> toggleWindow(winEl, true));
-    return btn;
-  };
-
-  // UPDATED: taskbar click now always shows/un-minimizes & focuses
-  const toggleWindow = (winEl, fromTaskbar=false) => {
+  const toggleWindow = (winEl, fromTaskbar = false) => {
     const btn = ensureTaskButton(winEl);
-
-    if (fromTaskbar) {
-      if (winEl.classList.contains('hidden')) {
-        winEl.classList.remove('hidden');
-        if (isMobile()) winEl.classList.add('maximized');
-      }
-      bringToFront(winEl);
-      btn.classList.add('active');
-      focusFirst(winEl);
-      clampToViewport(winEl);
-      return;
-    }
 
     if (winEl.classList.contains('hidden')) {
       winEl.classList.remove('hidden');
@@ -354,8 +320,9 @@
       return;
     }
 
-    // Already visible: focus only
+    // Already visible → bring to front / activate
     bringToFront(winEl);
+    $$('.task-button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     clampToViewport(winEl);
   };
@@ -374,61 +341,58 @@
     if (r.height > vh) win.style.height = Math.max(vh, 160) + 'px';
 
     const rect = win.getBoundingClientRect();
-    const maxLeft = Math.max(0, vw - Math.min(rect.width, vw));
-    const maxTop  = Math.max(0, vh - Math.min(rect.height, vh));
-
-    if (rect.left > maxLeft) win.style.left = maxLeft + 'px';
-    if (rect.top  > maxTop)  win.style.top  = maxTop  + 'px';
-    if (rect.left < 0)       win.style.left = '0px';
-    if (rect.top  < 0)       win.style.top  = '0px';
+    win.style.left = Math.max(0, Math.min(vw - rect.width, rect.left)) + 'px';
+    win.style.top  = Math.max(0, Math.min(vh - rect.height, rect.top)) + 'px';
   }
 
-  window.addEventListener('resize', ()=> $$('.win95-window').forEach(clampToViewport));
+  window.addEventListener('resize', () => {
+    $$('.win95-window, [id^="doc-"]').forEach(clampToViewport);
+  });
 
-  // ---------- Window wiring ----------
-  $$('.win95-window').forEach((win)=>{
-    if (!win.classList.contains('hidden') && isMobile()) {
-      win.classList.add('maximized');
-    }
-
-    bringToFront(win);
-    const tb = ensureTaskButton(win);
-    tb.classList.toggle('active', !win.classList.contains('hidden'));
+  // ---------- Wire events for a window (called once when it first becomes visible) ----------
+  function wireWindowEvents(win) {
+    if (win.dataset.wired) return;
+    win.dataset.wired = 'true';
 
     const handle = win.querySelector('[data-drag-handle]');
-    let dragging = false, offX=0, offY=0;
+    let dragging = false, offX = 0, offY = 0;
 
-    handle.addEventListener('dblclick', ()=>{ win.classList.toggle('maximized'); bringToFront(win); clampToViewport(win); });
+    handle.addEventListener('dblclick', () => {
+      win.classList.toggle('maximized');
+      bringToFront(win);
+      clampToViewport(win);
+    });
 
-    handle.addEventListener('mousedown', (e)=>{
+    handle.addEventListener('mousedown', (e) => {
+      if (win.classList.contains('maximized')) return;
       dragging = true; bringToFront(win);
       const rect = win.getBoundingClientRect();
       offX = e.clientX - rect.left; offY = e.clientY - rect.top;
       document.body.style.userSelect = 'none';
     });
-    window.addEventListener('mousemove', (e)=>{
-      if(!dragging || win.classList.contains('maximized')) return;
+
+    const moveHandler = (e) => {
+      if (!dragging || win.classList.contains('maximized')) return;
       win.style.left = Math.max(0, Math.min(window.innerWidth - 80, e.clientX - offX)) + 'px';
       win.style.top  = Math.max(0, Math.min(window.innerHeight - 64, e.clientY - offY)) + 'px';
-    });
-    window.addEventListener('mouseup', ()=>{ dragging = false; document.body.style.userSelect = ''; });
+    };
+    const upHandler = () => { dragging = false; document.body.style.userSelect = ''; };
 
-    win.querySelectorAll('.titlebar [data-action]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
+    window.addEventListener('mousemove', moveHandler);
+    window.addEventListener('mouseup', upHandler);
+
+    win.querySelectorAll('.titlebar [data-action]').forEach(btn => {
+      btn.addEventListener('click', () => {
         const act = btn.dataset.action;
         const taskBtn = ensureTaskButton(win);
 
         if (act === 'close') {
           win.classList.add('hidden');
           taskBtn.remove();
-          return;
-        }
-        if (act === 'minimize') {
+        } else if (act === 'minimize') {
           win.classList.add('hidden');
           taskBtn.classList.remove('active');
-          return;
-        }
-        if (act === 'maximize') {
+        } else if (act === 'maximize') {
           win.classList.toggle('maximized');
           bringToFront(win);
           clampToViewport(win);
@@ -437,23 +401,34 @@
       });
     });
 
-    win.addEventListener('mousedown', ()=>{
+    win.addEventListener('mousedown', () => {
       bringToFront(win);
-      $$('.task-button').forEach(b=>b.classList.remove('active'));
+      $$('.task-button').forEach(b => b.classList.remove('active'));
       ensureTaskButton(win).classList.add('active');
     });
 
     clampToViewport(win);
+  }
+
+  // ---------- Boot-time: only clamp hidden windows, no buttons yet ----------
+  $$('.win95-window').forEach(win => {
+    clampToViewport(win);
   });
 
   // Desktop icons
-  $$('.desktop a.icon').forEach(a=>{
-    a.addEventListener('click', (e)=>{
+  $$('.desktop a.icon').forEach(a => {
+    a.addEventListener('click', (e) => {
       e.preventDefault();
       const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog' };
-      const w = $(map[a.dataset.open]); if (!w) return;
+      const w = $(map[a.dataset.open]);
+      if (!w) return;
+
+      if (w.classList.contains('hidden')) {
+        w.classList.remove('hidden');
+        if (isMobile()) w.classList.add('maximized');
+        wireWindowEvents(w);
+      }
       toggleWindow(w);
-      ensureTaskButton(w).classList.add('active');
       if (w.id === 'win-terminal') $('#term-in').focus();
     });
   });
@@ -461,33 +436,42 @@
   // Start menu
   const startBtn = $('#start-btn');
   const startMenu = $('#start-menu');
-  startMenu.style.zIndex = 1001; // pin above everything
 
-  startBtn.addEventListener('click', ()=>{
+  startBtn.addEventListener('click', () => {
     const open = startMenu.style.display === 'block';
     startMenu.style.display = open ? 'none' : 'block';
     startBtn.setAttribute('aria-expanded', String(!open));
-    if (!open) startMenu.style.zIndex = 1001;
-    if (!open) startMenu.querySelector('li, .item')?.focus?.();
   });
 
-  document.addEventListener('click', (e)=>{
+  document.addEventListener('click', (e) => {
     if (!startMenu.contains(e.target) && !startBtn.contains(e.target)) {
-      startMenu.style.display = 'none'; startBtn.setAttribute('aria-expanded','false');
+      startMenu.style.display = 'none';
+      startBtn.setAttribute('aria-expanded','false');
     }
   });
 
-  document.addEventListener('keydown', (e)=>{
-    if (e.key === 'Escape') { startMenu.style.display='none'; startBtn.setAttribute('aria-expanded','false'); }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      startMenu.style.display = 'none';
+      startBtn.setAttribute('aria-expanded','false');
+    }
   });
 
-  startMenu.querySelectorAll('[data-open]').forEach(item=>{
+  startMenu.querySelectorAll('[data-open]').forEach(item => {
     item.setAttribute('tabindex','0');
-    item.addEventListener('click', ()=>{
+    item.addEventListener('click', () => {
       const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog' };
       const w = $(map[item.dataset.open]);
-      toggleWindow(w); startMenu.style.display = 'none';
-      ensureTaskButton(w).classList.add('active');
+      if (!w) return;
+
+      if (w.classList.contains('hidden')) {
+        w.classList.remove('hidden');
+        if (isMobile()) w.classList.add('maximized');
+        wireWindowEvents(w);
+      }
+
+      toggleWindow(w);
+      startMenu.style.display = 'none';
       if (w.id === 'win-terminal') $('#term-in').focus();
     });
   });
@@ -520,14 +504,14 @@
     return h;
   }
 
-  // Posts discovery
+  // Posts logic (unchanged except integration)
   const postsListEl = $('#posts-list');
   const postViewer = $('#post-viewer');
   const desktop = $('#desktop');
   const menuHtml = $('#menu-posts-html');
   const menuMd = $('#menu-posts-md');
 
-  let POSTS = [];      // {id,title,date,file,type}
+  let POSTS = [];
   let HTML_POSTS = [];
   let MD_POSTS = [];
 
@@ -556,15 +540,14 @@
 
   function renderPostsList(){
     postsListEl.innerHTML = '';
-    const toShow = MD_POSTS;
-    toShow.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
-    for(const p of toShow){
+    MD_POSTS.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+    MD_POSTS.forEach(p=>{
       const li = document.createElement('li');
       li.textContent = `${p.title}${p.date? ' — '+p.date:''}`;
-      li.dataset.id = p.id; li.title = p.id;
+      li.dataset.id = p.id;
       li.addEventListener('click', ()=> openPost(p.id));
       postsListEl.appendChild(li);
-    }
+    });
   }
 
   function mountDesktopHtmlIcons(){
@@ -574,64 +557,61 @@
     HTML_POSTS.forEach((p, idx)=>{
       const a = document.createElement('a');
       a.className = 'icon';
-      a.style.left = (startX) + 'px';
+      a.style.left = startX + 'px';
       a.style.top  = (startY + idx*stepY) + 'px';
       a.href = '#';
       a.dataset.doc = p.id;
       a.title = p.title;
 
-      const svg = "data:image/svg+xml;utf8," +
-        encodeURIComponent(`<?xml version='1.0'?>
-          <svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'>
-            <rect x='8' y='6' width='32' height='36' fill='#fff' stroke='#000'/>
-            <line x1='12' y1='14' x2='36' y2='14' stroke='#000'/>
-            <line x1='12' y1='20' x2='36' y2='20' stroke='#000'/>
-            <line x1='12' y1='26' x2='28' y2='26' stroke='#000'/>
-          </svg>`);
+      const svg = "data:image/svg+xml;utf8," + encodeURIComponent(`<?xml version='1.0'?>
+        <svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'>
+          <rect x='8' y='6' width='32' height='36' fill='#fff' stroke='#000'/>
+          <line x1='12' y1='14' x2='36' y2='14' stroke='#000'/>
+          <line x1='12' y1='20' x2='36' y2='20' stroke='#000'/>
+          <line x1='12' y1='26' x2='28' y2='26' stroke='#000'/>
+        </svg>`);
 
       const img = document.createElement('img');
-      img.alt = 'Document';
-      img.src = svg;
+      img.alt = 'Document'; img.src = svg;
       const span = document.createElement('span');
       span.textContent = p.title.slice(0,22);
 
-      a.appendChild(img); a.appendChild(span);
-      a.addEventListener('click', (e)=>{ e.preventDefault(); openHtmlDocumentWindow(p); });
+      a.append(img, span);
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        openHtmlDocumentWindow(p);
+      });
       desktop.appendChild(a);
     });
   }
 
   function buildStartMenuPosts(){
-    menuHtml.innerHTML = '';
-    menuMd.innerHTML = '';
-    if (HTML_POSTS.length){
+    menuHtml.innerHTML = menuMd.innerHTML = '';
+    if (HTML_POSTS.length) {
       const h = document.createElement('h5'); h.textContent = 'HTML';
-      if (!menuHtml.previousElementSibling || menuHtml.previousElementSibling.tagName!=='H5'){
-        menuHtml.parentElement.insertBefore(h, menuHtml);
-      }
-      HTML_POSTS.forEach(p=>{
+      menuHtml.parentElement.insertBefore(h, menuHtml);
+      HTML_POSTS.forEach(p => {
         const div = document.createElement('div');
         div.className = 'item';
         div.textContent = p.title;
-        div.addEventListener('click', ()=>{
+        div.addEventListener('click', () => {
           startMenu.style.display='none';
           openHtmlDocumentWindow(p);
         });
         menuHtml.appendChild(div);
       });
     }
-    if (MD_POSTS.length){
+    if (MD_POSTS.length) {
       const h = document.createElement('h5'); h.textContent = 'Markdown';
-      if (!menuMd.previousElementSibling || menuMd.previousElementSibling.tagName!=='H5'){
-        menuMd.parentElement.insertBefore(h, menuMd);
-      }
-      MD_POSTS.forEach(p=>{
+      menuMd.parentElement.insertBefore(h, menuMd);
+      MD_POSTS.forEach(p => {
         const div = document.createElement('div');
         div.className = 'item';
         div.textContent = p.title;
-        div.addEventListener('click', async ()=>{
+        div.addEventListener('click', async () => {
           startMenu.style.display='none';
-          toggleWindow($('#win-blog')); await openPost(p.id);
+          toggleWindow($('#win-blog'));
+          await openPost(p.id);
         });
         menuMd.appendChild(div);
       });
@@ -645,14 +625,12 @@
     try{
       const res = await fetch(p.file, {cache:'no-store'});
       const text = await res.text();
-      if (p.file.endsWith('.md')) postViewer.innerHTML = mdToHtml(text);
-      else postViewer.innerHTML = text.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi,'');
-    }catch(err){
+      postViewer.innerHTML = mdToHtml(text);
+    }catch{
       postViewer.innerHTML = `<p>Could not load <code>${p.file}</code>.</p>`;
     }
   }
 
-  // Dynamic Document Window (for HTML posts)
   function openHtmlDocumentWindow(p){
     let win = document.getElementById('doc-'+p.id);
     if (!win){
@@ -663,15 +641,7 @@
       win.style.left = (180 + Math.floor(Math.random()*60)) + 'px';
       win.style.top  = (100 + Math.floor(Math.random()*40)) + 'px';
       win.style.width = '720px';
-      win.style.height= '480px';
-
-      if (isMobile()) {
-        win.classList.add('maximized');
-        win.style.left = '0px';
-        win.style.top  = '0px';
-        win.style.width  = '100%';
-        win.style.height = 'calc(100% - 32px)';
-      }
+      win.style.height = '480px';
 
       win.innerHTML = `
         <div class="titlebar" data-drag-handle>
@@ -685,193 +655,124 @@
         <div class="content" style="padding:0">
           <iframe class="doc-frame" src="${p.file}" title="${escapeHtml(p.title)}"></iframe>
         </div>`;
+
       document.body.appendChild(win);
-      wireWindow(win);
+      wireWindowEvents(win);
     }
     toggleWindow(win);
   }
 
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  function wireWindow(win){
-    const tb = ensureTaskButton(win);
-    const handle = win.querySelector('[data-drag-handle]');
-    let dragging=false, offX=0, offY=0;
-
-    handle.addEventListener('dblclick', ()=>{ win.classList.toggle('maximized'); bringToFront(win); clampToViewport(win); });
-    handle.addEventListener('mousedown',(e)=>{
-      dragging=true; bringToFront(win);
-      const rect = win.getBoundingClientRect();
-      offX = e.clientX - rect.left; offY = e.clientY - rect.top;
-      document.body.style.userSelect='none';
-    });
-    window.addEventListener('mousemove',(e)=>{
-      if(!dragging || win.classList.contains('maximized')) return;
-      win.style.left = Math.max(0, Math.min(window.innerWidth - 80, e.clientX - offX)) + 'px';
-      win.style.top  = Math.max(0, Math.min(window.innerHeight - 64, e.clientY - offY)) + 'px';
-    });
-    window.addEventListener('mouseup', ()=>{ dragging=false; document.body.style.userSelect=''; });
-
-    win.querySelectorAll('.titlebar [data-action]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const act = btn.dataset.action;
-        const taskBtn = ensureTaskButton(win);
-
-        if (act === 'close') {
-          win.classList.add('hidden');
-          taskBtn.remove();
-          return;
-        }
-        if (act === 'minimize') {
-          win.classList.add('hidden');
-          taskBtn.classList.remove('active');
-          return;
-        }
-        if (act === 'maximize') {
-          win.classList.toggle('maximized'); bringToFront(win);
-          clampToViewport(win);
-          taskBtn.classList.add('active');
-        }
-      });
-    });
-    win.addEventListener('mousedown', ()=>{
-      bringToFront(win);
-      $$('.task-button').forEach(b=>b.classList.remove('active'));
-      ensureTaskButton(win).classList.add('active');
-    });
-    clampToViewport(win);
-    tb.classList.add('active');
-  }
-
-  // Drag-drop .md into viewer (preview only)
-  $('#win-blog').addEventListener('dragover', (e)=>{ e.preventDefault(); });
-  $('#win-blog').addEventListener('drop', (e)=>{
-    e.preventDefault();
-    const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (!file) return;
-    if (!/\.md$|\.txt$/i.test(file.name)) { alert('Drop a .md or .txt file to preview.'); return; }
-    const reader = new FileReader();
-    reader.onload = ()=>{ postViewer.innerHTML = mdToHtml(String(reader.result||'')); };
-    reader.readAsText(file);
-  });
-
-  // Terminal
+  // ---------- Terminal ----------
   const out = $('#term-out');
   const input = $('#term-in');
   let history = []; let hIndex = -1;
 
   function print(txt){ out.innerHTML += txt + "\n"; out.scrollTop = out.scrollHeight; }
-  function banner(){
-    print("Sol-37 Interactive Shell (retro)\nType 'help' to begin.\n");
-  }
+  function banner(){ print("Sol-37 Interactive Shell (retro)\nType 'help' to begin.\n"); }
   banner();
 
   const commands = {
-    help(){
-      print(["Available commands:",
-        "  help                        Show this help",
-        "  about                       About Sol-37",
-        "  whoami                      Print identity",
-        "  date                        Show local time",
-        "  ls                          List desktop items",
-        "  posts                       List discovered posts (HTML + MD)",
-        "  openpost <id>               Open a post (MD -> Blog, HTML -> window)",
-        "  cat <id>                    Print MD post content inline",
-        "  open <url|path>             Open a link in a new tab",
-        "  echo <text>                 Print text",
-        "  clear                       Clear screen",
-        "  theme <green|amber|gray>    Change terminal theme",
-      ].join("\n"));
-    },
-    about(){ print("Sol-37 is your speculative-science sidekick in Win95 clothing. Drag windows, poke around, and have fun."); },
+    help(){ print("Available commands:\n  help  about  whoami  date  ls  posts  openpost <id>  cat <id>  open <url>  echo  clear  theme <green|amber|gray>"); },
+    about(){ print("Sol-37 is your speculative-science sidekick in Win95 clothing."); },
     whoami(){ print("SOL-37 :: Narrator/Assistant :: C:\\\\SOL37>"); },
     date(){ print(new Date().toString()); },
-    ls(){ print("DESKTOP\n  - Sol-37 (About)\n  - Command (Terminal)\n  - Blog (Posts)\n  - HTML posts (dynamic icons)"); },
-    posts(){
-      if (!POSTS.length) { print("No posts found (create posts/index.json). Using demo…"); }
-      POSTS.forEach(p=> print(` - ${p.id} :: ${p.title}${p.date? ' — '+p.date:''} [${p.type}]`));
-    },
+    ls(){ print("DESKTOP\n  - Sol-37\n  - Command\n  - Blog\n  - HTML posts (dynamic)"); },
+    posts(){ POSTS.forEach(p=> print(` - ${p.id} :: ${p.title}${p.date? ' — '+p.date:''} [${p.type}]`)); },
     async openpost(id){
-      if(!id){ print("Usage: openpost <id>"); return; }
+      if(!id) return print("Usage: openpost <id>");
       const p = POSTS.find(x=>x.id===id);
-      if(!p){ print("No such post: "+id); return; }
-      if (p.type === 'html'){ openHtmlDocumentWindow(p); }
-      else if (p.type === 'md'){ toggleWindow($('#win-blog')); await openPost(id); }
-      else { print("Unknown type for: "+id); }
+      if(!p) return print("No such post: "+id);
+      if(p.type==='html') openHtmlDocumentWindow(p);
+      else if(p.type==='md'){ toggleWindow($('#win-blog')); await openPost(id); }
     },
     async cat(id){
-      if(!id){ print("Usage: cat <id>"); return; }
+      if(!id) return print("Usage: cat <id>");
       const p = MD_POSTS.find(x=>x.id===id);
-      if(!p){ print("No such markdown post: "+id); return; }
+      if(!p) return print("No markdown post: "+id);
       try {
-        const res = await fetch(p.file, {cache:'no-store'}); const text = await res.text();
-        print("\n"+text+"\n");
-      } catch(e){ print('Failed to read post.'); }
+        const res = await fetch(p.file, {cache:'no-store'});
+        print("\n" + await res.text() + "\n");
+      } catch { print('Failed to read post.'); }
     },
     open(arg){
-      if (!arg) { print("Usage: open <url|path>"); return; }
-      try {
-        const w = window.open(arg, '_blank', 'noopener'); 
-        if (w) print("Opening: " + arg); else print("Popup blocked.");
-      } catch(e){ print("Could not open URL."); }
+      if(!arg) return print("Usage: open <url>");
+      window.open(arg, '_blank', 'noopener');
+      print("Opening: " + arg);
     },
     echo(arg){ print(arg||''); },
     clear(){ out.innerHTML = ''; },
     theme(arg){
-      const b = document.body;
-      b.classList.remove('theme-amber','theme-gray');
-      if (arg==='amber') b.classList.add('theme-amber');
-      else if (arg==='gray') b.classList.add('theme-gray');
-      else b.classList.remove('theme-amber','theme-gray');
-      print("Theme set: " + (arg||'green'));
+      document.body.classList.remove('theme-amber','theme-gray');
+      if (arg==='amber') document.body.classList.add('theme-amber');
+      else if (arg==='gray') document.body.classList.add('theme-gray');
+      print("Theme: " + (arg||'green'));
     }
   };
 
-  input.addEventListener('keydown', (e)=>{
+  input.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       const raw = input.value.trim();
-      if (!raw) return; history.unshift(raw); hIndex = -1;
+      if (!raw) return;
+      history.unshift(raw); hIndex = -1;
       print(`C:\\SOL37> ${raw}`);
-      input.value='';
+      input.value = '';
       const [cmd, ...rest] = raw.split(/\s+/);
       const arg = rest.join(' ');
-      const name = (cmd||'').toLowerCase();
-      const fn = commands[name];
-      if (fn) fn(arg);
-      else print(`Unknown command: ${cmd}. Type 'help'.`);
+      commands[cmd.toLowerCase()]?.(arg) ?? print(`Unknown command: ${cmd}. Type 'help'.`);
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault(); if (history.length){ hIndex = Math.min(hIndex+1, history.length-1); input.value = history[hIndex]; input.setSelectionRange(input.value.length,input.value.length); }
+      e.preventDefault();
+      if (history.length) {
+        hIndex = Math.min(hIndex+1, history.length-1);
+        input.value = history[hIndex];
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
     } else if (e.key === 'ArrowDown') {
-      e.preventDefault(); if (history.length){ hIndex = Math.max(hIndex-1, -1); input.value = hIndex===-1? '': history[hIndex]; }
+      e.preventDefault();
+      if (history.length) {
+        hIndex = Math.max(hIndex-1, -1);
+        input.value = hIndex === -1 ? '' : history[hIndex];
+      }
     }
   });
 
-  // Programmatic openers
-  $('#menu-theme').addEventListener('click', ()=>{ toggleWindow($('#win-terminal')); print("Try: theme amber | theme gray | theme green"); startMenu.style.display='none'; });
-
-  // Taskbar: always un-minimize & focus
-  $('#task-buttons').addEventListener('click', (e)=>{
-    const btn = e.target.closest('.task-button'); if (!btn) return;
-    const w = document.getElementById(btn.dataset.window);
-    if (!w) { btn.remove(); return; }
-    toggleWindow(w, true); // SHOW/FOCUS behavior
-  });
-
-  $('#win-terminal').addEventListener('click', ()=> input.focus());
-
-  // Load posts at boot, then auto-open the first HTML post (or 'timeline' if present)
+  // Boot: auto-open priority post
   loadPosts().then(() => {
-    const p = POSTS.find(x => x.id === 'thesis') || HTML_POSTS[0];
-    if (p && p.type === 'html') {
-      openHtmlDocumentWindow(p);
-      // const w = document.getElementById('doc-' + p.id);
-      // if (w) w.classList.add('maximized');
-    } else if (p && p.type === 'md') {
-      toggleWindow($('#win-blog'));
-      openPost(p.id);
+    const priority = POSTS.find(x => x.id === 'thesis') || HTML_POSTS[0];
+    if (priority) {
+      if (priority.type === 'html') {
+        openHtmlDocumentWindow(priority);
+        const w = $('#doc-' + priority.id);
+        if (w && isMobile()) {
+          w.classList.add('maximized');
+          bringToFront(w);
+        }
+      } else if (priority.type === 'md') {
+        toggleWindow($('#win-blog'));
+        openPost(priority.id);
+      }
     }
   });
 
+  // Drag-drop md preview
+  $('#win-blog').addEventListener('dragover', e => e.preventDefault());
+  $('#win-blog').addEventListener('drop', e => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !/\.md$|\.txt$/i.test(file.name)) return alert('Drop a .md or .txt file.');
+    const reader = new FileReader();
+    reader.onload = () => { postViewer.innerHTML = mdToHtml(reader.result); };
+    reader.readAsText(file);
+  });
+
+  $('#menu-theme').addEventListener('click', () => {
+    toggleWindow($('#win-terminal'));
+    print("Try: theme amber | theme gray | theme green");
+    startMenu.style.display = 'none';
+  });
+
+  $('#win-terminal').addEventListener('click', () => input.focus());
 })();
 </script>
 <script defer src="https://tinylytics.app/embed/BLs8Pz1x77uyP9Ps6uFS.js?hits"></script>
