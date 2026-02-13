@@ -148,6 +148,16 @@
     .desktop a.icon { width: 80px; }
   }
 
+  /* --- Responsive tray behavior --- */
+  @media (max-width: 640px) {
+    #archive-counter {
+      max-width: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) { .blink { animation: none; } }
 
   /* --- z-index sanity (ensures taskbar & start menu are topmost) --- */
