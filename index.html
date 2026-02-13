@@ -488,15 +488,19 @@
   const clock = $('#clock');
   const counter = $('#counter');
 
-  fetch('https://api.countapi.xyz/hit/davidlones.github.io/index')
+  fetch('https://api.countapi.xyz/update/davidlones.github.io/index?amount=1')
     .then(res => res.json())
     .then(data => {
-      if (counter && typeof data.value === 'number') {
+      if (!counter) return;
+      if (typeof data.value === 'number') {
         counter.textContent = data.value.toLocaleString();
+      } else {
+        counter.textContent = '—';
       }
     })
-    .catch(() => {
-      if (counter) counter.textContent = 'unavailable';
+    .catch(err => {
+      console.warn('Archive counter unavailable:', err);
+      if (counter) counter.textContent = '—';
     });
 
   function updateClock(){
