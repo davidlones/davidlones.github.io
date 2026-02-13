@@ -89,6 +89,15 @@
   .task-button.active { outline: 2px solid #000080; color: #000; background: #dfdfdf; }
 
   .tray { justify-self: end; display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+  #archive-counter {
+    font-family: monospace;
+    font-size: 11px;
+    color: #555;
+    opacity: 0.8;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  #archive-counter span { color: #777; }
   .clock { background: #dfdfdf; border: 1px solid #000; box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080; padding: 2px 6px; font-size: 12px; min-width: 110px; text-align: center; }
 
   /* --------- Icons / Desktop --------- */
@@ -262,6 +271,9 @@
     </button>
     <div class="task-buttons" id="task-buttons"></div>
     <div class="tray">
+      <div id="archive-counter" title="Aggregate access events. No personal data stored.">
+        Archive access count: <span id="counter">—</span>
+      </div>
       <div class="clock" id="clock">--:-- --</div>
     </div>
   </footer>
@@ -474,6 +486,23 @@
 
   // Clock
   const clock = $('#clock');
+  const counter = $('#counter');
+
+  fetch('https://api.countapi.xyz/update/davidlones.github.io/index?amount=1')
+    .then(res => res.json())
+    .then(data => {
+      if (!counter) return;
+      if (typeof data.value === 'number') {
+        counter.textContent = data.value.toLocaleString();
+      } else {
+        counter.textContent = '—';
+      }
+    })
+    .catch(err => {
+      console.warn('Archive counter unavailable:', err);
+      if (counter) counter.textContent = '—';
+    });
+
   function updateClock(){
     const d = new Date();
     const hrs = d.getHours();
