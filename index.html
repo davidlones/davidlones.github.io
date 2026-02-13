@@ -169,6 +169,10 @@
       <img alt="Blog" src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect x='6' y='8' width='36' height='32' fill='%23fff' stroke='%23000'/><line x1='10' y1='14' x2='38' y2='14' stroke='%23000'/><line x1='10' y1='20' x2='38' y2='20' stroke='%23000'/><line x1='10' y1='26' x2='38' y2='26' stroke='%23000'/><line x1='10' y1='32' x2='28' y2='32' stroke='%23000'/></svg>">
       <span>Blog</span>
     </a>
+    <a class="icon" style="left:120px; top:184px;" href="#" data-program="star-map">
+      <img alt="Star Map" src="data:image/svg+xml;utf8,<?xml version='1.0'?><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect width='48' height='48' fill='%23000020'/><circle cx='24' cy='24' r='12' fill='none' stroke='%23ffffff'/><circle cx='24' cy='24' r='2' fill='%23ffd700'/><circle cx='10' cy='11' r='1' fill='%23ffffff'/><circle cx='36' cy='15' r='1' fill='%23ffffff'/><circle cx='14' cy='33' r='1' fill='%23ffffff'/><circle cx='38' cy='35' r='1' fill='%23ffffff'/></svg>">
+      <span>Star Map</span>
+    </a>
   </div>
 
   <!-- About Window -->
@@ -250,6 +254,7 @@
     <ul>
       <li data-open="terminal">Command Prompt</li>
       <li data-open="blog">Blog</li>
+      <li data-program="star-map">Star Map</li>
       <li data-open="about">About all this...</li>
       <li id="menu-theme">Themes ▸</li>
     </ul>
@@ -279,6 +284,15 @@
   // ---------- Helpers ----------
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const PROGRAMS = [
+    {
+      id: 'star-map',
+      title: 'Star Map — StarFinder II',
+      file: 'programs/star-map.html',
+      width: 900,
+      height: 600
+    }
+  ];
   const WIN_MARGIN_BOTTOM = 32;
   const MOBILE_QUERY = window.matchMedia('(max-width: 640px)');
   const isMobile = () => MOBILE_QUERY.matches;
@@ -419,6 +433,12 @@
   $$('.desktop a.icon').forEach(a => {
     a.addEventListener('click', (e) => {
       e.preventDefault();
+      if (a.dataset.program) {
+        const program = PROGRAMS.find(p => p.id === a.dataset.program);
+        if (program) openProgramWindow(program);
+        return;
+      }
+
       const map = { about: '#win-about', terminal: '#win-terminal', blog: '#win-blog' };
       const w = $(map[a.dataset.open]);
       if (!w) return;
@@ -473,6 +493,15 @@
       toggleWindow(w);
       startMenu.style.display = 'none';
       if (w.id === 'win-terminal') $('#term-in').focus();
+    });
+  });
+
+  startMenu.querySelectorAll('[data-program]').forEach(item => {
+    item.setAttribute('tabindex', '0');
+    item.addEventListener('click', () => {
+      const program = PROGRAMS.find(p => p.id === item.dataset.program);
+      if (program) openProgramWindow(program);
+      startMenu.style.display = 'none';
     });
   });
 
@@ -662,6 +691,37 @@
     toggleWindow(win);
   }
 
+  function openProgramWindow(prog){
+    let win = document.getElementById('prog-' + prog.id);
+    if (!win) {
+      win = document.createElement('section');
+      win.className = 'win95-window';
+      win.id = 'prog-' + prog.id;
+
+      win.style.left = '200px';
+      win.style.top = '120px';
+      win.style.width = (prog.width || 800) + 'px';
+      win.style.height = (prog.height || 500) + 'px';
+
+      win.innerHTML = `
+        <div class="titlebar" data-drag-handle>
+          <span>${escapeHtml(prog.title)} — C:\\SOL37\\Programs\\</span>
+          <div class="controls">
+            <button title="Minimize" data-action="minimize" aria-label="Minimize">_</button>
+            <button title="Maximize" data-action="maximize" aria-label="Maximize">▢</button>
+            <button title="Close" data-action="close" aria-label="Close">✕</button>
+          </div>
+        </div>
+        <div class="content" style="padding:0">
+          <iframe class="doc-frame" src="${prog.file}" title="${escapeHtml(prog.title)}" loading="lazy"></iframe>
+        </div>`;
+
+      document.body.appendChild(win);
+      wireWindowEvents(win);
+    }
+    toggleWindow(win);
+  }
+
   function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
   // ---------- Terminal ----------
@@ -674,11 +734,11 @@
   banner();
 
   const commands = {
-    help(){ print("Available commands:\n  help  about  whoami  date  ls  posts  openpost <id>  cat <id>  open <url>  echo  clear  theme <green|amber|gray>"); },
+    help(){ print("Available commands:\n  help  about  whoami  date  ls  posts  openpost <id>  cat <id>  star  open <url>  echo  clear  theme <green|amber|gray>"); },
     about(){ print("Sol-37 is your speculative-science sidekick in Win95 clothing."); },
     whoami(){ print("SOL-37 :: Narrator/Assistant :: C:\\\\SOL37>"); },
     date(){ print(new Date().toString()); },
-    ls(){ print("DESKTOP\n  - Sol-37\n  - Command\n  - Blog\n  - HTML posts (dynamic)"); },
+    ls(){ print("DESKTOP\n  - Sol-37\n  - Command\n  - Blog\n  - Star Map\n  - HTML posts (dynamic)"); },
     posts(){ POSTS.forEach(p=> print(` - ${p.id} :: ${p.title}${p.date? ' — '+p.date:''} [${p.type}]`)); },
     async openpost(id){
       if(!id) return print("Usage: openpost <id>");
@@ -700,6 +760,10 @@
       if(!arg) return print("Usage: open <url>");
       window.open(arg, '_blank', 'noopener');
       print("Opening: " + arg);
+    },
+    star(){
+      openProgramWindow(PROGRAMS.find(p => p.id === 'star-map'));
+      print('Launching Star Map...');
     },
     echo(arg){ print(arg||''); },
     clear(){ out.innerHTML = ''; },
