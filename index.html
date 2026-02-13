@@ -352,10 +352,7 @@
       btn.className = 'task-button';
       btn.textContent = winEl.querySelector('.titlebar span').textContent;
       btn.dataset.window = winEl.id;
-      btn.addEventListener('click', () => {
-        trackTinylyticsEvent('taskbar.activate', winEl.id.replace(/^win-|^doc-|^prog-/, ''));
-        toggleWindow(winEl, true);
-      });
+      btn.addEventListener('click', () => toggleWindow(winEl, true));
       $('#task-buttons').appendChild(btn);
     }
     return btn;
@@ -412,7 +409,6 @@
     let dragging = false, offX = 0, offY = 0;
 
     handle.addEventListener('dblclick', () => {
-      trackTinylyticsEvent('window.maximize', win.id.replace(/^win-|^doc-|^prog-/, ''));
       win.classList.toggle('maximized');
       bringToFront(win);
       clampToViewport(win);
@@ -501,7 +497,6 @@
 
   startBtn.addEventListener('click', () => {
     const open = startMenu.style.display === 'block';
-    trackTinylyticsEvent('start.toggle', open ? 'close' : 'open');
     startMenu.style.display = open ? 'none' : 'block';
     startBtn.setAttribute('aria-expanded', String(!open));
   });
@@ -517,19 +512,6 @@
     if (e.key === 'Escape') {
       startMenu.style.display = 'none';
       startBtn.setAttribute('aria-expanded','false');
-    }
-  });
-
-  document.addEventListener('click', (e) => {
-    const link = e.target.closest('a[href]');
-    if (!link) return;
-    const href = link.getAttribute('href') || '';
-    if (!/^https?:\/\//i.test(href)) return;
-    try {
-      const host = new URL(link.href, window.location.href).hostname;
-      trackTinylyticsEvent('link.external', host || 'unknown');
-    } catch {
-      trackTinylyticsEvent('link.external', 'unknown');
     }
   });
 
