@@ -1,169 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The Long Thinning [Reconstructed]</title>
 
+<!-- Tailwind (runtime, deterministic enough for static) -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-body { background:#020617; }
-.custom-scrollbar::-webkit-scrollbar { width:4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background:#064e3b; }
+  :root {
+    --emerald: #10b981;
+    --emerald-dim: #064e3b;
+    --bg: #020617;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+  }
+
+  /* Scrollbar discipline */
+  .scrollbar::-webkit-scrollbar { width: 4px; }
+  .scrollbar::-webkit-scrollbar-thumb {
+    background: var(--emerald-dim);
+    border-radius: 2px;
+  }
+
+  /* Grid discipline */
+  .dashboard {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 1rem;
+  }
 </style>
 </head>
 
-<body class="bg-neutral-950 text-emerald-500 font-mono">
-<div id="root"></div>
+<body class="text-emerald-500 font-mono">
+
+<div id="root" class="dashboard p-4 md:p-6 max-w-[1600px] mx-auto"></div>
 
 <script type="module">
+/* -------------------- Imports -------------------- */
 import React, { useState, useMemo, useEffect } from "https://esm.sh/react";
 import { createRoot } from "https://esm.sh/react-dom/client";
+
 import {
-  AreaChart, Area, Line, XAxis, YAxis,
-  CartesianGrid, Tooltip,
+  AreaChart, Area, Line,
+  XAxis, YAxis, CartesianGrid,
   ResponsiveContainer, ReferenceLine
 } from "https://esm.sh/recharts";
+
 import {
   Database, Users, Activity,
-  Zap, ChevronLeft, ChevronRight
+  Zap, ChevronLeft, ChevronRight, ShieldAlert
 } from "https://esm.sh/lucide-react";
 
-const ARCHIVE_DATA = [
-  { year:0, exited:3, buffer:3.2, jobs:62, active:397 },
-  { year:1, exited:9, buffer:2.6, jobs:60.5, active:391 },
-  { year:2, exited:22, buffer:2.1, jobs:59, active:378 },
-  { year:3, exited:40, buffer:1.5, jobs:57, active:360 },
-  { year:4, exited:60, buffer:0.9, jobs:55, active:340 },
-  { year:5, exited:75, buffer:-0.2, jobs:53.5, active:325 },
-  { year:6, exited:90, buffer:-0.4, jobs:52, active:310 },
-  { year:7, exited:120, buffer:-0.5, jobs:51.5, active:280 },
-  { year:8, exited:140, buffer:-0.6, jobs:51, active:260 },
-  { year:9, exited:150, buffer:-0.7, jobs:50.5, active:250 },
-  { year:10, exited:152, buffer:-0.8, jobs:50, active:248 }
+/* -------------------- Data -------------------- */
+const DATA = [
+  { y:0, title:"BASELINE", exited:3, buffer:3.2, jobs:62, active:397 },
+  { y:1, title:"CONTINUITY", exited:9, buffer:2.6, jobs:60.5, active:391 },
+  { y:2, title:"DURATION", exited:22, buffer:2.1, jobs:59, active:378 },
+  { y:3, title:"NEGATIVE SPACE", exited:40, buffer:1.5, jobs:57, active:360 },
+  { y:4, title:"STICKY FLOOR", exited:60, buffer:0.9, jobs:55, active:340 },
+  { y:5, title:"CROSSING", exited:75, buffer:-0.2, jobs:53.5, active:325 },
+  { y:6, title:"ADJUSTMENT", exited:90, buffer:-0.4, jobs:52, active:310 },
+  { y:7, title:"SILENCE", exited:120, buffer:-0.5, jobs:51.5, active:280 },
+  { y:8, title:"SCARCITY", exited:140, buffer:-0.6, jobs:51, active:260 },
+  { y:9, title:"LONG TAIL", exited:150, buffer:-0.7, jobs:50.5, active:250 },
+  { y:10, title:"STEADY STATE", exited:152, buffer:-0.8, jobs:50, active:248 }
 ];
 
+/* -------------------- App -------------------- */
 function App() {
   const [year, setYear] = useState(0);
-  const [playing, setPlaying] = useState(false);
+  const [play, setPlay] = useState(false);
 
-  useEffect(()=>{
-    if(!playing) return;
-    const id = setInterval(()=>{
-      setYear(y=> y<10? y+1 : 0);
-    },2000);
-    return ()=>clearInterval(id);
-  },[playing]);
+  useEffect(() => {
+    if (!play) return;
+    const id = setInterval(() => {
+      setYear(v => v < 10 ? v + 1 : 0);
+    }, 2000);
+    return () => clearInterval(id);
+  }, [play]);
 
-  const stats = ARCHIVE_DATA[year];
+  const stat = DATA[year];
 
-  const dots = useMemo(()=>{
-    return Array.from({length:400}).map((_,i)=>{
-      if(i < stats.exited) return "exited";
-      if(i < stats.exited + (400 - stats.active)) return "shadow";
+  const dots = useMemo(() => {
+    return Array.from({ length: 400 }).map((_, i) => {
+      if (i < stat.exited) return "exited";
+      if (i < stat.exited + (400 - stat.active)) return "shadow";
       return "active";
     });
-  },[stats]);
+  }, [stat]);
 
-  return React.createElement("div",
-    {className:"min-h-screen p-6 flex flex-col gap-6"},
+  /* -------------------- Layout -------------------- */
+  return React.createElement(
+    React.Fragment,
+    null,
 
-    React.createElement("header",
-      {className:"flex justify-between border-b border-emerald-900 pb-4"},
+    /* ===== HEADER ===== */
+    React.createElement("header", {
+      className: "flex justify-between items-center border-b border-emerald-900 pb-3"
+    },
       React.createElement("div", null,
-        React.createElement("h1",
-          {className:"text-xl font-bold flex gap-2 items-center"},
-          React.createElement(Database,{size:18}),
+        React.createElement("h1", {
+          className: "text-lg font-bold flex items-center gap-2"
+        },
+          React.createElement(Database, { size: 18 }),
           "THE LONG THINNING [RECONSTRUCTED]"
         ),
-        React.createElement("div",{className:"text-xs text-emerald-700"},
-          "Archival Simulation // CIV-ECON-Δ120"
-        )
+        React.createElement("div", {
+          className: "text-xs text-emerald-700"
+        }, "Archival Simulation // CIV-ECON-Δ120")
       ),
-      React.createElement("div",{className:"text-right"},
-        React.createElement("div",{className:"text-xs"},"YEAR #0# + ",year),
-        React.createElement("div",
-          {className:year>=5?"text-amber-500":"text-emerald-400"},
-          year>=5?"OPTIMIZED_STABLE":"PARTICIPATORY"
-        )
+      React.createElement("div", { className: "text-right text-sm" },
+        React.createElement("div", null, "YEAR #0# + ", year),
+        React.createElement("div", {
+          className: year >= 5 ? "text-amber-500" : "text-emerald-400"
+        }, year >= 5 ? "OPTIMIZED_STABLE" : "PARTICIPATORY")
       )
     ),
 
-    React.createElement("main",
-      {className:"grid lg:grid-cols-12 gap-6 flex-grow"},
+    /* ===== MAIN ===== */
+    React.createElement("main", {
+      className: "grid grid-cols-1 lg:grid-cols-12 gap-4 h-full"
+    },
 
-      React.createElement("section",
-        {className:"lg:col-span-4 border border-emerald-900 p-4"},
-        React.createElement("div",{className:"text-xs mb-2 flex gap-2"},
-          React.createElement(Users,{size:14}),
+      /* Population */
+      React.createElement("section", {
+        className: "lg:col-span-4 border border-emerald-900 p-4 flex flex-col"
+      },
+        React.createElement("div", {
+          className: "text-xs uppercase flex items-center gap-2 mb-2"
+        },
+          React.createElement(Users, { size: 14 }),
           "Population Density"
         ),
-        React.createElement("div",
-          {className:"grid grid-cols-20 gap-1"},
-          dots.map((d,i)=>
-            React.createElement("div",{
-              key:i,
-              className:
-                "aspect-square "+
-                (d==="active"?"bg-emerald-500":
-                 d==="shadow"?"bg-emerald-900":
-                 "bg-neutral-800 opacity-20")
-            })
+        React.createElement("div", {
+          className: "flex-1 overflow-hidden"
+        },
+          React.createElement("div", {
+            className: "grid grid-cols-20 gap-1 h-full"
+          },
+            dots.map((d, i) =>
+              React.createElement("div", {
+                key: i,
+                className:
+                  "aspect-square " +
+                  (d === "active" ? "bg-emerald-500" :
+                   d === "shadow" ? "bg-emerald-900" :
+                   "bg-neutral-800 opacity-20")
+              })
+            )
           )
         )
       ),
 
-      React.createElement("section",
-        {className:"lg:col-span-8 border border-emerald-900 p-4"},
-        React.createElement("div",{className:"text-xs mb-4 flex gap-2"},
-          React.createElement(Activity,{size:14}),
+      /* Metrics */
+      React.createElement("section", {
+        className: "lg:col-span-8 border border-emerald-900 p-4 flex flex-col"
+      },
+        React.createElement("div", {
+          className: "text-xs uppercase flex items-center gap-2 mb-2"
+        },
+          React.createElement(Activity, { size: 14 }),
           "System Metrics"
         ),
-        React.createElement("div",{className:"h-64"},
-          React.createElement(ResponsiveContainer,{width:"100%",height:"100%"},
-            React.createElement(AreaChart,{data:ARCHIVE_DATA},
-              React.createElement(CartesianGrid,{stroke:"#064e3b"}),
-              React.createElement(XAxis,{dataKey:"year",stroke:"#065f46"}),
-              React.createElement(YAxis,{stroke:"#065f46"}),
-              React.createElement(ReferenceLine,{y:0,stroke:"#ef4444"}),
-              React.createElement(Area,{dataKey:"buffer",stroke:"#10b981",fill:"#10b98144"}),
-              React.createElement(Line,{dataKey:"jobs",stroke:"#34d399",dot:false}),
-              React.createElement(ReferenceLine,{x:year,stroke:"#fbbf24"})
+        React.createElement("div", {
+          className: "flex-1 min-h-[320px]"
+        },
+          React.createElement(ResponsiveContainer, {
+            width: "100%", height: "100%"
+          },
+            React.createElement(AreaChart, { data: DATA },
+              React.createElement(CartesianGrid, {
+                stroke: "#064e3b", strokeDasharray: "3 3"
+              }),
+              React.createElement(XAxis, {
+                dataKey: "y", stroke: "#065f46"
+              }),
+              React.createElement(YAxis, {
+                stroke: "#065f46"
+              }),
+              React.createElement(ReferenceLine, {
+                y: 0, stroke: "#ef4444", strokeDasharray: "3 3"
+              }),
+              React.createElement(Area, {
+                dataKey: "buffer",
+                stroke: "#10b981",
+                fill: "#10b98144"
+              }),
+              React.createElement(Line, {
+                dataKey: "jobs",
+                stroke: "#34d399",
+                dot: false
+              }),
+              React.createElement(ReferenceLine, {
+                x: year, stroke: "#fbbf24"
+              })
             )
           )
         )
       )
     ),
 
-    React.createElement("footer",
-      {className:"flex items-center gap-4 border border-emerald-900 p-3"},
-      React.createElement("button",
-        {onClick:()=>setPlaying(p=>!p),className:"border px-3 py-1"},
-        playing?"PAUSE":React.createElement(Zap,{size:16})
-      ),
-      React.createElement("button",{onClick:()=>setYear(y=>Math.max(0,y-1))},
-        React.createElement(ChevronLeft,{size:18})
-      ),
-      React.createElement("input",{
-        type:"range",
-        min:0,
-        max:10,
-        value:year,
-        onChange:e=>setYear(+e.target.value),
-        className:"flex-grow accent-emerald-500"
+    /* ===== FOOTER ===== */
+    React.createElement("footer", {
+      className: "flex items-center gap-4 border-t border-emerald-900 pt-3"
+    },
+      React.createElement("button", {
+        onClick: () => setPlay(p => !p),
+        className: "border border-emerald-800 px-3 py-1"
+      }, play ? "PAUSE" : React.createElement(Zap, { size: 14 })),
+
+      React.createElement("button", {
+        onClick: () => setYear(y => Math.max(0, y - 1))
+      }, React.createElement(ChevronLeft, { size: 16 })),
+
+      React.createElement("input", {
+        type: "range",
+        min: 0, max: 10, value: year,
+        onChange: e => setYear(+e.target.value),
+        className: "flex-grow accent-emerald-500"
       }),
-      React.createElement("button",{onClick:()=>setYear(y=>Math.min(10,y+1))},
-        React.createElement(ChevronRight,{size:18})
-      )
+
+      React.createElement("button", {
+        onClick: () => setYear(y => Math.min(10, y + 1))
+      }, React.createElement(ChevronRight, { size: 16 }))
     )
   );
 }
 
-createRoot(document.getElementById("root")).render(
-  React.createElement(App)
-);
+/* -------------------- Mount -------------------- */
+createRoot(document.getElementById("root"))
+  .render(React.createElement(App));
 </script>
-
 </body>
 </html>
