@@ -102,6 +102,11 @@
   .desktop a.icon {
     position: absolute;
     width: 96px;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     text-align: center;
     color: #fff;
     text-decoration: none;
@@ -111,11 +116,15 @@
   .desktop a.icon span {
     display: block;
     margin-top: 6px;
+    font-size: 12px;
     line-height: 14px;
-    max-width: 100%;
-    min-height: 28px;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
+    max-height: 28px;
+    overflow: hidden;
+    word-break: break-word;
+  }
+
+  @media (max-width: 600px) {
+    .desktop a.icon { height: 132px; }
   }
 
   /* --------- Command Prompt --------- */
