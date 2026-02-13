@@ -99,8 +99,24 @@
 
   /* --------- Icons / Desktop --------- */
   .desktop { position: absolute; inset: 0 0 32px 0; }
-  .desktop a.icon { position: absolute; width: 88px; text-align: center; color: #fff; text-decoration: none; font-size: 12px; }
+  .desktop a.icon {
+    position: absolute;
+    width: 96px;
+    text-align: center;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+  }
   .desktop a.icon img { width: 48px; height: 48px; display: block; margin: 0 auto 4px; image-rendering: pixelated; }
+  .desktop a.icon span {
+    display: block;
+    margin-top: 6px;
+    line-height: 14px;
+    max-width: 100%;
+    min-height: 28px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
 
   /* --------- Command Prompt --------- */
   .terminal {
@@ -143,7 +159,7 @@
 
   @media (max-width: 640px) {
     .win95-window { min-width: auto; min-height: 160px; }
-    .desktop a.icon { width: 80px; }
+    .desktop a.icon { width: 96px; }
     #archive-counter { max-width: 0; overflow: hidden; opacity: 0; pointer-events: none; }
   }
 
