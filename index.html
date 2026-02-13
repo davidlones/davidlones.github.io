@@ -486,22 +486,130 @@
 
   // Clock
   const clock = $('#clock');
-  const counter = $('#counter');
+  const counterEl = $('#counter');
 
-  fetch('https://api.countapi.xyz/update/davidlones.github.io/index?amount=1')
-    .then(res => res.json())
-    .then(data => {
-      if (!counter) return;
-      if (typeof data.value === 'number') {
-        counter.textContent = data.value.toLocaleString();
-      } else {
-        counter.textContent = '—';
+  // ------------------------------
+  // Resilient counter (long-term)
+  // ------------------------------
+  // Why this version:
+  // - Uses CountAPI's explicit update endpoint (often less blocked than /hit)
+  // - Times out quickly so it never stalls UI
+  // - Caches last known value locally for graceful degraded display
+  // - Optional "session" mode avoids incrementing on every refresh
+
+  const COUNTER_NAMESPACE = 'davidlones.github.io';
+  const COUNTER_KEY = 'index';
+
+  // Optional: set to true if you only want 1 increment per tab-session.
+  const COUNT_ONCE_PER_SESSION = true;
+
+  const storageKey = `sol37.counter.${COUNTER_NAMESPACE}.${COUNTER_KEY}.last`;
+  const sessionKey = `sol37.counter.${COUNTER_NAMESPACE}.${COUNTER_KEY}.counted`;
+
+  function renderCounterValue(n){
+    if (!counterEl) return;
+    if (typeof n === 'number' && Number.isFinite(n)) {
+      counterEl.textContent = Math.max(0, Math.floor(n)).toLocaleString();
+    } else {
+      counterEl.textContent = '—';
+    }
+  }
+
+  function cacheCounterValue(n){
+    try {
+      if (typeof n === 'number' && Number.isFinite(n)) {
+        localStorage.setItem(storageKey, String(Math.floor(n)));
       }
-    })
-    .catch(err => {
+    } catch(_) {}
+  }
+
+  function readCachedCounter(){
+    try {
+      const v = localStorage.getItem(storageKey);
+      const n = v == null ? NaN : Number(v);
+      return Number.isFinite(n) ? n : null;
+    } catch(_) { return null; }
+  }
+
+  async function fetchJsonWithTimeout(url, ms){
+    const controller = new AbortController();
+    const t = setTimeout(()=>controller.abort(), ms);
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } finally {
+      clearTimeout(t);
+    }
+  }
+
+  async function updateCounter(){
+    const cached = readCachedCounter();
+    if (cached != null) renderCounterValue(cached);
+
+    // Session guard (prevents rapid self-inflation on refresh)
+    if (COUNT_ONCE_PER_SESSION) {
+      try {
+        if (sessionStorage.getItem(sessionKey) === '1') {
+          // Don't increment again—just try to read current value.
+          const j = await fetchJsonWithTimeout(
+            `https://api.countapi.xyz/get/${encodeURIComponent(COUNTER_NAMESPACE)}/${encodeURIComponent(COUNTER_KEY)}`,
+            2000
+          );
+          if (j && typeof j.value === 'number') {
+            renderCounterValue(j.value);
+            cacheCounterValue(j.value);
+          }
+          return;
+        }
+      } catch(_) {
+        // fall through to update attempt
+      }
+    }
+
+    // Primary path: increment
+    try {
+      const j = await fetchJsonWithTimeout(
+        `https://api.countapi.xyz/update/${encodeURIComponent(COUNTER_NAMESPACE)}/${encodeURIComponent(COUNTER_KEY)}?amount=1`,
+        2000
+      );
+      if (j && typeof j.value === 'number') {
+        renderCounterValue(j.value);
+        cacheCounterValue(j.value);
+        if (COUNT_ONCE_PER_SESSION) {
+          try { sessionStorage.setItem(sessionKey, '1'); } catch(_) {}
+        }
+        return;
+      }
+    } catch (err) {
+      // Common failure: blocked by client / CORS / network.
+      // We'll degrade gracefully.
       console.warn('Archive counter unavailable:', err);
-      if (counter) counter.textContent = '—';
-    });
+    }
+
+    // Fallback: attempt read without increment
+    try {
+      const j = await fetchJsonWithTimeout(
+        `https://api.countapi.xyz/get/${encodeURIComponent(COUNTER_NAMESPACE)}/${encodeURIComponent(COUNTER_KEY)}`,
+        2000
+      );
+      if (j && typeof j.value === 'number') {
+        renderCounterValue(j.value);
+        cacheCounterValue(j.value);
+        return;
+      }
+    } catch(_) {}
+
+    // Final fallback: show cached or dash (no "unavailable" shame label)
+    renderCounterValue(cached);
+  }
+
+  updateCounter();
 
   function updateClock(){
     const d = new Date();
@@ -873,8 +981,6 @@
     const p = POSTS.find(x => x.id === 'thesis') || HTML_POSTS[0];
     if (p && p.type === 'html') {
       openHtmlDocumentWindow(p);
-      // const w = document.getElementById('doc-' + p.id);
-      // if (w) w.classList.add('maximized');
     } else if (p && p.type === 'md') {
       toggleWindow($('#win-blog'));
       openPost(p.id);
