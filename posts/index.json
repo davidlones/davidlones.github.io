@@ -1,5 +1,6 @@
 {
   "posts": [
+    {"id":"thesis","title":"civSim","date":"2026-02-12","file":"posts/the_long_thinning.html"},
     {"id":"thesis","title":"thesis","date":"2026-02-08","file":"posts/thesis.html"},
     {"id":"forecast","title":"weatherbug","date":"2026-01-20","file":"deer-valley-forecast.html"},
     {"id":"timeline","title":"Project Analytica 2025","date":"2025-11-07","file":"posts/timeline.html"},
