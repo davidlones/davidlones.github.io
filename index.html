@@ -739,7 +739,7 @@
 
   // Boot: auto-open priority post
   loadPosts().then(() => {
-    const priority = POSTS.find(x => x.id === 'thesis') || HTML_POSTS[0];
+    const priority = POSTS.find(x => x.id === 'civSim') || HTML_POSTS[0];
     if (priority) {
       if (priority.type === 'html') {
         openHtmlDocumentWindow(priority);
