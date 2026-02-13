@@ -322,16 +322,8 @@
   const MOBILE_QUERY = window.matchMedia('(max-width: 640px)');
   const isMobile = () => MOBILE_QUERY.matches;
   
-  const trackTinylyticsEvent = (eventName, value) => {
-    const probe = document.createElement('button');
-    probe.type = 'button';
-    probe.style.display = 'none';
-    probe.setAttribute('aria-hidden', 'true');
-    probe.setAttribute('data-tinylytics-event', eventName);
-    if (value != null) probe.setAttribute('data-tinylytics-event-value', String(value));
-    document.body.appendChild(probe);
-    probe.click();
-    probe.remove();
+  const trackTinylyticsEvent = (eventName, payload) => {
+    window.tl?.('event', eventName, payload || {});
   };
 
   MOBILE_QUERY.addEventListener?.('change', () => {
@@ -368,6 +360,7 @@
       btn.classList.add('active');
       focusFirst(winEl);
       clampToViewport(winEl);
+      trackTinylyticsEvent('window_open', { id: winEl.id });
       return;
     }
 
@@ -435,13 +428,14 @@
     win.querySelectorAll('.titlebar [data-action]').forEach(btn => {
       btn.addEventListener('click', () => {
         const act = btn.dataset.action;
-        trackTinylyticsEvent('window.' + act, win.id.replace(/^win-|^doc-|^prog-/, ''));
         const taskBtn = ensureTaskButton(win);
 
         if (act === 'close') {
+          trackTinylyticsEvent('window_close', { id: win.id });
           win.classList.add('hidden');
           taskBtn.remove();
         } else if (act === 'minimize') {
+          trackTinylyticsEvent('window_minimize', { id: win.id });
           win.classList.add('hidden');
           taskBtn.classList.remove('active');
         } else if (act === 'maximize') {
@@ -695,6 +689,7 @@
 
   async function openPost(id){
     const p = MD_POSTS.find(x=>x.id===id); if(!p) return;
+    trackTinylyticsEvent('post_opened', { id });
     $$('#posts-list li').forEach(li=> li.classList.toggle('active', li.dataset.id===id));
     postViewer.innerHTML = `<h2>${p.title}</h2><p><em>${p.date||''}</em></p><p>Loading…</p>`;
     try{
@@ -707,6 +702,7 @@
   }
 
   function openHtmlDocumentWindow(p){
+    trackTinylyticsEvent('doc_opened', { id: p.id });
     let win = document.getElementById('doc-'+p.id);
     if (!win){
       win = document.createElement('section');
@@ -830,7 +826,7 @@
       print(`C:\\SOL37> ${raw}`);
       input.value = '';
       const [cmd, ...rest] = raw.split(/\s+/);
-      trackTinylyticsEvent('terminal.command', cmd.toLowerCase());
+      trackTinylyticsEvent('command_entered', { cmd: cmd.toLowerCase() });
       const arg = rest.join(' ');
       commands[cmd.toLowerCase()]?.(arg) ?? print(`Unknown command: ${cmd}. Type 'help'.`);
     } else if (e.key === 'ArrowUp') {
@@ -888,5 +884,8 @@
 })();
 </script>
 <script defer src="https://tinylytics.app/embed/BLs8Pz1x77uyP9Ps6uFS.js?hits&events&beacon"></script>
+<script>
+  window.tl = window.tl || function(){ (window.tl.q = window.tl.q || []).push(arguments); };
+</script>
 </body>
 </html>
