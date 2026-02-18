@@ -3,22 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Operation Reset — Two Kitchens (Fri → Mon)</title>
+  <title>Operation Birthday Reset — Feb → March 15</title>
   <style>
     :root{
       --bg:#0b0f14;
       --panel:#101826;
-      --panel2:#0e1522;
       --text:#e9eef6;
       --muted:#a9b6c7;
       --line:rgba(233,238,246,.12);
       --accent:#7cd4ff;
       --accent2:#b5ff7c;
-      --warn:#ffcc66;
-      --ok:#7cffb6;
-      --bad:#ff7c9c;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
     *{box-sizing:border-box}
@@ -27,616 +23,212 @@
       font-family:var(--sans);
       color:var(--text);
       background:
-        radial-gradient(1200px 800px at 15% 15%, rgba(124,212,255,.14), transparent 55%),
-        radial-gradient(900px 700px at 80% 30%, rgba(181,255,124,.10), transparent 55%),
-        radial-gradient(800px 700px at 40% 90%, rgba(255,124,156,.08), transparent 55%),
+        radial-gradient(1200px 800px at 15% 15%, rgba(124,212,255,.12), transparent 55%),
+        radial-gradient(900px 700px at 80% 30%, rgba(181,255,124,.08), transparent 55%),
         var(--bg);
       line-height:1.45;
     }
 
     header{
       padding:28px 18px 14px;
-      max-width:1100px;
+      max-width:1000px;
       margin:0 auto;
-    }
-
-    .title{
-      display:flex;
-      flex-wrap:wrap;
-      gap:12px 14px;
-      align-items:baseline;
-      justify-content:space-between;
     }
 
     h1{
       margin:0;
-      font-size:clamp(24px, 3.2vw, 38px);
-      letter-spacing:.3px;
-    }
-    .subtitle{
-      margin:6px 0 0;
-      color:var(--muted);
-      max-width:78ch;
+      font-size:clamp(24px,3vw,36px);
     }
 
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:14px;
-    }
-    .chip{
-      font-family:var(--mono);
-      font-size:12px;
-      padding:7px 10px;
-      border:1px solid var(--line);
-      border-radius:999px;
+    .subtitle{
+      margin-top:6px;
       color:var(--muted);
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      backdrop-filter: blur(6px);
+      max-width:70ch;
     }
-    .chip b{color:var(--text); font-weight:600}
-    .chip .a{color:var(--accent)}
-    .chip .g{color:var(--accent2)}
-    .chip .w{color:var(--warn)}
-    .chip .o{color:var(--ok)}
-    .chip .r{color:var(--bad)}
 
     main{
-      max-width:1100px;
+      max-width:1000px;
       margin:0 auto;
       padding:0 18px 50px;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:14px;
-    }
-    @media (max-width: 920px){
-      .grid{grid-template-columns:1fr}
     }
 
     section{
       border:1px solid var(--line);
       border-radius:16px;
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      overflow:hidden;
+      background:rgba(16,24,38,.45);
+      padding:16px;
+      margin-top:14px;
     }
 
-    .sec-h{
-      padding:14px 16px;
-      border-bottom:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(16,24,38,.75), rgba(16,24,38,.25));
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .sec-h h2{
-      margin:0;
+    h2{
+      margin:0 0 10px;
       font-size:16px;
-      letter-spacing:.2px;
-    }
-    .sec-h .tag{
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--muted);
-      border:1px solid var(--line);
-      padding:4px 8px;
-      border-radius:999px;
-      white-space:nowrap;
     }
 
-    .sec-b{padding:16px}
-
-    .note{
-      border-left:3px solid rgba(124,212,255,.55);
-      padding:10px 12px;
-      background:rgba(124,212,255,.06);
-      border-radius:10px;
-      color:var(--muted);
-      margin:10px 0 0;
-    }
-
-    .kpi{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-      margin-top:12px;
-    }
-    @media (max-width: 700px){ .kpi{grid-template-columns:1fr} }
-
-    .k{
+    .week{
       border:1px solid var(--line);
       border-radius:14px;
-      padding:12px;
+      padding:14px;
+      margin-top:12px;
       background:rgba(14,21,34,.35);
     }
-    .k .label{color:var(--muted); font-size:12px; font-family:var(--mono)}
-    .k .value{margin-top:4px; font-size:14px}
-    .k .value b{font-weight:700}
-    .k .value .accent{color:var(--accent)}
-    .k .value .good{color:var(--accent2)}
-    .k .value .warn{color:var(--warn)}
 
-    details{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 12px;
-      background:rgba(14,21,34,.28);
-      margin-top:10px;
-    }
-    summary{
-      cursor:pointer;
-      font-weight:600;
-      letter-spacing:.2px;
-      list-style:none;
-    }
-    summary::-webkit-details-marker{display:none}
-    summary:after{
-      content:"▸";
-      float:right;
-      color:var(--muted);
-      transform:translateY(1px);
-    }
-    details[open] summary:after{content:"▾"}
-
-    .mono{font-family:var(--mono)}
-    .muted{color:var(--muted)}
-    ul{margin:10px 0 0; padding-left:18px}
-    li{margin:6px 0}
-    .hr{
-      height:1px;
-      background:var(--line);
-      margin:12px 0;
-    }
-
-    .timeline{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-top:10px;
-    }
-    .beat{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:rgba(14,21,34,.28);
-    }
-    .beat .t{
-      display:flex;
-      gap:10px;
-      align-items:baseline;
-      justify-content:space-between;
-    }
-    .beat .t h3{
-      margin:0;
+    .week h3{
+      margin:0 0 6px;
       font-size:14px;
+      letter-spacing:.3px;
     }
-    .beat .t .time{
-      font-family:var(--mono);
-      font-size:12px;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-    .beat p{margin:8px 0 0; color:var(--muted)}
-    .beat .bullets{margin-top:8px}
-    .beat .bullets li{color:var(--text)}
-    .pill{
-      display:inline-block;
-      font-family:var(--mono);
-      font-size:12px;
-      padding:3px 8px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      margin-left:8px;
+
+    .week p{
+      margin:0;
       color:var(--muted);
     }
-    .pill.a{color:var(--accent)}
-    .pill.g{color:var(--accent2)}
-    .pill.w{color:var(--warn)}
+
+    .goal{
+      margin-top:8px;
+      font-weight:600;
+      color:var(--accent2);
+    }
 
     .checklist{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:10px;
       margin-top:10px;
     }
-    @media (max-width: 700px){ .checklist{grid-template-columns:1fr} }
-    .card{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:rgba(14,21,34,.28);
-    }
-    .card h4{margin:0; font-size:14px}
-    .card .small{margin-top:6px; color:var(--muted); font-size:12px}
+
     .task{
       display:flex;
-      gap:10px;
-      align-items:flex-start;
-      margin-top:10px;
+      gap:8px;
+      margin-top:6px;
     }
+
     input[type="checkbox"]{
-      width:18px;height:18px; margin-top:2px;
-      accent-color: #7cd4ff;
+      width:18px;
+      height:18px;
+      accent-color:#7cd4ff;
     }
-    .task label{flex:1}
+
     footer{
-      max-width:1100px;
-      margin:18px auto 0;
+      max-width:1000px;
+      margin:20px auto 0;
       padding:0 18px 30px;
+      font-size:12px;
       color:var(--muted);
-      font-size:12px;
-    }
-    .callout{
-      border:1px dashed rgba(124,212,255,.35);
-      border-radius:14px;
-      padding:12px;
-      margin-top:12px;
-      background:rgba(124,212,255,.05);
-    }
-    .callout b{color:var(--text)}
-    .kbd{
-      font-family:var(--mono);
-      border:1px solid var(--line);
-      padding:1px 6px;
-      border-radius:6px;
-      background:rgba(255,255,255,.04);
-      color:var(--text);
-      font-size:12px;
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="title">
-      <h1>Operation Reset — Two Kitchens</h1>
-      <div class="chip"><b class="a">Fri→Mon</b> window • <span class="muted">Weatherford, TX</span></div>
-    </div>
-    <p class="subtitle">
-      A screenplay-style runbook for restoring <b>dish flow</b> and <b>usable counter space</b> in the Mess Hall kitchenette (carpet)
-      and the Main Kitchen (tile + dishwasher), ending with <b>carpet cleaning on Day 3</b>.
+
+<header>
+  <h1>Operation Birthday Reset</h1>
+  <p class="subtitle">
+    A four-week campaign to clear, sort, and polish the house before March 15.
+    Not perfection. Not staging. Just breathable, open space.
+  </p>
+</header>
+
+<main>
+
+<section>
+  <h2>Mission Framing</h2>
+  <p class="subtitle">
+    This is not a panic clean. It is a distributed reset.
+    Each week has a focus. Each session is 2 hours.
+    The house gets lighter gradually.
+  </p>
+</section>
+
+<section>
+  <h2>Weekly Arcs</h2>
+
+  <div class="week">
+    <h3>WEEK 1 — Clear Surfaces & Floors</h3>
+    <p>
+      Remove visual noise. Clear counters. Sweep floors. Contain clutter into bins.
     </p>
+    <div class="goal">Goal: Visible space increases.</div>
+  </div>
 
-    <div class="chips">
-      <div class="chip"><b class="g">Primary KPI</b>: dishes cleared + counters wipeable</div>
-      <div class="chip"><b class="w">Constraint</b>: Mess Hall scope stops at dining table</div>
-      <div class="chip"><b class="a">Method</b>: Soak → Scrape → Wash → Sanitize → Dry</div>
-      <div class="chip"><b class="o">Day 3</b>: floors (tile) + carpet (mess hall)</div>
+  <div class="week">
+    <h3>WEEK 2 — Sort & Reduce</h3>
+    <p>
+      Open boxes. Make decisions. Donate, trash, relocate.
+      Reduce total object volume.
+    </p>
+    <div class="goal">Goal: Fewer things in circulation.</div>
+  </div>
+
+  <div class="week">
+    <h3>WEEK 3 — Deep Clean & Organize</h3>
+    <p>
+      Wipe surfaces. Vacuum. Mop. Clean windows.
+      Establish stable storage locations.
+    </p>
+    <div class="goal">Goal: Clean base layer.</div>
+  </div>
+
+  <div class="week">
+    <h3>WEEK 4 — Final Polish</h3>
+    <p>
+      Baseboards, linens, final trash run, light decor reset.
+      Make the house feel calm.
+    </p>
+    <div class="goal">Goal: Birthday Ready.</div>
+  </div>
+
+</section>
+
+<section>
+  <h2>2-Hour Session Template</h2>
+
+  <div class="checklist">
+    <div class="task">
+      <input type="checkbox">
+      <label>Clear one defined zone fully.</label>
     </div>
-  </header>
-
-  <main>
-    <div class="grid">
-      <!-- Forecast + framing -->
-      <section>
-        <div class="sec-h">
-          <h2>Forecast Framing (Today → Monday)</h2>
-          <div class="tag mono">Dry-window advantage</div>
-        </div>
-        <div class="sec-b">
-          <p class="muted">
-            Forecast summary is intentionally <b>operational</b>, not hyper-precise: we’re using the pattern
-            (mild days, cool nights, dry conditions) to pick the best work blocks.
-          </p>
-
-          <div class="kpi">
-            <div class="k">
-              <div class="label">TODAY (FRI)</div>
-              <div class="value"><b class="accent">Mild</b> afternoon • windows-openable • cool night</div>
-            </div>
-            <div class="k">
-              <div class="label">SAT–SUN</div>
-              <div class="value"><b class="good">Dry + bright</b> • best for dish marathons + airing out</div>
-            </div>
-            <div class="k">
-              <div class="label">MON</div>
-              <div class="value"><b class="accent">Still mild</b> • good buffer for drying + maintenance</div>
-            </div>
-          </div>
-
-          <div class="note">
-            <b class="mono">Why this matters:</b> Dry weather means less humidity, faster drying, fewer odors lingering, and it’s
-            psychologically easier to keep windows cracked while you work.
-          </div>
-
-          <div class="callout">
-            <b>Work heuristic:</b> Use warm daylight for the heavy push. Use evenings for “close duties” only.
-            <span class="mono">(No dry-scrubbing after 8pm.)</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- SOP Quick -->
-      <section>
-        <div class="sec-h">
-          <h2>SOP: Heavy-Soil Dish Recovery</h2>
-          <div class="tag mono">Restaurant mode</div>
-        </div>
-        <div class="sec-b">
-          <p class="muted">
-            The secret is refusing to pay full price for scrub labor. Let heat + time do the ugly work.
-          </p>
-          <details open>
-            <summary>Station Setup <span class="pill a">5 min</span></summary>
-            <ul>
-              <li><b>Soak Station</b> (bin or sink): hottest safe water + dish soap (+ optional baking soda).</li>
-              <li><b>Wash Station</b>: fresh hot soapy water + brush/scrubber.</li>
-              <li><b>Dry Zone</b>: rack/towel; air-dry preferred.</li>
-            </ul>
-          </details>
-
-          <details>
-            <summary>Workflow <span class="pill g">Soak first</span></summary>
-            <ul>
-              <li><b>Soak</b> heavy items 30–120 min (or overnight).</li>
-              <li><b>Scrape</b> after soak (spatula/scraper beats brute force).</li>
-              <li><b>Wash</b> (then rinse).</li>
-              <li><b>Sanitize</b> (hot rinse or approved kitchen sanitizer).</li>
-              <li><b>Dry</b> (rack).</li>
-            </ul>
-            <div class="note">
-              <span class="mono">Rule:</span> If it resists, it soaks again. Don’t escalate to misery.
-            </div>
-          </details>
-
-          <details>
-            <summary>Sorting Categories <span class="pill w">Speed</span></summary>
-            <ul>
-              <li><b>Light</b>: cups/plates/utensils → dishwasher or quick wash.</li>
-              <li><b>Medium</b>: bowls/saucepans → short soak + wash.</li>
-              <li><b>Heavy</b>: baked-on cookware → long soak cycle.</li>
-            </ul>
-          </details>
-        </div>
-      </section>
+    <div class="task">
+      <input type="checkbox">
+      <label>Make decisions quickly (keep / donate / trash / relocate).</label>
     </div>
-
-    <!-- Screenplay log -->
-    <section style="margin-top:14px;">
-      <div class="sec-h">
-        <h2>Screenplay Log</h2>
-        <div class="tag mono">Multi-day execution</div>
-      </div>
-      <div class="sec-b">
-        <p class="muted">
-          Shot list vibes, but operational. Each beat ends in a measurable state: counters visible, dishes in flow, floors last.
-        </p>
-
-        <div class="timeline">
-          <div class="beat">
-            <div class="t">
-              <h3>EXT. WEATHERFORD SKY — MORNING <span class="pill a">OPEN</span></h3>
-              <div class="time">08:30</div>
-            </div>
-            <p>
-              Mild daylight, cool edges. Windows crack. The plan begins with one sacrament:
-              <span class="mono">set the soak station before you touch anything else.</span>
-            </p>
-            <ul class="bullets">
-              <li>Soak bin established (hot water + soap).</li>
-              <li>All baked-on dishes go straight into soak.</li>
-              <li>Dish piles sorted by type (plates / cookware / utensils).</li>
-            </ul>
-          </div>
-
-          <div class="beat">
-            <div class="t">
-              <h3>INT. MAIN KITCHEN — MIDDAY <span class="pill g">PIPELINE</span></h3>
-              <div class="time">11:30</div>
-            </div>
-            <p>Dishwasher becomes the engine. Clear one counter to become the clean staging surface.</p>
-            <ul class="bullets">
-              <li>Finish loading dishwasher → run.</li>
-              <li>Clear one full counter; nothing returns dirty.</li>
-            </ul>
-          </div>
-
-          <div class="beat">
-            <div class="t">
-              <h3>INT. MESS HALL KITCHENETTE — AFTERNOON <span class="pill w">SCOPE</span></h3>
-              <div class="time">14:00</div>
-            </div>
-            <p>
-              Kitchen-only scope, with one exception: the dining table is reclaimed as a temporary staging platform.
-            </p>
-            <ul class="bullets">
-              <li>Counter sweep: everything off counters.</li>
-              <li>Dining table cleared enough to stage dishware + kitchen items.</li>
-              <li>Heavy dishes remain soaking; no scrubbing war.</li>
-            </ul>
-          </div>
-
-          <div class="beat">
-            <div class="t">
-              <h3>INT. BOTH KITCHENS — CLOSE <span class="pill a">CLOSE</span></h3>
-              <div class="time">18:00</div>
-            </div>
-            <p>Easy dishes washed. Heavy items soak overnight. Dishwasher runs if half-full.</p>
-            <ul class="bullets">
-              <li>No dry dirty-dish piles left out.</li>
-              <li>Counters visible and wipeable zones established.</li>
-            </ul>
-          </div>
-
-          <div class="beat">
-            <div class="t">
-              <h3>INT. BOTH KITCHENS — DISH MARATHON <span class="pill g">RESTORE</span></h3>
-              <div class="time">09:00–15:00</div>
-            </div>
-            <p>
-              Dry, bright day: perfect for churn. Soak → scrape → wash cycles until the backlog collapses.
-            </p>
-            <ul class="bullets">
-              <li>Empty dishwasher → reload → run (repeat as needed).</li>
-              <li>Scrub soaked cookware (scraper first).</li>
-              <li>Hand-wash overflow; put away immediately.</li>
-              <li>Once dishes are gone: wipe + sanitize all counters/sinks.</li>
-            </ul>
-          </div>
-
-          <div class="beat">
-            <div class="t">
-              <h3>INT. BOTH KITCHENS — FLOORS <span class="pill a">BASE LAYER</span></h3>
-              <div class="time">09:30–12:30</div>
-            </div>
-            <p>
-              Only after surfaces are clean do floors get their turn. Tile first, carpet last.
-            </p>
-            <ul class="bullets">
-              <li>Main kitchen: sweep → mop → dry.</li>
-              <li>Mess hall kitchenette: vacuum slow passes → spot-treat stains.</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="note">
-          <b class="mono">Sequencing logic:</b> Dishes → surfaces → floors. Anything else just smears the same problem around.
-        </div>
-      </div>
-    </section>
-
-    <!-- Three-day checklist -->
-    <section style="margin-top:14px;">
-      <div class="sec-h">
-        <h2>3-Day Workflow Checklist</h2>
-        <div class="tag mono">Print-friendly use</div>
-      </div>
-      <div class="sec-b">
-        <p class="muted">
-          Checkboxes are local to this page (no data saved). Use it as a runbook while you work.
-        </p>
-
-        <div class="checklist">
-          <div class="card">
-            <h4>Day 1 — Intake & Counter Liberation</h4>
-            <div class="small mono">Goal: every dish is clean, soaking, or staged to wash.</div>
-
-            <div class="task">
-              <input type="checkbox" id="d1a"><label for="d1a"><b>Set soak station</b> (hot water + soap). Heavy items immediately in.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d1b"><label for="d1b">Scrape + sort dish piles (plates / cookware / utensils).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d1c"><label for="d1c"><b>Main kitchen:</b> load dishwasher → run.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d1d"><label for="d1d"><b>Main kitchen:</b> clear one full counter (clean staging).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d1e"><label for="d1e"><b>Mess hall:</b> sweep counters clear; use dining table only as staging.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d1f"><label for="d1f">Close: wash easy items; refresh soak; run dishwasher overnight if half full.</label>
-            </div>
-          </div>
-
-          <div class="card">
-            <h4>Day 2 — Dish Marathon & Surface Sanitation</h4>
-            <div class="small mono">Goal: dishes clean + put away. Counters wipeable everywhere.</div>
-
-            <div class="task">
-              <input type="checkbox" id="d2a"><label for="d2a">Empty dishwasher; reload immediately if needed.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d2b"><label for="d2b"><b>Cookware cycle:</b> scrape soaked pans → scrub → rinse → rack.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d2c"><label for="d2c">Run dishwasher again (2nd cycle) if backlog remains.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d2d"><label for="d2d"><b>Main kitchen surfaces:</b> counters, sink, stove, microwave, handles.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d2e"><label for="d2e"><b>Mess hall surfaces:</b> counters, sink, dining table (kitchen scope only).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d2f"><label for="d2f">Close: trash out; final counter wipe; no dry dirty dishes left out.</label>
-            </div>
-          </div>
-
-          <div class="card">
-            <h4>Day 3 — Floors (Tile + Carpet)</h4>
-            <div class="small mono">Goal: clean base layer after surfaces are stable.</div>
-
-            <div class="task">
-              <input type="checkbox" id="d3a"><label for="d3a">Clear small items off floors (elevate bins/trash/appliances).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d3b"><label for="d3b"><b>Main kitchen:</b> sweep → mop → dry.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d3c"><label for="d3c"><b>Mess hall kitchenette carpet:</b> slow vacuum passes.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d3d"><label for="d3d">Spot-treat stains (food/drink zones).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d3e"><label for="d3e">Return floor items to proper places (no sprawl restart).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="d3f"><label for="d3f">Close: quick wipe + set tomorrow’s “minimum viable clean.”</label>
-            </div>
-          </div>
-
-          <div class="card">
-            <h4>Permanent Close Procedure (10–15 min nightly)</h4>
-            <div class="small mono">Goal: never do a 3-day reset again.</div>
-
-            <div class="task">
-              <input type="checkbox" id="p1"><label for="p1">Dishwasher run if half-full (or load for morning run).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="p2"><label for="p2">Sink empty (or only a soak bin, neatly).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="p3"><label for="p3">Counters wiped (no objects “live” here).</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="p4"><label for="p4">Trash gathered to one bag/bin.</label>
-            </div>
-            <div class="task">
-              <input type="checkbox" id="p5"><label for="p5">Floors: 60-second sweep for crumbs/spills (no mop, just control).</label>
-            </div>
-
-            <div class="callout">
-              <b>Two rules:</b>
-              <ul>
-                <li><span class="kbd">Soak beats scrub</span> — if it fights you, it soaks again.</li>
-                <li><span class="kbd">Floors last</span> — don’t clean what you’re about to re-dirty.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="hr"></div>
-
-        <details>
-          <summary>Optional Supplies List (minimal + cheap)</summary>
-          <ul>
-            <li>2 plastic tubs/bins (for soak + transport)</li>
-            <li>Dish brush + scraper</li>
-            <li>Degreasing dish soap</li>
-            <li>Baking soda (optional but helpful)</li>
-            <li>Microfiber cloths / paper towels</li>
-            <li>Vacuum + spot cleaner for carpet day</li>
-          </ul>
-        </details>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="mono">
-      <b>Note:</b> This page is designed to be self-contained. Save as <span class="kbd">operation-reset.html</span> and open in any browser.
+    <div class="task">
+      <input type="checkbox">
+      <label>Trash out at end of session.</label>
     </div>
-    <div style="margin-top:6px;">
-      The workflow is optimized for momentum: <b>dishes → surfaces → floors</b>. When in doubt, re-run the soak cycle and keep going.
+    <div class="task">
+      <input type="checkbox">
+      <label>Leave surfaces wipeable.</label>
     </div>
-  </footer>
+  </div>
+</section>
+
+<section>
+  <h2>Permanent Close Procedure (10 Minutes Nightly)</h2>
+
+  <div class="checklist">
+    <div class="task">
+      <input type="checkbox">
+      <label>Dishes in sink or dishwasher only — no counter sprawl.</label>
+    </div>
+    <div class="task">
+      <input type="checkbox">
+      <label>Counters cleared before bed.</label>
+    </div>
+    <div class="task">
+      <input type="checkbox">
+      <label>Trash consolidated.</label>
+    </div>
+    <div class="task">
+      <input type="checkbox">
+      <label>Quick floor sweep.</label>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Sequence logic: Clear → Reduce → Clean → Polish.  
+  March 15 is the lighthouse. Everything before it is steady momentum.
+</footer>
+
 </body>
 </html>
