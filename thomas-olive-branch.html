@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Worker Value, Ownership, and What We’re Actually Debating</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Worker Value & System Ownership — Interactive Map</title>
   <style>
     :root{
       --bg:#0b0f14;
@@ -17,28 +17,29 @@
       --warn:#ffcc66;
       --bad:#ff7c9c;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
       --shadow: 0 18px 60px rgba(0,0,0,.55);
       --radius: 18px;
-      --maxw: 1100px;
+      --maxw: 1180px;
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; }
     body{
       font-family: var(--sans);
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(124,212,255,.12), transparent 60%),
-                  radial-gradient(1000px 700px at 90% 20%, rgba(181,255,124,.08), transparent 55%),
-                  radial-gradient(1000px 700px at 60% 95%, rgba(255,204,102,.06), transparent 55%),
-                  var(--bg);
+      background:
+        radial-gradient(1200px 800px at 20% 10%, rgba(124,212,255,.12), transparent 60%),
+        radial-gradient(1000px 700px at 90% 20%, rgba(181,255,124,.08), transparent 55%),
+        radial-gradient(1000px 700px at 60% 95%, rgba(255,204,102,.06), transparent 55%),
+        var(--bg);
       color: var(--text);
-      overflow: hidden;
+      overflow:hidden;
     }
 
-    /* Layout */
+    /* App shell */
     .app{
-      height: 100%;
-      display: grid;
+      height:100%;
+      display:grid;
       grid-template-rows: auto 1fr auto;
     }
 
@@ -50,56 +51,62 @@
       border-bottom: 1px solid var(--line);
       background: rgba(16,24,38,.72);
       backdrop-filter: blur(10px);
+      gap: 10px;
     }
 
-    header .title{
+    .brand{
       display:flex;
       flex-direction:column;
-      gap: 2px;
       min-width: 0;
+      gap: 2px;
     }
-    header .title h1{
-      font-size: 14px;
+    .brand h1{
       margin:0;
+      font-size: 14px;
       letter-spacing:.2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
       max-width: 70vw;
     }
-    header .title .subtitle{
+    .brand .sub{
+      margin:0;
       font-size: 12px;
       color: var(--muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
       max-width: 70vw;
     }
 
-    header .controls{
+    .controls{
       display:flex;
-      gap: 8px;
       align-items:center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
     }
-    button, .pill{
+
+    button, .pill, select{
       border: 1px solid var(--line);
       background: rgba(14,21,34,.65);
       color: var(--text);
       border-radius: 999px;
       padding: 8px 12px;
       font-size: 12px;
-      cursor: pointer;
-      user-select: none;
+      cursor:pointer;
+      user-select:none;
       transition: transform .06s ease, border-color .12s ease, background .12s ease;
     }
-    button:hover{ border-color: rgba(124,212,255,.35); }
+    button:hover, select:hover{ border-color: rgba(124,212,255,.35); }
     button:active{ transform: translateY(1px); }
+    select{ cursor:pointer; }
     .pill{
-      cursor: default;
+      cursor:default;
       color: var(--muted);
       display:flex;
-      gap: 8px;
       align-items:center;
+      gap: 8px;
     }
     .pill kbd{
       font-family: var(--mono);
@@ -112,127 +119,290 @@
       background: rgba(0,0,0,.15);
     }
 
-    /* Slides */
+    /* Main layout: Map/Deck + Details panel */
     main{
       display:flex;
-      align-items:center;
       justify-content:center;
-      padding: 26px 18px;
+      padding: 16px 18px;
+      overflow:hidden;
     }
-    .deck{
+    .stage{
       width: min(var(--maxw), calc(100vw - 36px));
-      height: min(74vh, 720px);
-      position: relative;
+      height: 100%;
+      display:grid;
+      grid-template-columns: 1.6fr .9fr;
+      gap: 14px;
+      min-height: 0;
     }
 
-    .slide{
-      position:absolute;
-      inset: 0;
-      padding: 34px 34px 26px;
+    @media (max-width: 980px){
+      .stage{ grid-template-columns: 1fr; }
+      body{ overflow:auto; }
+      main{ overflow: visible; }
+    }
+
+    .panel{
       border-radius: var(--radius);
       border: 1px solid var(--line);
       background: linear-gradient(180deg, rgba(16,24,38,.86), rgba(14,21,34,.86));
       box-shadow: var(--shadow);
-      opacity: 0;
-      transform: translateX(22px) scale(.985);
-      pointer-events: none;
-      transition: opacity .18s ease, transform .18s ease;
-      display:flex;
-      flex-direction:column;
-      gap: 18px;
-    }
-    .slide.active{
-      opacity: 1;
-      transform: translateX(0) scale(1);
-      pointer-events: auto;
+      min-height: 0;
+      overflow:hidden;
     }
 
-    .slide h2{
-      margin:0;
-      font-size: 26px;
-      letter-spacing: .2px;
-      line-height: 1.15;
+    /* Left panel contains two modes */
+    .left{
+      display:flex;
+      flex-direction:column;
+      min-height: 0;
     }
-    .slide h3{
-      margin: 0;
-      font-size: 16px;
+    .leftTopbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      gap: 10px;
+    }
+    .modeTabs{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    .tab{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.10);
+      color: rgba(233,238,246,.86);
+      cursor:pointer;
+      font-size: 12px;
+    }
+    .tab.active{
+      border-color: rgba(124,212,255,.45);
+      background: rgba(124,212,255,.10);
+      color: var(--text);
+    }
+    .miniControls{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .viewport{
+      position:relative;
+      flex: 1;
+      min-height: 0;
+      overflow:auto;
+      padding: 12px;
+    }
+
+    /* Map */
+    .mapWrap{
+      display:none;
+      height: 100%;
+      min-height: 560px;
+    }
+    .mapWrap.active{ display:block; }
+
+    .mapLegend{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      margin: 0 0 10px;
       color: var(--muted);
-      font-weight: 600;
+      font-size: 12px;
+      align-items:center;
     }
-    .slide p{
+    .dot{
+      display:inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: -1px;
+      border: 1px solid rgba(233,238,246,.22);
+    }
+    .dot.actual{ background: rgba(124,212,255,.30); }
+    .dot.alt{ background: rgba(255,204,102,.30); }
+    .dot.analogy{ background: rgba(181,255,124,.26); }
+
+    svg{ max-width: 100%; height: auto; display:block; }
+
+    .node rect, .node polygon{
+      fill: rgba(124,212,255,.08);
+      stroke: rgba(124,212,255,.6);
+      stroke-width: 1.4;
+      cursor: pointer;
+    }
+    .node.decision polygon{
+      stroke: rgba(255,204,102,.8);
+      fill: rgba(255,204,102,.10);
+    }
+    .node.alt rect{
+      stroke: rgba(255,204,102,.8);
+      fill: rgba(255,204,102,.08);
+      stroke-dasharray: 5 4;
+    }
+    .node text{
+      fill: rgba(233,238,246,.92);
+      font-size: 13px;
+      user-select:none;
+      pointer-events:none;
+    }
+    .node.active rect, .node.active polygon{
+      stroke-width: 2.6;
+      fill: rgba(181,255,124,.16);
+      stroke: rgba(181,255,124,.85);
+    }
+    .edge{
+      stroke: rgba(233,238,246,.40);
+      stroke-width: 2.2;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+    .edge.alt{
+      stroke: rgba(255,204,102,.55);
+      stroke-dasharray: 6 6;
+      marker-end: url(#arrowAlt);
+    }
+    .analogy{
+      stroke: rgba(181,255,124,.55);
+      stroke-dasharray: 6 6;
+      stroke-width: 2;
+      marker-end: url(#arrowAnalog);
+      marker-start: url(#arrowAnalog);
+      opacity: .75;
+    }
+    .dim{ opacity: .18; }
+    .hidden{ display:none; }
+
+    /* Deck */
+    .deckWrap{
+      display:none;
+      height: 100%;
+      min-height: 560px;
+    }
+    .deckWrap.active{ display:block; }
+
+    .slide{
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.14);
+      border-radius: 14px;
+      padding: 16px 16px;
+      margin-bottom: 12px;
+    }
+    .slide h2{
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: .2px;
+      line-height: 1.2;
+    }
+    .slide p, .slide li{
       margin: 0;
-      font-size: 16px;
+      font-size: 14.5px;
       line-height: 1.55;
       color: rgba(233,238,246,.92);
     }
-
-    .two-col{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 18px;
-      align-items:start;
-    }
-    @media (max-width: 880px){
-      .deck{ height: min(78vh, 820px); }
-      .slide{ padding: 26px 22px 20px; }
-      .two-col{ grid-template-columns: 1fr; }
-      .slide h2{ font-size: 22px; }
-    }
-
-    .card{
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px 14px;
-      background: rgba(0,0,0,.16);
-    }
-    ul{
-      margin: 0;
-      padding-left: 18px;
-      color: rgba(233,238,246,.92);
-      line-height: 1.6;
-      font-size: 16px;
-    }
-    li{ margin: 6px 0; }
-
+    .slide ul{ margin: 10px 0 0; padding-left: 18px; }
     .callout{
       border-left: 3px solid rgba(124,212,255,.8);
-      padding: 12px 14px;
+      padding: 10px 12px;
       border-radius: 12px;
       background: rgba(124,212,255,.08);
+      margin-top: 10px;
     }
     .callout strong{ color: var(--accent); }
 
-    .tagrow{
+    .deckNav{
+      position: sticky;
+      bottom: 0;
       display:flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 6px;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(16,24,38,.92);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      margin-top: 12px;
+      border-radius: 14px;
     }
-    .tag{
+
+    /* Right details panel */
+    .right{
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+    .rightTop{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .rightTop h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .rightBody{
+      padding: 12px 14px 14px;
+      overflow:auto;
+      min-height:0;
+    }
+
+    .meta{
+      display:flex;
+      gap: 8px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .badge{
       font-size: 12px;
-      color: rgba(233,238,246,.88);
+      color: rgba(233,238,246,.86);
       border: 1px solid var(--line);
       padding: 6px 10px;
       border-radius: 999px;
       background: rgba(0,0,0,.12);
     }
-    .tag.good{ border-color: rgba(181,255,124,.25); background: rgba(181,255,124,.08); }
-    .tag.warn{ border-color: rgba(255,204,102,.25); background: rgba(255,204,102,.08); }
-    .tag.bad{ border-color: rgba(255,124,156,.25); background: rgba(255,124,156,.08); }
+    .badge.good{ border-color: rgba(181,255,124,.25); background: rgba(181,255,124,.08); }
+    .badge.warn{ border-color: rgba(255,204,102,.25); background: rgba(255,204,102,.08); }
+    .badge.bad{ border-color: rgba(255,124,156,.25); background: rgba(255,124,156,.08); }
 
-    /* Footer / progress */
+    .hr{
+      height: 1px;
+      background: var(--line);
+      margin: 12px 0;
+    }
+
+    .small{
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+    .big{
+      font-size: 16px;
+      line-height: 1.55;
+      color: rgba(233,238,246,.92);
+    }
+
     footer{
       padding: 10px 18px 14px;
       border-top: 1px solid var(--line);
       background: rgba(16,24,38,.62);
       backdrop-filter: blur(10px);
-      display:grid;
-      grid-template-columns: 1fr auto 1fr;
+      display:flex;
       align-items:center;
+      justify-content:space-between;
       gap: 10px;
+      flex-wrap:wrap;
     }
-
     .progress{
+      flex: 1;
+      min-width: 220px;
       height: 8px;
       background: rgba(233,238,246,.08);
       border-radius: 999px;
@@ -245,26 +415,16 @@
       background: linear-gradient(90deg, rgba(124,212,255,.95), rgba(181,255,124,.85));
       transition: width .18s ease;
     }
-
-    .nav{
-      display:flex;
-      justify-content:center;
-      gap: 10px;
-    }
-    .nav button{
-      padding: 9px 14px;
-      min-width: 88px;
-    }
-
-    .hint{
-      display:flex;
-      gap: 10px;
-      justify-content:flex-end;
+    .status{
       color: var(--muted);
       font-size: 12px;
+      display:flex;
+      gap: 10px;
       align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
-    .hint kbd{
+    .status kbd{
       font-family: var(--mono);
       font-size: 11px;
       padding: 2px 6px;
@@ -273,755 +433,810 @@
       color: var(--text);
       background: rgba(0,0,0,.15);
     }
-
-    /* TOC overlay */
-    .overlay{
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.62);
-      backdrop-filter: blur(10px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-    }
-    .overlay.open{ display:flex; }
-
-    .modal{
-      width: min(900px, 96vw);
-      max-height: 86vh;
-      overflow:auto;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(16,24,38,.92), rgba(14,21,34,.92));
-      box-shadow: var(--shadow);
-      padding: 16px;
-    }
-    .modal header{
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      border: none;
-      background: transparent;
-      padding: 6px 6px 10px;
-      backdrop-filter: none;
-    }
-    .modal h3{
-      margin: 0 0 10px;
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 600;
-    }
-    .toc{
-      display:grid;
-      gap: 10px;
-      padding: 6px;
-    }
-    .toc button{
-      text-align:left;
-      border-radius: 14px;
-      padding: 12px 12px;
-      font-size: 13px;
-      line-height: 1.35;
-      background: rgba(0,0,0,.14);
-    }
-    .toc button strong{ color: var(--accent); font-weight: 700; }
-    .toc button small{ display:block; color: var(--muted); margin-top: 2px; }
-
-    /* Notes */
-    .notes{
-      margin-top: auto;
-      border-top: 1px dashed rgba(233,238,246,.18);
-      padding-top: 12px;
-      color: rgba(233,238,246,.72);
-      font-size: 13px;
-      line-height: 1.5;
-      display:none;
-    }
-    body.show-notes .notes{ display:block; }
-
-    .node rect, .node polygon{
-      fill: rgba(124,212,255,.08);
-      stroke: rgba(124,212,255,.6);
-      stroke-width: 1.4;
-      cursor: pointer;
-    }
-
-    .node.decision polygon{
-      stroke: rgba(255,204,102,.8);
-      fill: rgba(255,204,102,.1);
-    }
-
-    .node.active rect,
-    .node.active polygon{
-      stroke-width: 2.4;
-      fill: rgba(181,255,124,.18);
-    }
-
-    .alt-node{ opacity: 0; transition: opacity .18s ease; pointer-events: none; }
-    .alt-node.show{ opacity: .85; pointer-events: auto; }
-
-    .analogy{
-      stroke: rgba(181,255,124,.5);
-      stroke-dasharray: 6 6;
-    }
   </style>
 </head>
 
 <body>
-  <div class="app">
-    <header>
-      <div class="title">
-        <h1 id="deckTitle">Worker Value, Ownership, and What We’re Actually Debating</h1>
-        <div class="subtitle" id="deckSubtitle">A friendly explainer for Thomas</div>
-      </div>
-
-      <div class="controls">
-        <button id="tocBtn" title="Open slide list">Slides</button>
-        <button id="notesBtn" title="Toggle speaker notes">Notes</button>
-        <span class="pill" title="Keyboard controls">
-          <kbd>←</kbd><kbd>→</kbd> <span style="opacity:.85">or</span> <kbd>Space</kbd>
-        </span>
-      </div>
-    </header>
-
-    <main>
-      <div class="deck" id="deck">
-        <!-- Slide 1 -->
-        <section class="slide active" data-title="Why we keep looping back to this" data-sub="Not ideology — a systems question">
-          <h2>What we’re actually trying to figure out</h2>
-          <div class="two-col">
-            <div class="card">
-              <p><strong>Not</strong> “past = present.” Slavery ended. That’s a huge structural break.</p>
-              <p style="margin-top:10px;">But one economic question survives:</p>
-              <div class="callout" style="margin-top:10px;">
-                <p><strong>If people can’t be owned, how is the value they create captured and distributed?</strong></p>
-              </div>
-              <p style="margin-top:12px;">To talk cleanly, we separate:</p>
-              <ul>
-                <li><strong>Physical assets</strong> (stuff)</li>
-                <li><strong>Ownership structures</strong> (titles/claims)</li>
-                <li><strong>Labor</strong> (human time/skill/ideas)</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>Our shared baseline</h3>
-              <ul>
-                <li>People own themselves.</li>
-                <li>People can sell labor, ideas, products.</li>
-                <li>Centralized force can be dangerous.</li>
-                <li>Coordination is sometimes necessary (infrastructure, defense, disasters).</li>
-              </ul>
-              <div class="tagrow">
-                <span class="tag good">Freedom</span>
-                <span class="tag good">Coordination</span>
-                <span class="tag warn">Abuse risk</span>
-              </div>
-            </div>
-          </div>
-          <div class="notes">
-            Goal: keep this framed as “risk management + coordination,” not labels. Invite agreement first.
-          </div>
-        </section>
-
-        <!-- Slide 2 -->
-        <section class="slide" data-title="Before abolition" data-sub="Labor as property">
-          <h2>Before abolition: labor was treated as a direct asset</h2>
-          <div class="card">
-            <p>Under slavery, people were listed on balance sheets alongside land and equipment.</p>
-            <ul style="margin-top:10px;">
-              <li>Land</li>
-              <li>Infrastructure</li>
-              <li>Equipment</li>
-              <li><strong>Human labor capacity (owned)</strong></li>
-            </ul>
-            <p style="margin-top:12px;">Abolition removed the category “people as capital.”</p>
-          </div>
-          <div class="notes">
-            Keep it factual. Emphasize: moral and legal transformation is real. The question is what replaced the extraction interface.
-          </div>
-        </section>
-
-        <!-- Slide 3 -->
-        <section class="slide" data-title="After abolition" data-sub="Ownership shifts to systems">
-          <h2>After abolition: ownership shifted to the environment around workers</h2>
-          <div class="two-col">
-            <div class="card">
-              <p>Industrial society reorganized value capture around physical systems.</p>
-              <p style="margin-top:10px;">Ownership concentrated in:</p>
-              <ul>
-                <li>Factories</li>
-                <li>Railroads</li>
-                <li>Housing</li>
-                <li>Farms</li>
-                <li>Tools and machines</li>
-                <li>Energy infrastructure</li>
-                <li>Distribution networks</li>
-              </ul>
-            </div>
-            <div class="card">
-              <p><strong>Workers were paid wages</strong>, but access to production depended on using assets someone else owned.</p>
-              <div class="callout" style="margin-top:12px;">
-                <p><strong>Shift:</strong> owning bodies → owning platforms of life/work.</p>
-              </div>
-              <div class="tagrow">
-                <span class="tag">Access</span>
-                <span class="tag">Bargaining power</span>
-                <span class="tag warn">Dependency on nodes</span>
-              </div>
-            </div>
-          </div>
-          <div class="notes">
-            This is the hinge slide for the “modern analogy” later. Don’t moralize—describe mechanics: access requires system permission.
-          </div>
-        </section>
-
-        <!-- Slide 4 -->
-        <section class="slide" data-title="Physical scale" data-sub="The hardware of civilization">
-          <h2>The physical scale of civilization (not speculation)</h2>
-          <div class="card">
-            <p>If we ignore stock prices and ask what the physical world costs to replace:</p>
-            <ul style="margin-top:10px;">
-              <li><strong>Produced physical assets:</strong> ~$400–600T (buildings, factories, infrastructure, machinery, vehicles)</li>
-              <li><strong>Land value:</strong> ~$200–400T</li>
-              <li><strong>Total physical substrate:</strong> ~<strong>$700–900T</strong></li>
-            </ul>
-            <p style="margin-top:12px; color: var(--muted);">
-              Rough ranges (estimates vary), but the point stands: the physical layer is finite, heavy, and slow-changing.
-            </p>
-          </div>
-          <div class="notes">
-            If Thomas pushes numbers: acknowledge uncertainty; emphasize conceptual use—physical layer vs claims layer.
-          </div>
-        </section>
-
-        <!-- Slide 5 -->
-        <section class="slide" data-title="Ownership layers" data-sub="Claims stack on things">
-          <h2>Financial ownership sits on top of the physical layer</h2>
-          <div class="two-col">
-            <div class="card">
-              <p>Markets create <strong>claims</strong> on physical assets and their income.</p>
-              <ul style="margin-top:10px;">
-                <li>Stocks → claims on corporate assets/profits</li>
-                <li>Debt → claims on future income</li>
-                <li>Real estate funds → pooled housing ownership</li>
-                <li>Private equity → ownership/control of operating companies</li>
-              </ul>
-            </div>
-            <div class="card">
-              <div class="callout">
-                <p><strong>Key idea:</strong> multiple financial claims can stack on the same physical asset.</p>
-              </div>
-              <p style="margin-top:12px;">That’s why financial wealth can grow faster than the material economy beneath it.</p>
-              <div class="tagrow">
-                <span class="tag">Layer 1: physical</span>
-                <span class="tag">Layer 2: legal</span>
-                <span class="tag">Layer 3: financial</span>
-              </div>
-            </div>
-          </div>
-          <div class="notes">
-            “Claims can exceed things” is the conceptual punch. Use “warehouse with multiple liens + equity + derivatives” example if needed.
-          </div>
-        </section>
-
-        <!-- Slide 6 -->
-        <section class="slide" data-title="Where value goes" data-sub="Wages, profits, rents, returns">
-          <h2>Where worker value goes today</h2>
-          <div class="card">
-            <ul>
-              <li><strong>Wages</strong> — direct compensation</li>
-              <li><strong>Profits</strong> — captured by owners of companies/assets</li>
-              <li><strong>Rents</strong> — payments for access (land, housing, infrastructure, platforms)</li>
-              <li><strong>Financial returns</strong> — distributed to shareholders/funds/institutions</li>
-            </ul>
-            <div class="callout" style="margin-top:12px;">
-              <p><strong>The shift isn’t “capture disappears.”</strong> It becomes mediated through ownership of systems rather than ownership of people.</p>
-            </div>
-          </div>
-          <div class="notes">
-            This slide is the “mechanics” summary. It sets up the question: how much value should feed back into stability?
-          </div>
-        </section>
-
-        <!-- Slide 7 -->
-        <section class="slide" data-title="Key nodes" data-sub="Control doesn’t require owning everything">
-          <h2>Investment firms: not everything — but key nodes</h2>
-          <div class="two-col">
-            <div class="card">
-              <p>Investment firms increasingly hold strategic categories:</p>
-              <ul style="margin-top:10px;">
-                <li>Housing portfolios</li>
-                <li>Warehouses/logistics</li>
-                <li>Hospitals/care facilities</li>
-                <li>Energy infrastructure</li>
-                <li>Manufacturing</li>
-                <li>Agricultural land</li>
-                <li>Data centers</li>
-              </ul>
-            </div>
-            <div class="card">
-              <div class="callout">
-                <p><strong>Control doesn’t require owning everything.</strong><br/>It requires owning bottlenecks and nodes.</p>
-              </div>
-              <p style="margin-top:12px;">That’s why debates feel “everywhere”: housing, healthcare, energy, and logistics are upstream of wages.</p>
-            </div>
-          </div>
-          <div class="notes">
-            Keep it neutral. Emphasize “node ownership” as a systems description, not villain narrative.
-          </div>
-        </section>
-
-        <!-- Slide 8 -->
-        <section class="slide" data-title="Our actual disagreement" data-sub="Tools, not values">
-          <h2>Where our conversation actually converges</h2>
-          <div class="two-col">
-            <div class="card">
-              <h3>We both want</h3>
-              <ul>
-                <li>Strong individual rights</li>
-                <li>Decentralized power where possible</li>
-                <li>Coordination where necessary</li>
-                <li>Infrastructure that expands opportunity</li>
-                <li>Systems that don’t require constant crisis</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>So the real question becomes</h3>
-              <div class="callout">
-                <p><strong>How much system productivity should feed back into baseline security so participation stays possible without coercion?</strong></p>
-              </div>
-              <p style="margin-top:12px; color: var(--muted);">
-                Different tools can serve that goal. The word choice (“redistribution,” “UBI”) is often where emotions attach.
-              </p>
-            </div>
-          </div>
-          <div class="notes">
-            This is the “olive branch.” Reframe as shared goal; disagreements = implementation constraints, not motives.
-          </div>
-        </section>
-
-        <section class="slide" data-title="Structural Fork Flow Map" data-sub="Actual paths vs alternative outcomes">
-          <h2>Structural decision map</h2>
-
-          <div class="two-col">
-            <div class="card">
-              <svg id="flowSvg" viewBox="0 0 900 520" width="100%" height="420">
-                <g class="node" data-id="cw1" transform="translate(80,40)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">Constitutional Compromise</text>
-                </g>
-
-                <g class="node" data-id="cw2" transform="translate(80,120)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">Missouri Compromise</text>
-                </g>
-
-                <g class="node decision" data-id="cwFork" transform="translate(80,200)">
-                  <polygon points="110,0 220,25 110,50 0,25"/>
-                  <text x="110" y="30" text-anchor="middle">Resolve early?</text>
-                </g>
-
-                <g class="node" data-id="cw3" transform="translate(80,280)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">Civil War</text>
-                </g>
-
-                <g class="node" data-id="cw4" transform="translate(80,360)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">13th Amendment</text>
-                </g>
-
-                <g class="node" data-id="m1" transform="translate(560,40)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">Capital Mobility</text>
-                </g>
-
-                <g class="node" data-id="m2" transform="translate(560,120)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">Platform Concentration</text>
-                </g>
-
-                <g class="node decision" data-id="mFork" transform="translate(560,200)">
-                  <polygon points="110,0 220,25 110,50 0,25"/>
-                  <text x="110" y="30" text-anchor="middle">Ownership broaden?</text>
-                </g>
-
-                <g class="node" data-id="m3" transform="translate(560,280)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">Parallel Systems</text>
-                </g>
-
-                <g class="node" data-id="m4" transform="translate(560,360)">
-                  <rect width="220" height="50" rx="10"/>
-                  <text x="110" y="28" text-anchor="middle">New Social Contract</text>
-                </g>
-
-                <line x1="300" y1="145" x2="560" y2="145" class="analogy"/>
-              </svg>
-
-              <div style="margin-top:12px;">
-                <button id="toggleAlt">Toggle alternative outcomes</button>
-                <input id="timeline" type="range" min="0" max="4" value="2"/>
-              </div>
-            </div>
-
-            <div class="card" id="nodePanel">
-              <h3>Node details</h3>
-              <p>Select a node.</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Slide 9 -->
-        <section class="slide" data-title="Expanded structural fork map" data-sub="Civil War spine + modern capital analog">
-          <h2>Expanded decision spine: deferred conflict vs structural redesign</h2>
-          <div class="two-col">
-            <div class="card">
-              <svg id="flowSvg9" viewBox="0 0 980 520" width="100%" height="400" role="img" aria-label="Expanded analogy map">
-                <g>
-                  <line x1="170" y1="50" x2="170" y2="455" class="analogy" style="stroke-dasharray:0;stroke:rgba(124,212,255,.4)"/>
-                  <line x1="720" y1="50" x2="720" y2="455" class="analogy" style="stroke-dasharray:0;stroke:rgba(124,212,255,.4)"/>
-
-                  <g class="node" data-id="c1" transform="translate(40,24)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1787 compromise · slavery deferred</text></g>
-                  <g class="node decision" data-id="c2" transform="translate(40,78)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Resolve early?</text></g>
-                  <g class="node alt-node" data-id="c2a" transform="translate(2,80)"><rect width="30" height="38" rx="8"/><text x="15" y="24" text-anchor="middle" font-size="10">Alt</text></g>
-                  <g class="node" data-id="c3" transform="translate(40,134)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1820 Missouri Compromise</text></g>
-                  <g class="node decision" data-id="c4d" transform="translate(40,188)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Contain expansion?</text></g>
-                  <g class="node alt-node" data-id="c4a" transform="translate(2,190)"><rect width="30" height="38" rx="8"/><text x="15" y="24" text-anchor="middle" font-size="10">Alt</text></g>
-                  <g class="node" data-id="c5" transform="translate(40,244)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1854 Kansas–Nebraska</text></g>
-                  <g class="node" data-id="c6" transform="translate(40,298)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1857 Dred Scott crisis</text></g>
-                  <g class="node" data-id="c7" transform="translate(40,352)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1860 election legitimacy break</text></g>
-                  <g class="node decision" data-id="c8d" transform="translate(40,406)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Secession → war?</text></g>
-                  <g class="node" data-id="c9" transform="translate(40,460)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1865 · 13th Amendment</text></g>
-
-                  <g class="node" data-id="m1x" transform="translate(590,24)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Late 20th c. capital mobility</text></g>
-                  <g class="node decision" data-id="m2x" transform="translate(590,78)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Broad ownership?</text></g>
-                  <g class="node" data-id="m3x" transform="translate(590,134)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Platform concentration</text></g>
-                  <g class="node" data-id="m4x" transform="translate(590,188)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Partial policy responses</text></g>
-                  <g class="node" data-id="m5x" transform="translate(590,244)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">2016 narrative polarization</text></g>
-                  <g class="node" data-id="m6x" transform="translate(590,298)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">2020 trust strain</text></g>
-                  <g class="node" data-id="m7x" transform="translate(590,352)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Parallel systems emerge</text></g>
-                  <g class="node decision" data-id="m8x" transform="translate(590,406)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Structural fork</text></g>
-                  <g class="node" data-id="m9x" transform="translate(590,460)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">New social contract / ownership shift</text></g>
-
-                  <line x1="300" y1="155" x2="590" y2="155" class="analogy"/>
-                  <line x1="300" y1="209" x2="590" y2="209" class="analogy"/>
-                  <line x1="300" y1="319" x2="590" y2="319" class="analogy"/>
-                  <line x1="300" y1="373" x2="590" y2="373" class="analogy"/>
-                  <line x1="300" y1="481" x2="590" y2="481" class="analogy"/>
-                </g>
-              </svg>
-
-              <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <button id="toggleAlt9">Toggle civil-war alt branches</button>
-                <label for="timeline9" style="font-size:12px;color:var(--muted);">Timeline density</label>
-                <input id="timeline9" type="range" min="0" max="8" value="8"/>
-              </div>
-            </div>
-
-            <div class="card" id="nodePanel9">
-              <h3>Node details</h3>
-              <p>Click any node to map the historical analog and decision pressure.</p>
-            </div>
-          </div>
-          <div class="notes">
-            This merges the linear analogy + decision diamonds + some alternate branches from the LaTeX sketches.
-          </div>
-        </section>
-
-        <!-- Slide 10 -->
-        <section class="slide" data-title="Words for the structural fork" data-sub="Non-trigger vocabulary">
-          <h2>Words that describe the “structural fork” without ideology</h2>
-          <div class="two-col">
-            <div class="card">
-              <h3>Stability tools (examples)</h3>
-              <ul>
-                <li>Tax credits / negative income tax</li>
-                <li>Public services (healthcare, transit, education)</li>
-                <li>Profit sharing / employee ownership</li>
-                <li>Resource dividends (e.g., land/resource rents)</li>
-                <li>Baseline income (various designs)</li>
-              </ul>
-            </div>
-            <div class="card">
-              <h3>Neutral framing</h3>
-              <div class="callout">
-                <p><strong>Not “taking from X.”</strong><br/>More like: <strong>allocating part of system output</strong> to prevent cascade failure.</p>
-              </div>
-              <p style="margin-top:12px;">
-                The argument isn’t “markets vs no markets.” It’s how to keep a complex system free <em>and</em> stable.
-              </p>
-            </div>
-          </div>
-          <div class="notes">
-            Offer vocabulary: “stability dividend,” “social dividend,” “automation dividend,” “risk buffer,” “baseline floor.”
-          </div>
-        </section>
-
-        <!-- Slide 11 -->
-        <section class="slide" data-title="Bottom line" data-sub="The single question">
-          <h2>Bottom line</h2>
-          <div class="card">
-            <p>Abolition ended “humans as capital.”</p>
-            <p style="margin-top:10px;">But the allocation of value still depends on ownership of systems people must use.</p>
-            <div class="callout" style="margin-top:12px;">
-              <p><strong>The central modern question:</strong><br/>
-                Who owns the systems — and how should their productivity be shared so society stays free, stable, and adaptable?</p>
-            </div>
-            <p style="margin-top:12px; color: var(--muted);">
-              That’s the question we’re debating. Everything else is implementation detail and risk tolerance.
-            </p>
-          </div>
-          <div class="notes">
-            Close with invitation: “Let’s pick one failure mode (housing / automation / healthcare) and design constraints together.”
-          </div>
-        </section>
-      </div>
-    </main>
-
-    <footer>
-      <div class="progress" aria-label="progress">
-        <div class="bar" id="bar"></div>
-      </div>
-
-      <div class="nav">
-        <button id="prevBtn" title="Previous (Left arrow)">Prev</button>
-        <button id="nextBtn" title="Next (Right arrow / Space)">Next</button>
-      </div>
-
-      <div class="hint">
-        <span id="counter">1 / 1</span>
-        <span style="opacity:.6">•</span>
-        <span><kbd>G</kbd> TOC</span>
-        <span><kbd>N</kbd> Notes</span>
-      </div>
-    </footer>
-  </div>
-
-  <!-- TOC Overlay -->
-  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Slide list">
-    <div class="modal">
-      <header style="display:flex;align-items:center;justify-content:space-between;">
-        <div>
-          <div style="font-size:12px;color:var(--muted);">Slide list</div>
-          <h3 style="margin:0;">Jump to a slide</h3>
-        </div>
-        <button id="closeOverlay">Close</button>
-      </header>
-      <div class="toc" id="toc"></div>
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1 id="hdrTitle">Worker Value & System Ownership</h1>
+      <p class="sub" id="hdrSub">Interactive map + deck for talking with Thomas</p>
     </div>
-  </div>
+    <div class="controls">
+      <select id="lensSelect" title="Change lens (what the details panel emphasizes)">
+        <option value="mechanics">Lens: Mechanics</option>
+        <option value="governance">Lens: Government</option>
+        <option value="ownership">Lens: Ownership vs Access</option>
+        <option value="language">Lens: Language traps</option>
+      </select>
+      <button id="resetBtn" title="Reset highlights and selection">Reset</button>
+      <span class="pill" title="Keyboard controls">
+        <kbd>M</kbd> Map <kbd>D</kbd> Deck <kbd>←</kbd><kbd>→</kbd>
+      </span>
+    </div>
+  </header>
 
-  <script>
-    (function(){
-      const slides = Array.from(document.querySelectorAll('.slide'));
-      const bar = document.getElementById('bar');
-      const counter = document.getElementById('counter');
-      const prevBtn = document.getElementById('prevBtn');
-      const nextBtn = document.getElementById('nextBtn');
-      const tocBtn = document.getElementById('tocBtn');
-      const notesBtn = document.getElementById('notesBtn');
+  <main>
+    <div class="stage">
+      <!-- LEFT: Map/Deck -->
+      <div class="panel left">
+        <div class="leftTopbar">
+          <div class="modeTabs">
+            <div class="tab active" id="tabMap">Map</div>
+            <div class="tab" id="tabDeck">Deck</div>
+          </div>
+          <div class="miniControls">
+            <button id="toggleAltBtn" title="Show/hide alternative outcome nodes + edges">Alt outcomes</button>
+            <button id="toggleAnalogBtn" title="Show/hide analogy links">Analogies</button>
+            <button id="focusPathBtn" title="Highlight current selected path">Focus path</button>
+            <select id="eraSelect" title="Which era to emphasize">
+              <option value="both">Era: Both</option>
+              <option value="civilwar">Era: Civil War chain</option>
+              <option value="modern">Era: Modern capital chain</option>
+            </select>
+          </div>
+        </div>
 
-      const overlay = document.getElementById('overlay');
-      const toc = document.getElementById('toc');
-      const closeOverlay = document.getElementById('closeOverlay');
+        <div class="viewport">
+          <!-- MAP MODE -->
+          <div class="mapWrap active" id="mapWrap">
+            <div class="mapLegend">
+              <span><span class="dot actual"></span>Actual chain</span>
+              <span><span class="dot alt"></span>Alternative branch</span>
+              <span><span class="dot analogy"></span>Analogy link</span>
+              <span class="small">Click nodes → details. Use “Focus path” to dim everything else.</span>
+            </div>
 
-      const deckTitle = document.getElementById('deckTitle');
-      const deckSubtitle = document.getElementById('deckSubtitle');
+            <svg id="mapSvg" viewBox="0 0 980 560" role="img" aria-label="Structural fork map">
+              <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                  <path d="M0,0 L9,3 L0,6 Z" fill="rgba(233,238,246,.55)"></path>
+                </marker>
+                <marker id="arrowAlt" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                  <path d="M0,0 L9,3 L0,6 Z" fill="rgba(255,204,102,.7)"></path>
+                </marker>
+                <marker id="arrowAnalog" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                  <path d="M0,0 L9,3 L0,6 Z" fill="rgba(181,255,124,.75)"></path>
+                </marker>
+              </defs>
 
-      let idx = 0;
+              <!-- edges injected by JS -->
+              <g id="edges"></g>
 
-      function clamp(n){ return Math.max(0, Math.min(slides.length - 1, n)); }
+              <!-- nodes injected by JS -->
+              <g id="nodes"></g>
+            </svg>
+          </div>
 
-      function setSlide(n, {focus=false} = {}){
-        idx = clamp(n);
-        slides.forEach((s,i)=> s.classList.toggle('active', i === idx));
-        const pct = ((idx+1) / slides.length) * 100;
-        bar.style.width = pct.toFixed(2) + '%';
-        counter.textContent = `${idx+1} / ${slides.length}`;
+          <!-- DECK MODE -->
+          <div class="deckWrap" id="deckWrap">
+            <div id="deck"></div>
+            <div class="deckNav">
+              <button id="deckPrev">Prev</button>
+              <div class="pill" id="deckCounter">1 / 1</div>
+              <button id="deckNext">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        const active = slides[idx];
-        const t = active.getAttribute('data-title') || deckTitle.textContent;
-        const sub = active.getAttribute('data-sub') || '';
-        deckTitle.textContent = t;
-        deckSubtitle.textContent = sub;
+      <!-- RIGHT: Details -->
+      <div class="panel right">
+        <div class="rightTop">
+          <h2 id="detailTitle">Details</h2>
+          <button id="copyBtn" title="Copy the current node summary">Copy</button>
+        </div>
+        <div class="rightBody">
+          <div class="meta" id="detailMeta"></div>
+          <div class="big" id="detailBody">
+            Click a node in the map (or step through the deck).<br/>
+            This panel will show the explanation using the selected “Lens.”
+          </div>
+          <div class="hr"></div>
+          <div class="small" id="detailFoot">
+            Tip: the “Language traps” lens is tailored for the 15-minute city / “own nothing” reactions.
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 
-        // update hash for shareable deep link
-        history.replaceState(null, '', `#${idx+1}`);
+  <footer>
+    <div class="progress" aria-label="progress"><div class="bar" id="bar"></div></div>
+    <div class="status">
+      <span id="statusText">Mode: Map</span>
+      <span><kbd>Esc</kbd> Reset focus</span>
+      <span><kbd>A</kbd> Alt</span>
+      <span><kbd>G</kbd> Analogies</span>
+    </div>
+  </footer>
+</div>
 
-        if(focus){
-          active.scrollIntoView({block:'nearest', inline:'nearest'});
+<script>
+(() => {
+  // =========================
+  // 1) DATA: edit here
+  // =========================
+  const DATA = {
+    deckTitle: "Worker Value & System Ownership",
+    deckSubtitle: "Interactive map + deck for talking with Thomas",
+
+    // Nodes: id, era, x,y, type, title, tags, lensText
+    nodes: [
+      // Civil War chain (actual)
+      { id:"cw1", era:"civilwar", x:120, y:70, type:"box", title:"1787 Constitutional Compromise",
+        tags:["actual","history"],
+        text:{
+          mechanics:"Deferred the conflict by embedding slavery into governance compromises.",
+          governance:"Shows how ‘coordination’ can include moral debt that compounds.",
+          ownership:"People were treated as capital within the legal-economic system.",
+          language:"‘Compromise’ sounds neutral; structurally it can be a time-bomb."
+        }
+      },
+      { id:"cw2", era:"civilwar", x:120, y:150, type:"box", title:"1820 Missouri Compromise",
+        tags:["actual","balance"],
+        text:{
+          mechanics:"A postponement strategy: balance expansions rather than resolve fundamentals.",
+          governance:"Patchwork governance: stability by delay, not settlement.",
+          ownership:"Ownership of people stays intact; access and power expand with territory.",
+          language:"‘Balance’ is a soothing word for a widening constraint."
+        }
+      },
+      { id:"cw3d", era:"civilwar", x:120, y:230, type:"decision", title:"Resolve early?",
+        tags:["actual","fork"],
+        text:{
+          mechanics:"Fork point: gradual abolition (different crisis) vs escalation toward war.",
+          governance:"Key question: do you centralize moral enforcement or defer to local power?",
+          ownership:"If humans can’t be owned, value capture shifts to owning the environment of work.",
+          language:"Words like ‘states’ rights’ can hide the object being defended."
+        }
+      },
+      { id:"cw3", era:"civilwar", x:120, y:310, type:"box", title:"1861–65 Civil War",
+        tags:["actual","conflict"],
+        text:{
+          mechanics:"Violent resolution when institutions can’t reconcile incompatible systems.",
+          governance:"Shows the danger of ‘only force’ logic: force becomes the policy tool.",
+          ownership:"War rearranged who controlled the system, not just the rules.",
+          language:"‘War between states’ vs ‘war over slavery’ is a framing fight."
+        }
+      },
+      { id:"cw4", era:"civilwar", x:120, y:390, type:"box", title:"1865 — 13th Amendment",
+        tags:["actual","structural-change"],
+        text:{
+          mechanics:"Removed legal ownership of humans (a category deletion).",
+          governance:"A state action that redefines what can be owned—hard boundary-setting.",
+          ownership:"Labor becomes sellable; access to systems becomes the new leverage point.",
+          language:"‘Freedom’ is real, but economic constraints can persist via other channels."
+        }
+      },
+
+      // Civil War alternatives (hidden by default)
+      { id:"cwAlt1", era:"civilwar", x:420, y:230, type:"alt", title:"Alt: gradual abolition earlier",
+        tags:["alt","counterfactual"],
+        text:{
+          mechanics:"A different crisis profile: less war-scale violence, more sustained political backlash.",
+          governance:"Would require persistent enforcement capacity (courts, federal power).",
+          ownership:"Shifts value capture sooner toward land/infrastructure rather than people.",
+          language:"‘Gradual’ can mean humane transition or prolonged injustice—depends on design."
+        }
+      },
+
+      // Modern chain (actual)
+      { id:"m1", era:"modern", x:640, y:70, type:"box", title:"Capital mobility (late 20th c.)",
+        tags:["actual","modern"],
+        text:{
+          mechanics:"Capital moves faster than labor; bargaining asymmetry rises.",
+          governance:"Regulation struggles when capital can exit jurisdictions easily.",
+          ownership:"Ownership concentrates in firms/platforms; labor remains local.",
+          language:"‘Globalization’ can mean opportunity or exit threat, depending who you are."
+        }
+      },
+      { id:"m2", era:"modern", x:640, y:150, type:"box", title:"Platform concentration",
+        tags:["actual","node-ownership"],
+        text:{
+          mechanics:"Owning bottlenecks (distribution, attention, logistics) beats owning everything.",
+          governance:"Antitrust and standards become the battleground.",
+          ownership:"Access to markets depends on systems you don’t own.",
+          language:"‘Free market’ rhetoric can coexist with very non-free chokepoints."
+        }
+      },
+      { id:"m3d", era:"modern", x:640, y:230, type:"decision", title:"Broaden ownership?",
+        tags:["actual","fork"],
+        text:{
+          mechanics:"Fork: broaden ownership (dividends/employee ownership/public options) vs deeper concentration.",
+          governance:"This is where ‘what government does’ matters: stability vs force-only.",
+          ownership:"Ownership distribution determines autonomy more than density does.",
+          language:"‘Redistribution’ triggers; ‘stability dividend’ describes the same mechanism."
+        }
+      },
+      { id:"m3", era:"modern", x:640, y:310, type:"box", title:"Parallel systems emerge",
+        tags:["actual","fragmentation"],
+        text:{
+          mechanics:"When trust + access fail, people build workarounds: informal economies, alt platforms.",
+          governance:"Fragmentation is a stability warning light, not just ‘culture war.’",
+          ownership:"If key nodes are owned tightly, parallel systems become survival strategy.",
+          language:"‘Opt out’ sounds voluntary until you see who pays the exit cost."
+        }
+      },
+      { id:"m4", era:"modern", x:640, y:390, type:"box", title:"New social contract",
+        tags:["actual","settlement"],
+        text:{
+          mechanics:"A new equilibrium between ownership, access, and baseline security.",
+          governance:"The state can be a stability guarantor, not only a force holder.",
+          ownership:"People own labor/ideas/products; society decides access terms to infrastructure.",
+          language:"This is where ‘UBI’ is one tool among many, not a religion."
+        }
+      },
+
+      // Modern alternatives
+      { id:"mAlt1", era:"modern", x:340, y:230, type:"alt", title:"Alt: broad ownership (co-ops/dividends)",
+        tags:["alt","counterfactual"],
+        text:{
+          mechanics:"Distributes returns from system productivity; reduces desperation bargaining.",
+          governance:"Can be implemented as dividends, tax credits, public options, or employee ownership.",
+          ownership:"Keeps private property while widening who receives asset-linked income.",
+          language:"Avoid ‘you’ll own nothing’ by emphasizing ownership broadening, not eliminating."
         }
       }
+    ],
 
-      function next(){ setSlide(idx+1, {focus:true}); }
-      function prev(){ setSlide(idx-1, {focus:true}); }
+    // Edges: from,to,type
+    edges: [
+      { from:"cw1", to:"cw2", type:"actual" },
+      { from:"cw2", to:"cw3d", type:"actual" },
+      { from:"cw3d", to:"cw3", type:"actual" },
+      { from:"cw3", to:"cw4", type:"actual" },
+      { from:"cw3d", to:"cwAlt1", type:"alt" },
 
-      function openTOC(){
-        // build TOC each time to reflect edits
-        toc.innerHTML = '';
-        slides.forEach((s,i)=>{
-          const title = s.getAttribute('data-title') || `Slide ${i+1}`;
-          const sub = s.getAttribute('data-sub') || '';
-          const btn = document.createElement('button');
-          btn.innerHTML = `<strong>${i+1}.</strong> ${escapeHtml(title)}<small>${escapeHtml(sub)}</small>`;
-          btn.addEventListener('click', ()=>{
-            overlay.classList.remove('open');
-            setSlide(i, {focus:true});
-          });
-          toc.appendChild(btn);
-        });
-        overlay.classList.add('open');
+      { from:"m1", to:"m2", type:"actual" },
+      { from:"m2", to:"m3d", type:"actual" },
+      { from:"m3d", to:"m3", type:"actual" },
+      { from:"m3", to:"m4", type:"actual" },
+      { from:"m3d", to:"mAlt1", type:"alt" }
+    ],
+
+    // Analogy links: bidirectional dashed
+    analogies: [
+      { a:"cw2", b:"m2", label:"Bottlenecks / balance logic" },
+      { a:"cw3d", b:"m3d", label:"Fork: resolve vs defer" },
+      { a:"cw4", b:"m4", label:"Structural boundary / new contract" }
+    ],
+
+    // Deck slides: linear narration that can deep-link to nodes
+    deck: [
+      {
+        title:"What we’re actually trying to figure out",
+        body:[
+          "Slavery ended. That’s a huge structural break.",
+          "But one systems question survives:",
+          "If people can’t be owned, how is value created by labor captured and distributed?"
+        ],
+        callout:"Separate: physical assets (stuff), ownership (titles/claims), labor (time/skill/ideas/products)."
+      },
+      {
+        title:"Before abolition: labor was a direct asset",
+        body:[
+          "Humans were treated as capital on balance sheets alongside land and equipment.",
+          "Abolition removes the category ‘people as property’ — a category deletion."
+        ],
+        jump:"cw1"
+      },
+      {
+        title:"After abolition: ownership shifts to systems",
+        body:[
+          "Value capture moves from owning bodies to owning platforms of work/life:",
+          "factories, rails, housing, farms, machines, energy, distribution."
+        ],
+        jump:"m2"
+      },
+      {
+        title:"The physical substrate of civilization",
+        body:[
+          "Replacement-cost magnitude: produced assets ~$400–600T; land ~$200–400T; combined ~$700–900T (rough).",
+          "Financial claims can stack on the same physical assets — claims > things."
+        ],
+        jump:"m1"
+      },
+      {
+        title:"The structural fork we keep arguing about",
+        body:[
+          "Not ‘markets vs no markets.’",
+          "It’s: how much system productivity feeds back into baseline security so participation stays possible without coercion.",
+          "UBI is one tool; dividends, tax credits, employee ownership, and public options are others."
+        ],
+        jump:"m3d",
+        callout:"If someone fears ‘own nothing,’ emphasize broadening ownership and access, not eliminating property."
       }
+    ]
+  };
 
-      function closeTOC(){ overlay.classList.remove('open'); }
+  // =========================
+  // 2) STATE
+  // =========================
+  let mode = "map";              // "map" | "deck"
+  let lens = "mechanics";        // selected lens
+  let showAlt = false;
+  let showAnalogies = true;
+  let eraFocus = "both";         // "both" | "civilwar" | "modern"
+  let focusPath = false;
+  let selectedNodeId = null;
 
-      function toggleNotes(){
-        document.body.classList.toggle('show-notes');
+  // Deck state
+  let deckIndex = 0;
+
+  // DOM
+  const hdrTitle = document.getElementById("hdrTitle");
+  const hdrSub = document.getElementById("hdrSub");
+  const statusText = document.getElementById("statusText");
+  const bar = document.getElementById("bar");
+
+  const tabMap = document.getElementById("tabMap");
+  const tabDeck = document.getElementById("tabDeck");
+  const mapWrap = document.getElementById("mapWrap");
+  const deckWrap = document.getElementById("deckWrap");
+
+  const edgesG = document.getElementById("edges");
+  const nodesG = document.getElementById("nodes");
+
+  const lensSelect = document.getElementById("lensSelect");
+  const eraSelect = document.getElementById("eraSelect");
+
+  const toggleAltBtn = document.getElementById("toggleAltBtn");
+  const toggleAnalogBtn = document.getElementById("toggleAnalogBtn");
+  const focusPathBtn = document.getElementById("focusPathBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const copyBtn = document.getElementById("copyBtn");
+
+  const detailTitle = document.getElementById("detailTitle");
+  const detailMeta = document.getElementById("detailMeta");
+  const detailBody = document.getElementById("detailBody");
+  const detailFoot = document.getElementById("detailFoot");
+
+  const deckDiv = document.getElementById("deck");
+  const deckPrev = document.getElementById("deckPrev");
+  const deckNext = document.getElementById("deckNext");
+  const deckCounter = document.getElementById("deckCounter");
+
+  // =========================
+  // 3) HELPERS
+  // =========================
+  const byId = Object.fromEntries(DATA.nodes.map(n => [n.id, n]));
+
+  function setHeader(title, sub){
+    hdrTitle.textContent = title;
+    hdrSub.textContent = sub;
+  }
+
+  function badge(text, cls=""){
+    const s = document.createElement("span");
+    s.className = "badge " + cls;
+    s.textContent = text;
+    return s;
+  }
+
+  function renderDetails(node){
+    if(!node){
+      detailTitle.textContent = "Details";
+      detailMeta.innerHTML = "";
+      detailBody.innerHTML = "Click a node in the map (or step through the deck).<br/>This panel will show the explanation using the selected “Lens.”";
+      detailFoot.textContent = "Tip: the “Language traps” lens is tailored for the 15-minute city / “own nothing” reactions.";
+      return;
+    }
+
+    detailTitle.textContent = node.title;
+    detailMeta.innerHTML = "";
+    detailMeta.appendChild(badge(node.era === "civilwar" ? "Civil War chain" : "Modern chain", "good"));
+    node.tags.forEach(t => {
+      const cls = (t === "alt") ? "warn" : (t === "actual" ? "good" : "");
+      detailMeta.appendChild(badge(t, cls));
+    });
+    detailMeta.appendChild(badge("lens: " + lens, ""));
+
+    const txt = (node.text && node.text[lens]) ? node.text[lens] : "(No text for this lens yet.)";
+    detailBody.textContent = txt;
+
+    // context footer that shifts per lens
+    const lensFoot = {
+      mechanics: "Mechanics lens: how value and constraints move through systems.",
+      governance: "Government lens: what coordination does, and where force-risk hides.",
+      ownership: "Ownership lens: ownership vs access vs autonomy.",
+      language: "Language lens: why certain terms trigger fear even when structures are similar."
+    };
+    detailFoot.textContent = lensFoot[lens] || "";
+  }
+
+  function svgEl(tag, attrs={}){
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v));
+    return el;
+  }
+
+  function drawNode(n){
+    const g = svgEl("g", { class:`node ${n.type === "decision" ? "decision":""} ${n.type === "alt" ? "alt":""}`, "data-id": n.id });
+    g.setAttribute("transform", `translate(${n.x},${n.y})`);
+
+    if(n.type === "decision"){
+      const poly = svgEl("polygon", { points:"120,0 240,32 120,64 0,32" });
+      g.appendChild(poly);
+      const text = svgEl("text", { x:"120", y:"38", "text-anchor":"middle" });
+      text.textContent = n.title;
+      g.appendChild(text);
+    } else {
+      const rect = svgEl("rect", { width:"240", height:"64", rx:"12" });
+      g.appendChild(rect);
+      const text = svgEl("text", { x:"120", y:"38", "text-anchor":"middle" });
+      text.textContent = n.title;
+      g.appendChild(text);
+    }
+
+    g.addEventListener("click", () => selectNode(n.id, {from:"map"}));
+    return g;
+  }
+
+  function nodeCenter(n){
+    // node box ~ 240x64; decision diamond ~240x64 visually
+    return { cx: n.x + 120, cy: n.y + 32 };
+  }
+
+  function drawEdge(e){
+    const a = byId[e.from], b = byId[e.to];
+    if(!a || !b) return null;
+    const A = nodeCenter(a), B = nodeCenter(b);
+
+    // route: mostly vertical lines within columns; add simple dogleg if cross-column
+    const sameColumn = Math.abs(A.cx - B.cx) < 40;
+    let d;
+    if(sameColumn){
+      d = `M ${A.cx} ${A.cy+32} L ${B.cx} ${B.cy-32}`;
+    } else {
+      const midY = (A.cy + B.cy)/2;
+      d = `M ${A.cx} ${A.cy} L ${A.cx} ${midY} L ${B.cx} ${midY} L ${B.cx} ${B.cy}`;
+    }
+
+    const path = svgEl("path", { d, class: `edge ${e.type === "alt" ? "alt":""}` });
+    return path;
+  }
+
+  function drawAnalogy(link){
+    const a = byId[link.a], b = byId[link.b];
+    if(!a || !b) return null;
+    const A = nodeCenter(a), B = nodeCenter(b);
+    const d = `M ${A.cx+120} ${A.cy} L ${B.cx-120} ${B.cy}`;
+    return svgEl("path", { d, class:"analogy" });
+  }
+
+  function applyVisibility(){
+    // Alt nodes/edges
+    document.querySelectorAll(".node.alt").forEach(el => {
+      el.classList.toggle("hidden", !showAlt);
+    });
+    document.querySelectorAll(".edge.alt").forEach(el => {
+      el.classList.toggle("hidden", !showAlt);
+    });
+
+    // Analogy links
+    document.querySelectorAll(".analogy").forEach(el => {
+      el.classList.toggle("hidden", !showAnalogies);
+    });
+
+    // Era focus dims the other era
+    DATA.nodes.forEach(n => {
+      const el = nodesG.querySelector(`[data-id="${CSS.escape(n.id)}"]`);
+      if(!el) return;
+      const dim = (eraFocus !== "both" && n.era !== eraFocus);
+      el.classList.toggle("dim", dim);
+    });
+
+    // Focus path dims everything except nodes on a chosen path (simple: selected node's era chain)
+    if(focusPath && selectedNodeId){
+      const keep = new Set();
+      const start = selectedNodeId;
+
+      // Walk upstream + downstream along actual edges
+      const actualEdges = DATA.edges.filter(x => x.type === "actual");
+      function walkForward(id){
+        keep.add(id);
+        actualEdges.filter(x => x.from === id).forEach(x => walkForward(x.to));
       }
-
-      function escapeHtml(str){
-        return (str || '')
-          .replaceAll('&','&amp;')
-          .replaceAll('<','&lt;')
-          .replaceAll('>','&gt;')
-          .replaceAll('"','&quot;')
-          .replaceAll("'","&#039;");
+      function walkBackward(id){
+        keep.add(id);
+        actualEdges.filter(x => x.to === id).forEach(x => walkBackward(x.from));
       }
+      walkForward(start);
+      walkBackward(start);
 
-      // Buttons
-      nextBtn.addEventListener('click', next);
-      prevBtn.addEventListener('click', prev);
-      tocBtn.addEventListener('click', openTOC);
-      closeOverlay.addEventListener('click', closeTOC);
-      overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeTOC(); });
-      notesBtn.addEventListener('click', toggleNotes);
+      DATA.nodes.forEach(n => {
+        const el = nodesG.querySelector(`[data-id="${CSS.escape(n.id)}"]`);
+        if(!el) return;
+        const shouldKeep = keep.has(n.id);
+        // don’t hide other-era entirely; just dim
+        el.classList.toggle("dim", !shouldKeep);
+      });
 
-      // Keyboard
-      window.addEventListener('keydown', (e)=>{
-        if(overlay.classList.contains('open')){
-          if(e.key === 'Escape') closeTOC();
-          return;
+      // Dim edges not in keep
+      edgesG.querySelectorAll("path.edge").forEach(p => p.classList.add("dim"));
+      actualEdges.forEach(e => {
+        if(keep.has(e.from) && keep.has(e.to)){
+          const key = `${e.from}::${e.to}::${e.type}`;
+          const p = edgesG.querySelector(`[data-key="${CSS.escape(key)}"]`);
+          if(p) p.classList.remove("dim");
         }
-        if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); next(); }
-        if(e.key === 'ArrowLeft'  || e.key === 'Backspace' || e.key === 'PageUp'){ e.preventDefault(); prev(); }
-        if(e.key.toLowerCase() === 'g'){ openTOC(); }
-        if(e.key.toLowerCase() === 'n'){ toggleNotes(); }
       });
 
-      // Hash deep-link: #3 -> slide 3
-      function initFromHash(){
-        const m = (location.hash || '').match(/#(\d+)/);
-        if(m){
-          const n = parseInt(m[1],10);
-          if(Number.isFinite(n)) setSlide(n-1);
-          else setSlide(0);
-        } else {
-          setSlide(0);
-        }
-      }
+      // Keep analogies if enabled but dim if not connected
+      edgesG.querySelectorAll("path.analogy").forEach(p => p.classList.toggle("dim", false));
+    } else {
+      edgesG.querySelectorAll("path.edge").forEach(p => p.classList.remove("dim"));
+      // restore era dim only
+      DATA.nodes.forEach(n => {
+        const el = nodesG.querySelector(`[data-id="${CSS.escape(n.id)}"]`);
+        if(!el) return;
+        const dim = (eraFocus !== "both" && n.era !== eraFocus);
+        el.classList.toggle("dim", dim);
+      });
+    }
+  }
 
-      const nodeInfo = {
-        cw1: 'Foundational compromise deferred resolution.',
-        cw2: 'Balance logic — postponement strategy.',
-        cwFork: 'Fork: gradual abolition vs conflict.',
-        cw3: 'Violent resolution of structural conflict.',
-        cw4: 'Human ownership legally prohibited.',
-        m1: 'Capital becomes mobile and abstract.',
-        m2: 'Platforms become key economic nodes.',
-        mFork: 'Fork: broaden ownership vs concentrate.',
-        m3: 'Emergence of parallel economic systems.',
-        m4: 'Potential structural settlement.'
-      };
+  function selectNode(id, {from} = {}){
+    selectedNodeId = id;
 
-      document.querySelectorAll('#flowSvg .node').forEach((node)=>{
-        node.addEventListener('click', ()=>{
-          document.querySelectorAll('#flowSvg .node').forEach((n)=> n.classList.remove('active'));
-          node.classList.add('active');
+    // active class
+    nodesG.querySelectorAll(".node").forEach(el => el.classList.remove("active"));
+    const el = nodesG.querySelector(`[data-id="${CSS.escape(id)}"]`);
+    if(el) el.classList.add("active");
 
-          const id = node.dataset.id;
-          const panel = document.getElementById('nodePanel');
-          panel.innerHTML = `<h3>${id}</h3><p>${nodeInfo[id]}</p>`;
-        });
+    // details
+    renderDetails(byId[id]);
+
+    // progress bar: if we’re in deck, show deck progress; otherwise show map progress by "depth" in era
+    if(mode === "deck"){
+      const pct = ((deckIndex+1) / DATA.deck.length) * 100;
+      bar.style.width = pct.toFixed(2) + "%";
+    } else {
+      const node = byId[id];
+      const chain = node?.era === "civilwar"
+        ? ["cw1","cw2","cw3d","cw3","cw4"]
+        : ["m1","m2","m3d","m3","m4"];
+      const i = Math.max(0, chain.indexOf(id));
+      const pct = ((i+1) / chain.length) * 100;
+      bar.style.width = pct.toFixed(2) + "%";
+    }
+
+    // update status line
+    if(from === "deck"){
+      statusText.textContent = `Mode: Deck • Selected: ${byId[id]?.title || id}`;
+    } else {
+      statusText.textContent = `Mode: Map • Selected: ${byId[id]?.title || id}`;
+    }
+
+    applyVisibility();
+  }
+
+  function resetAll(){
+    showAlt = false;
+    showAnalogies = true;
+    eraFocus = "both";
+    focusPath = false;
+    selectedNodeId = null;
+
+    // UI sync
+    eraSelect.value = "both";
+    renderDetails(null);
+    nodesG.querySelectorAll(".node").forEach(el => el.classList.remove("active"));
+    edgesG.querySelectorAll("path").forEach(p => p.classList.remove("dim"));
+
+    applyVisibility();
+    bar.style.width = "0%";
+    statusText.textContent = `Mode: ${mode === "map" ? "Map" : "Deck"}`;
+  }
+
+  // =========================
+  // 4) RENDER MAP
+  // =========================
+  function renderMap(){
+    edgesG.innerHTML = "";
+    nodesG.innerHTML = "";
+
+    // edges first
+    DATA.edges.forEach(e => {
+      const path = drawEdge(e);
+      if(!path) return;
+      path.setAttribute("data-key", `${e.from}::${e.to}::${e.type}`);
+      edgesG.appendChild(path);
+    });
+
+    // analogies
+    DATA.analogies.forEach(a => {
+      const p = drawAnalogy(a);
+      if(p) edgesG.appendChild(p);
+    });
+
+    // nodes
+    DATA.nodes.forEach(n => nodesG.appendChild(drawNode(n)));
+
+    applyVisibility();
+  }
+
+  // =========================
+  // 5) RENDER DECK
+  // =========================
+  function renderDeck(){
+    deckDiv.innerHTML = "";
+    DATA.deck.forEach((s, i) => {
+      const slide = document.createElement("div");
+      slide.className = "slide";
+      slide.setAttribute("data-index", String(i));
+
+      const h2 = document.createElement("h2");
+      h2.textContent = `${i+1}. ${s.title}`;
+      slide.appendChild(h2);
+
+      s.body.forEach(line => {
+        const p = document.createElement("p");
+        p.style.marginTop = "8px";
+        p.textContent = line;
+        slide.appendChild(p);
       });
 
-      const toggleAlt = document.getElementById('toggleAlt');
-      if(toggleAlt){
-        toggleAlt.addEventListener('click', ()=>{
-          document.querySelectorAll('.decision').forEach((decisionNode)=>{
-            decisionNode.classList.toggle('active');
-          });
-        });
+      if(s.callout){
+        const c = document.createElement("div");
+        c.className = "callout";
+        c.innerHTML = `<strong>Key idea:</strong> ${escapeHtml(s.callout)}`;
+        slide.appendChild(c);
       }
 
-      const timeline = document.getElementById('timeline');
-      if(timeline){
-        timeline.addEventListener('input', (event)=>{
-          const step = Number(event.target.value);
-          const nodes = [...document.querySelectorAll('#flowSvg .node')];
-          nodes.forEach((node, index)=>{
-            node.style.opacity = index <= step * 2 ? '1' : '.25';
-          });
+      if(s.jump){
+        const btn = document.createElement("button");
+        btn.textContent = "Jump to related node";
+        btn.style.marginTop = "10px";
+        btn.addEventListener("click", () => {
+          switchMode("map");
+          selectNode(s.jump, {from:"deck"});
         });
+        slide.appendChild(btn);
       }
 
-      const nodeInfo9 = {
-        c1: '1787 locked in a temporary constitutional settlement that deferred the core slavery contradiction.',
-        c2: 'Decision point: force early resolution or keep postponing under a fragile compromise.',
-        c2a: 'Alternate branch: gradual abolition / earlier constitutional rupture.',
-        c3: 'Missouri Compromise preserved balance logic but hardened sectional blocs.',
-        c4d: 'Containment question: can expansion be constrained without system breakage?',
-        c4a: 'Alternate branch: stronger federal containment of expansion.',
-        c5: 'Kansas–Nebraska shifted conflict to local violence and legitimacy contests.',
-        c6: 'Dred Scott escalated the conflict by nationalizing the institutional crisis.',
-        c7: '1860 election became a legitimacy stress-test the system failed to absorb.',
-        c8d: 'Final fork: negotiated redesign vs secession and war.',
-        c9: '13th Amendment created structural legal change rather than another temporary patch.',
-        m1x: 'Capital mobility and abstraction weakened older labor bargaining structures.',
-        m2x: 'Decision point: broaden ownership and upside participation, or continue concentration.',
-        m3x: 'Platform economics intensified winner-take-most dynamics.',
-        m4x: 'Policy responses emerged but stayed partial and often reactive.',
-        m5x: 'Narrative polarization amplified system-level distrust.',
-        m6x: 'Institutional trust strain reduced ability to coordinate reforms.',
-        m7x: 'Parallel systems (economic, informational, political) become normalized.',
-        m8x: 'Structural fork: redesign ownership/social contract, or accept persistent fragmentation.',
-        m9x: 'Potential settlement: new social contract tied to broader ownership and risk buffering.'
-      };
+      deckDiv.appendChild(slide);
+    });
 
-      document.querySelectorAll('#flowSvg9 .node').forEach((node)=>{
-        node.addEventListener('click', ()=>{
-          document.querySelectorAll('#flowSvg9 .node').forEach((n)=> n.classList.remove('active'));
-          node.classList.add('active');
+    updateDeckNav();
+  }
 
-          const id = node.dataset.id;
-          const panel = document.getElementById('nodePanel9');
-          panel.innerHTML = `<h3>${id}</h3><p>${nodeInfo9[id] || 'No details yet.'}</p>`;
-        });
-      });
+  function updateDeckNav(){
+    deckCounter.textContent = `${deckIndex+1} / ${DATA.deck.length}`;
+    const pct = ((deckIndex+1) / DATA.deck.length) * 100;
+    bar.style.width = pct.toFixed(2) + "%";
+    statusText.textContent = `Mode: Deck • Slide ${deckIndex+1}/${DATA.deck.length}`;
+    // Scroll to active slide
+    const active = deckDiv.querySelector(`.slide[data-index="${deckIndex}"]`);
+    if(active) active.scrollIntoView({behavior:"smooth", block:"start"});
+    // Also select linked node if present
+    const jump = DATA.deck[deckIndex]?.jump;
+    if(jump) selectNode(jump, {from:"deck"});
+    else renderDetails(null);
+  }
 
-      const toggleAlt9 = document.getElementById('toggleAlt9');
-      if(toggleAlt9){
-        toggleAlt9.addEventListener('click', ()=>{
-          document.querySelectorAll('#flowSvg9 .alt-node').forEach((alt)=>{
-            alt.classList.toggle('show');
-          });
-        });
-      }
+  function escapeHtml(str){
+    return (str || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
 
-      const timeline9 = document.getElementById('timeline9');
-      if(timeline9){
-        timeline9.addEventListener('input', (event)=>{
-          const step = Number(event.target.value);
-          const nodes = [...document.querySelectorAll('#flowSvg9 .node:not(.alt-node)')];
-          nodes.forEach((node, index)=>{
-            node.style.opacity = index <= step * 2 ? '1' : '.2';
-          });
-        });
-      }
+  // =========================
+  // 6) MODE SWITCHING
+  // =========================
+  function switchMode(newMode){
+    mode = newMode;
 
-      initFromHash();
-    })();
-  </script>
+    const isMap = (mode === "map");
+    tabMap.classList.toggle("active", isMap);
+    tabDeck.classList.toggle("active", !isMap);
+    mapWrap.classList.toggle("active", isMap);
+    deckWrap.classList.toggle("active", !isMap);
+
+    statusText.textContent = `Mode: ${isMap ? "Map" : "Deck"}`;
+
+    if(isMap){
+      // keep current selection if any
+      if(selectedNodeId) selectNode(selectedNodeId, {from:"map"});
+      else bar.style.width = "0%";
+    } else {
+      updateDeckNav();
+    }
+  }
+
+  // =========================
+  // 7) UI EVENTS
+  // =========================
+  lensSelect.addEventListener("change", (e) => {
+    lens = e.target.value;
+    if(selectedNodeId) renderDetails(byId[selectedNodeId]);
+  });
+
+  eraSelect.addEventListener("change", (e) => {
+    eraFocus = e.target.value;
+    applyVisibility();
+  });
+
+  toggleAltBtn.addEventListener("click", () => {
+    showAlt = !showAlt;
+    applyVisibility();
+  });
+
+  toggleAnalogBtn.addEventListener("click", () => {
+    showAnalogies = !showAnalogies;
+    applyVisibility();
+  });
+
+  focusPathBtn.addEventListener("click", () => {
+    focusPath = !focusPath;
+    applyVisibility();
+  });
+
+  resetBtn.addEventListener("click", resetAll);
+
+  copyBtn.addEventListener("click", async () => {
+    const node = selectedNodeId ? byId[selectedNodeId] : null;
+    const txt = node ? `${node.title}\n\n(${lens} lens)\n${node.text?.[lens] || ""}` : "No node selected.";
+    try{
+      await navigator.clipboard.writeText(txt);
+      copyBtn.textContent = "Copied";
+      setTimeout(()=>copyBtn.textContent="Copy", 900);
+    }catch{
+      copyBtn.textContent = "Copy failed";
+      setTimeout(()=>copyBtn.textContent="Copy", 900);
+    }
+  });
+
+  tabMap.addEventListener("click", () => switchMode("map"));
+  tabDeck.addEventListener("click", () => switchMode("deck"));
+
+  deckPrev.addEventListener("click", () => { deckIndex = Math.max(0, deckIndex-1); updateDeckNav(); });
+  deckNext.addEventListener("click", () => { deckIndex = Math.min(DATA.deck.length-1, deckIndex+1); updateDeckNav(); });
+
+  // Keyboard
+  window.addEventListener("keydown", (e) => {
+    const k = e.key.toLowerCase();
+    if(k === "m") switchMode("map");
+    if(k === "d") switchMode("deck");
+    if(k === "a"){ showAlt = !showAlt; applyVisibility(); }
+    if(k === "g"){ showAnalogies = !showAnalogies; applyVisibility(); }
+    if(k === "escape"){ focusPath = false; eraFocus = "both"; eraSelect.value = "both"; applyVisibility(); }
+
+    if(mode === "deck"){
+      if(e.key === "ArrowRight" || e.key === " " || e.key === "PageDown"){ e.preventDefault(); deckIndex = Math.min(DATA.deck.length-1, deckIndex+1); updateDeckNav(); }
+      if(e.key === "ArrowLeft"  || e.key === "Backspace" || e.key === "PageUp"){ e.preventDefault(); deckIndex = Math.max(0, deckIndex-1); updateDeckNav(); }
+    } else {
+      // In map mode, arrows step through the “actual” chain of the selected node’s era
+      if(!selectedNodeId) return;
+      const node = byId[selectedNodeId];
+      const chain = node?.era === "civilwar"
+        ? ["cw1","cw2","cw3d","cw3","cw4"]
+        : ["m1","m2","m3d","m3","m4"];
+      let i = chain.indexOf(selectedNodeId);
+      if(i < 0) return;
+      if(e.key === "ArrowRight"){ i = Math.min(chain.length-1, i+1); selectNode(chain[i], {from:"map"}); }
+      if(e.key === "ArrowLeft"){ i = Math.max(0, i-1); selectNode(chain[i], {from:"map"}); }
+    }
+  });
+
+  // =========================
+  // 8) INIT
+  // =========================
+  setHeader(DATA.deckTitle, DATA.deckSubtitle);
+  renderMap();
+  renderDeck();
+  renderDetails(null);
+  bar.style.width = "0%";
+
+  // Optional: preselect a useful starting node (modern fork)
+  selectNode("m3d", {from:"map"});
+
+})();
+</script>
 </body>
 </html>
