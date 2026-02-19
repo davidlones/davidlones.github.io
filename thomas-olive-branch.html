@@ -339,6 +339,29 @@
       display:none;
     }
     body.show-notes .notes{ display:block; }
+
+    .node rect, .node polygon{
+      fill: rgba(124,212,255,.08);
+      stroke: rgba(124,212,255,.6);
+      stroke-width: 1.4;
+      cursor: pointer;
+    }
+
+    .node.decision polygon{
+      stroke: rgba(255,204,102,.8);
+      fill: rgba(255,204,102,.1);
+    }
+
+    .node.active rect,
+    .node.active polygon{
+      stroke-width: 2.4;
+      fill: rgba(181,255,124,.18);
+    }
+
+    .analogy{
+      stroke: rgba(181,255,124,.5);
+      stroke-dasharray: 6 6;
+    }
   </style>
 </head>
 
@@ -575,6 +598,78 @@
           </div>
         </section>
 
+        <section class="slide" data-title="Structural Fork Flow Map" data-sub="Actual paths vs alternative outcomes">
+          <h2>Structural decision map</h2>
+
+          <div class="two-col">
+            <div class="card">
+              <svg id="flowSvg" viewBox="0 0 900 520" width="100%" height="420">
+                <g class="node" data-id="cw1" transform="translate(80,40)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">Constitutional Compromise</text>
+                </g>
+
+                <g class="node" data-id="cw2" transform="translate(80,120)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">Missouri Compromise</text>
+                </g>
+
+                <g class="node decision" data-id="cwFork" transform="translate(80,200)">
+                  <polygon points="110,0 220,25 110,50 0,25"/>
+                  <text x="110" y="30" text-anchor="middle">Resolve early?</text>
+                </g>
+
+                <g class="node" data-id="cw3" transform="translate(80,280)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">Civil War</text>
+                </g>
+
+                <g class="node" data-id="cw4" transform="translate(80,360)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">13th Amendment</text>
+                </g>
+
+                <g class="node" data-id="m1" transform="translate(560,40)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">Capital Mobility</text>
+                </g>
+
+                <g class="node" data-id="m2" transform="translate(560,120)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">Platform Concentration</text>
+                </g>
+
+                <g class="node decision" data-id="mFork" transform="translate(560,200)">
+                  <polygon points="110,0 220,25 110,50 0,25"/>
+                  <text x="110" y="30" text-anchor="middle">Ownership broaden?</text>
+                </g>
+
+                <g class="node" data-id="m3" transform="translate(560,280)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">Parallel Systems</text>
+                </g>
+
+                <g class="node" data-id="m4" transform="translate(560,360)">
+                  <rect width="220" height="50" rx="10"/>
+                  <text x="110" y="28" text-anchor="middle">New Social Contract</text>
+                </g>
+
+                <line x1="300" y1="145" x2="560" y2="145" class="analogy"/>
+              </svg>
+
+              <div style="margin-top:12px;">
+                <button id="toggleAlt">Toggle alternative outcomes</button>
+                <input id="timeline" type="range" min="0" max="4" value="2"/>
+              </div>
+            </div>
+
+            <div class="card" id="nodePanel">
+              <h3>Node details</h3>
+              <p>Select a node.</p>
+            </div>
+          </div>
+        </section>
+
         <!-- Slide 9 -->
         <section class="slide" data-title="Government: force vs stability" data-sub="The paradox you spotted">
           <h2>The paradox: “only military” vs “don’t point guns at citizens”</h2>
@@ -785,6 +880,50 @@
         } else {
           setSlide(0);
         }
+      }
+
+      const nodeInfo = {
+        cw1: 'Foundational compromise deferred resolution.',
+        cw2: 'Balance logic — postponement strategy.',
+        cwFork: 'Fork: gradual abolition vs conflict.',
+        cw3: 'Violent resolution of structural conflict.',
+        cw4: 'Human ownership legally prohibited.',
+        m1: 'Capital becomes mobile and abstract.',
+        m2: 'Platforms become key economic nodes.',
+        mFork: 'Fork: broaden ownership vs concentrate.',
+        m3: 'Emergence of parallel economic systems.',
+        m4: 'Potential structural settlement.'
+      };
+
+      document.querySelectorAll('#flowSvg .node').forEach((node)=>{
+        node.addEventListener('click', ()=>{
+          document.querySelectorAll('#flowSvg .node').forEach((n)=> n.classList.remove('active'));
+          node.classList.add('active');
+
+          const id = node.dataset.id;
+          const panel = document.getElementById('nodePanel');
+          panel.innerHTML = `<h3>${id}</h3><p>${nodeInfo[id]}</p>`;
+        });
+      });
+
+      const toggleAlt = document.getElementById('toggleAlt');
+      if(toggleAlt){
+        toggleAlt.addEventListener('click', ()=>{
+          document.querySelectorAll('.decision').forEach((decisionNode)=>{
+            decisionNode.classList.toggle('active');
+          });
+        });
+      }
+
+      const timeline = document.getElementById('timeline');
+      if(timeline){
+        timeline.addEventListener('input', (event)=>{
+          const step = Number(event.target.value);
+          const nodes = [...document.querySelectorAll('#flowSvg .node')];
+          nodes.forEach((node, index)=>{
+            node.style.opacity = index <= step * 2 ? '1' : '.25';
+          });
+        });
       }
 
       initFromHash();
