@@ -358,6 +358,9 @@
       fill: rgba(181,255,124,.18);
     }
 
+    .alt-node{ opacity: 0; transition: opacity .18s ease; pointer-events: none; }
+    .alt-node.show{ opacity: .85; pointer-events: auto; }
+
     .analogy{
       stroke: rgba(181,255,124,.5);
       stroke-dasharray: 6 6;
@@ -671,22 +674,59 @@
         </section>
 
         <!-- Slide 9 -->
-        <section class="slide" data-title="Government: force vs stability" data-sub="The paradox you spotted">
-          <h2>The paradox: “only military” vs “don’t point guns at citizens”</h2>
-          <div class="card">
-            <p>If the only function of government is force, it still holds the most dangerous tool.</p>
-            <p style="margin-top:10px;">If government provides infrastructure, it already shapes opportunity.</p>
-            <div class="callout" style="margin-top:12px;">
-              <p><strong>Infrastructure isn’t neutral.</strong> It’s policy made concrete: where people can live, move, work, and survive stress.</p>
+        <section class="slide" data-title="Expanded structural fork map" data-sub="Civil War spine + modern capital analog">
+          <h2>Expanded decision spine: deferred conflict vs structural redesign</h2>
+          <div class="two-col">
+            <div class="card">
+              <svg id="flowSvg9" viewBox="0 0 980 520" width="100%" height="400" role="img" aria-label="Expanded analogy map">
+                <g>
+                  <line x1="170" y1="50" x2="170" y2="455" class="analogy" style="stroke-dasharray:0;stroke:rgba(124,212,255,.4)"/>
+                  <line x1="720" y1="50" x2="720" y2="455" class="analogy" style="stroke-dasharray:0;stroke:rgba(124,212,255,.4)"/>
+
+                  <g class="node" data-id="c1" transform="translate(40,24)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1787 compromise · slavery deferred</text></g>
+                  <g class="node decision" data-id="c2" transform="translate(40,78)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Resolve early?</text></g>
+                  <g class="node alt-node" data-id="c2a" transform="translate(2,80)"><rect width="30" height="38" rx="8"/><text x="15" y="24" text-anchor="middle" font-size="10">Alt</text></g>
+                  <g class="node" data-id="c3" transform="translate(40,134)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1820 Missouri Compromise</text></g>
+                  <g class="node decision" data-id="c4d" transform="translate(40,188)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Contain expansion?</text></g>
+                  <g class="node alt-node" data-id="c4a" transform="translate(2,190)"><rect width="30" height="38" rx="8"/><text x="15" y="24" text-anchor="middle" font-size="10">Alt</text></g>
+                  <g class="node" data-id="c5" transform="translate(40,244)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1854 Kansas–Nebraska</text></g>
+                  <g class="node" data-id="c6" transform="translate(40,298)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1857 Dred Scott crisis</text></g>
+                  <g class="node" data-id="c7" transform="translate(40,352)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1860 election legitimacy break</text></g>
+                  <g class="node decision" data-id="c8d" transform="translate(40,406)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Secession → war?</text></g>
+                  <g class="node" data-id="c9" transform="translate(40,460)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">1865 · 13th Amendment</text></g>
+
+                  <g class="node" data-id="m1x" transform="translate(590,24)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Late 20th c. capital mobility</text></g>
+                  <g class="node decision" data-id="m2x" transform="translate(590,78)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Broad ownership?</text></g>
+                  <g class="node" data-id="m3x" transform="translate(590,134)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Platform concentration</text></g>
+                  <g class="node" data-id="m4x" transform="translate(590,188)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Partial policy responses</text></g>
+                  <g class="node" data-id="m5x" transform="translate(590,244)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">2016 narrative polarization</text></g>
+                  <g class="node" data-id="m6x" transform="translate(590,298)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">2020 trust strain</text></g>
+                  <g class="node" data-id="m7x" transform="translate(590,352)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">Parallel systems emerge</text></g>
+                  <g class="node decision" data-id="m8x" transform="translate(590,406)"><polygon points="130,0 260,21 130,42 0,21"/><text x="130" y="25" text-anchor="middle">Structural fork</text></g>
+                  <g class="node" data-id="m9x" transform="translate(590,460)"><rect width="260" height="42" rx="10"/><text x="130" y="26" text-anchor="middle">New social contract / ownership shift</text></g>
+
+                  <line x1="300" y1="155" x2="590" y2="155" class="analogy"/>
+                  <line x1="300" y1="209" x2="590" y2="209" class="analogy"/>
+                  <line x1="300" y1="319" x2="590" y2="319" class="analogy"/>
+                  <line x1="300" y1="373" x2="590" y2="373" class="analogy"/>
+                  <line x1="300" y1="481" x2="590" y2="481" class="analogy"/>
+                </g>
+              </svg>
+
+              <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <button id="toggleAlt9">Toggle civil-war alt branches</button>
+                <label for="timeline9" style="font-size:12px;color:var(--muted);">Timeline density</label>
+                <input id="timeline9" type="range" min="0" max="8" value="8"/>
+              </div>
             </div>
-            <div class="tagrow">
-              <span class="tag warn">Centralization risk</span>
-              <span class="tag">Coordination need</span>
-              <span class="tag good">Constraints & accountability</span>
+
+            <div class="card" id="nodePanel9">
+              <h3>Node details</h3>
+              <p>Click any node to map the historical analog and decision pressure.</p>
             </div>
           </div>
           <div class="notes">
-            Mention: highways, zoning, utilities, interstate logistics. Keep tone: “this is why our definitions matter.”
+            This merges the linear analogy + decision diamonds + some alternate branches from the LaTeX sketches.
           </div>
         </section>
 
@@ -922,6 +962,60 @@
           const nodes = [...document.querySelectorAll('#flowSvg .node')];
           nodes.forEach((node, index)=>{
             node.style.opacity = index <= step * 2 ? '1' : '.25';
+          });
+        });
+      }
+
+      const nodeInfo9 = {
+        c1: '1787 locked in a temporary constitutional settlement that deferred the core slavery contradiction.',
+        c2: 'Decision point: force early resolution or keep postponing under a fragile compromise.',
+        c2a: 'Alternate branch: gradual abolition / earlier constitutional rupture.',
+        c3: 'Missouri Compromise preserved balance logic but hardened sectional blocs.',
+        c4d: 'Containment question: can expansion be constrained without system breakage?',
+        c4a: 'Alternate branch: stronger federal containment of expansion.',
+        c5: 'Kansas–Nebraska shifted conflict to local violence and legitimacy contests.',
+        c6: 'Dred Scott escalated the conflict by nationalizing the institutional crisis.',
+        c7: '1860 election became a legitimacy stress-test the system failed to absorb.',
+        c8d: 'Final fork: negotiated redesign vs secession and war.',
+        c9: '13th Amendment created structural legal change rather than another temporary patch.',
+        m1x: 'Capital mobility and abstraction weakened older labor bargaining structures.',
+        m2x: 'Decision point: broaden ownership and upside participation, or continue concentration.',
+        m3x: 'Platform economics intensified winner-take-most dynamics.',
+        m4x: 'Policy responses emerged but stayed partial and often reactive.',
+        m5x: 'Narrative polarization amplified system-level distrust.',
+        m6x: 'Institutional trust strain reduced ability to coordinate reforms.',
+        m7x: 'Parallel systems (economic, informational, political) become normalized.',
+        m8x: 'Structural fork: redesign ownership/social contract, or accept persistent fragmentation.',
+        m9x: 'Potential settlement: new social contract tied to broader ownership and risk buffering.'
+      };
+
+      document.querySelectorAll('#flowSvg9 .node').forEach((node)=>{
+        node.addEventListener('click', ()=>{
+          document.querySelectorAll('#flowSvg9 .node').forEach((n)=> n.classList.remove('active'));
+          node.classList.add('active');
+
+          const id = node.dataset.id;
+          const panel = document.getElementById('nodePanel9');
+          panel.innerHTML = `<h3>${id}</h3><p>${nodeInfo9[id] || 'No details yet.'}</p>`;
+        });
+      });
+
+      const toggleAlt9 = document.getElementById('toggleAlt9');
+      if(toggleAlt9){
+        toggleAlt9.addEventListener('click', ()=>{
+          document.querySelectorAll('#flowSvg9 .alt-node').forEach((alt)=>{
+            alt.classList.toggle('show');
+          });
+        });
+      }
+
+      const timeline9 = document.getElementById('timeline9');
+      if(timeline9){
+        timeline9.addEventListener('input', (event)=>{
+          const step = Number(event.target.value);
+          const nodes = [...document.querySelectorAll('#flowSvg9 .node:not(.alt-node)')];
+          nodes.forEach((node, index)=>{
+            node.style.opacity = index <= step * 2 ? '1' : '.2';
           });
         });
       }
