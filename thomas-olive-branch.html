@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Worker Value, Ownership, and What We’re Actually Debating</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#101826;
+      --panel2:#0e1522;
+      --text:#e9eef6;
+      --muted:#a9b6c7;
+      --line:rgba(233,238,246,.12);
+      --accent:#7cd4ff;
+      --accent2:#b5ff7c;
+      --warn:#ffcc66;
+      --bad:#ff7c9c;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+      --maxw: 1100px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body{
+      font-family: var(--sans);
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(124,212,255,.12), transparent 60%),
+                  radial-gradient(1000px 700px at 90% 20%, rgba(181,255,124,.08), transparent 55%),
+                  radial-gradient(1000px 700px at 60% 95%, rgba(255,204,102,.06), transparent 55%),
+                  var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* Layout */
+    .app{
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(16,24,38,.72);
+      backdrop-filter: blur(10px);
+    }
+
+    header .title{
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+      min-width: 0;
+    }
+    header .title h1{
+      font-size: 14px;
+      margin:0;
+      letter-spacing:.2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70vw;
+    }
+    header .title .subtitle{
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70vw;
+    }
+
+    header .controls{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    button, .pill{
+      border: 1px solid var(--line);
+      background: rgba(14,21,34,.65);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform .06s ease, border-color .12s ease, background .12s ease;
+    }
+    button:hover{ border-color: rgba(124,212,255,.35); }
+    button:active{ transform: translateY(1px); }
+    .pill{
+      cursor: default;
+      color: var(--muted);
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    .pill kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-bottom-color: rgba(233,238,246,.22);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(0,0,0,.15);
+    }
+
+    /* Slides */
+    main{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 26px 18px;
+    }
+    .deck{
+      width: min(var(--maxw), calc(100vw - 36px));
+      height: min(74vh, 720px);
+      position: relative;
+    }
+
+    .slide{
+      position:absolute;
+      inset: 0;
+      padding: 34px 34px 26px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(16,24,38,.86), rgba(14,21,34,.86));
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateX(22px) scale(.985);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      display:flex;
+      flex-direction:column;
+      gap: 18px;
+    }
+    .slide.active{
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .slide h2{
+      margin:0;
+      font-size: 26px;
+      letter-spacing: .2px;
+      line-height: 1.15;
+    }
+    .slide h3{
+      margin: 0;
+      font-size: 16px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .slide p{
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.55;
+      color: rgba(233,238,246,.92);
+    }
+
+    .two-col{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+      align-items:start;
+    }
+    @media (max-width: 880px){
+      .deck{ height: min(78vh, 820px); }
+      .slide{ padding: 26px 22px 20px; }
+      .two-col{ grid-template-columns: 1fr; }
+      .slide h2{ font-size: 22px; }
+    }
+
+    .card{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 14px;
+      background: rgba(0,0,0,.16);
+    }
+    ul{
+      margin: 0;
+      padding-left: 18px;
+      color: rgba(233,238,246,.92);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    li{ margin: 6px 0; }
+
+    .callout{
+      border-left: 3px solid rgba(124,212,255,.8);
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(124,212,255,.08);
+    }
+    .callout strong{ color: var(--accent); }
+
+    .tagrow{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .tag{
+      font-size: 12px;
+      color: rgba(233,238,246,.88);
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.12);
+    }
+    .tag.good{ border-color: rgba(181,255,124,.25); background: rgba(181,255,124,.08); }
+    .tag.warn{ border-color: rgba(255,204,102,.25); background: rgba(255,204,102,.08); }
+    .tag.bad{ border-color: rgba(255,124,156,.25); background: rgba(255,124,156,.08); }
+
+    /* Footer / progress */
+    footer{
+      padding: 10px 18px 14px;
+      border-top: 1px solid var(--line);
+      background: rgba(16,24,38,.62);
+      backdrop-filter: blur(10px);
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items:center;
+      gap: 10px;
+    }
+
+    .progress{
+      height: 8px;
+      background: rgba(233,238,246,.08);
+      border-radius: 999px;
+      overflow:hidden;
+      border: 1px solid rgba(233,238,246,.10);
+    }
+    .bar{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(124,212,255,.95), rgba(181,255,124,.85));
+      transition: width .18s ease;
+    }
+
+    .nav{
+      display:flex;
+      justify-content:center;
+      gap: 10px;
+    }
+    .nav button{
+      padding: 9px 14px;
+      min-width: 88px;
+    }
+
+    .hint{
+      display:flex;
+      gap: 10px;
+      justify-content:flex-end;
+      color: var(--muted);
+      font-size: 12px;
+      align-items:center;
+    }
+    .hint kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--text);
+      background: rgba(0,0,0,.15);
+    }
+
+    /* TOC overlay */
+    .overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(10px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+    }
+    .overlay.open{ display:flex; }
+
+    .modal{
+      width: min(900px, 96vw);
+      max-height: 86vh;
+      overflow:auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(16,24,38,.92), rgba(14,21,34,.92));
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .modal header{
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      border: none;
+      background: transparent;
+      padding: 6px 6px 10px;
+      backdrop-filter: none;
+    }
+    .modal h3{
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .toc{
+      display:grid;
+      gap: 10px;
+      padding: 6px;
+    }
+    .toc button{
+      text-align:left;
+      border-radius: 14px;
+      padding: 12px 12px;
+      font-size: 13px;
+      line-height: 1.35;
+      background: rgba(0,0,0,.14);
+    }
+    .toc button strong{ color: var(--accent); font-weight: 700; }
+    .toc button small{ display:block; color: var(--muted); margin-top: 2px; }
+
+    /* Notes */
+    .notes{
+      margin-top: auto;
+      border-top: 1px dashed rgba(233,238,246,.18);
+      padding-top: 12px;
+      color: rgba(233,238,246,.72);
+      font-size: 13px;
+      line-height: 1.5;
+      display:none;
+    }
+    body.show-notes .notes{ display:block; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1 id="deckTitle">Worker Value, Ownership, and What We’re Actually Debating</h1>
+        <div class="subtitle" id="deckSubtitle">A friendly explainer for Thomas</div>
+      </div>
+
+      <div class="controls">
+        <button id="tocBtn" title="Open slide list">Slides</button>
+        <button id="notesBtn" title="Toggle speaker notes">Notes</button>
+        <span class="pill" title="Keyboard controls">
+          <kbd>←</kbd><kbd>→</kbd> <span style="opacity:.85">or</span> <kbd>Space</kbd>
+        </span>
+      </div>
+    </header>
+
+    <main>
+      <div class="deck" id="deck">
+        <!-- Slide 1 -->
+        <section class="slide active" data-title="Why we keep looping back to this" data-sub="Not ideology — a systems question">
+          <h2>What we’re actually trying to figure out</h2>
+          <div class="two-col">
+            <div class="card">
+              <p><strong>Not</strong> “past = present.” Slavery ended. That’s a huge structural break.</p>
+              <p style="margin-top:10px;">But one economic question survives:</p>
+              <div class="callout" style="margin-top:10px;">
+                <p><strong>If people can’t be owned, how is the value they create captured and distributed?</strong></p>
+              </div>
+              <p style="margin-top:12px;">To talk cleanly, we separate:</p>
+              <ul>
+                <li><strong>Physical assets</strong> (stuff)</li>
+                <li><strong>Ownership structures</strong> (titles/claims)</li>
+                <li><strong>Labor</strong> (human time/skill/ideas)</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Our shared baseline</h3>
+              <ul>
+                <li>People own themselves.</li>
+                <li>People can sell labor, ideas, products.</li>
+                <li>Centralized force can be dangerous.</li>
+                <li>Coordination is sometimes necessary (infrastructure, defense, disasters).</li>
+              </ul>
+              <div class="tagrow">
+                <span class="tag good">Freedom</span>
+                <span class="tag good">Coordination</span>
+                <span class="tag warn">Abuse risk</span>
+              </div>
+            </div>
+          </div>
+          <div class="notes">
+            Goal: keep this framed as “risk management + coordination,” not labels. Invite agreement first.
+          </div>
+        </section>
+
+        <!-- Slide 2 -->
+        <section class="slide" data-title="Before abolition" data-sub="Labor as property">
+          <h2>Before abolition: labor was treated as a direct asset</h2>
+          <div class="card">
+            <p>Under slavery, people were listed on balance sheets alongside land and equipment.</p>
+            <ul style="margin-top:10px;">
+              <li>Land</li>
+              <li>Infrastructure</li>
+              <li>Equipment</li>
+              <li><strong>Human labor capacity (owned)</strong></li>
+            </ul>
+            <p style="margin-top:12px;">Abolition removed the category “people as capital.”</p>
+          </div>
+          <div class="notes">
+            Keep it factual. Emphasize: moral and legal transformation is real. The question is what replaced the extraction interface.
+          </div>
+        </section>
+
+        <!-- Slide 3 -->
+        <section class="slide" data-title="After abolition" data-sub="Ownership shifts to systems">
+          <h2>After abolition: ownership shifted to the environment around workers</h2>
+          <div class="two-col">
+            <div class="card">
+              <p>Industrial society reorganized value capture around physical systems.</p>
+              <p style="margin-top:10px;">Ownership concentrated in:</p>
+              <ul>
+                <li>Factories</li>
+                <li>Railroads</li>
+                <li>Housing</li>
+                <li>Farms</li>
+                <li>Tools and machines</li>
+                <li>Energy infrastructure</li>
+                <li>Distribution networks</li>
+              </ul>
+            </div>
+            <div class="card">
+              <p><strong>Workers were paid wages</strong>, but access to production depended on using assets someone else owned.</p>
+              <div class="callout" style="margin-top:12px;">
+                <p><strong>Shift:</strong> owning bodies → owning platforms of life/work.</p>
+              </div>
+              <div class="tagrow">
+                <span class="tag">Access</span>
+                <span class="tag">Bargaining power</span>
+                <span class="tag warn">Dependency on nodes</span>
+              </div>
+            </div>
+          </div>
+          <div class="notes">
+            This is the hinge slide for the “modern analogy” later. Don’t moralize—describe mechanics: access requires system permission.
+          </div>
+        </section>
+
+        <!-- Slide 4 -->
+        <section class="slide" data-title="Physical scale" data-sub="The hardware of civilization">
+          <h2>The physical scale of civilization (not speculation)</h2>
+          <div class="card">
+            <p>If we ignore stock prices and ask what the physical world costs to replace:</p>
+            <ul style="margin-top:10px;">
+              <li><strong>Produced physical assets:</strong> ~$400–600T (buildings, factories, infrastructure, machinery, vehicles)</li>
+              <li><strong>Land value:</strong> ~$200–400T</li>
+              <li><strong>Total physical substrate:</strong> ~<strong>$700–900T</strong></li>
+            </ul>
+            <p style="margin-top:12px; color: var(--muted);">
+              Rough ranges (estimates vary), but the point stands: the physical layer is finite, heavy, and slow-changing.
+            </p>
+          </div>
+          <div class="notes">
+            If Thomas pushes numbers: acknowledge uncertainty; emphasize conceptual use—physical layer vs claims layer.
+          </div>
+        </section>
+
+        <!-- Slide 5 -->
+        <section class="slide" data-title="Ownership layers" data-sub="Claims stack on things">
+          <h2>Financial ownership sits on top of the physical layer</h2>
+          <div class="two-col">
+            <div class="card">
+              <p>Markets create <strong>claims</strong> on physical assets and their income.</p>
+              <ul style="margin-top:10px;">
+                <li>Stocks → claims on corporate assets/profits</li>
+                <li>Debt → claims on future income</li>
+                <li>Real estate funds → pooled housing ownership</li>
+                <li>Private equity → ownership/control of operating companies</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="callout">
+                <p><strong>Key idea:</strong> multiple financial claims can stack on the same physical asset.</p>
+              </div>
+              <p style="margin-top:12px;">That’s why financial wealth can grow faster than the material economy beneath it.</p>
+              <div class="tagrow">
+                <span class="tag">Layer 1: physical</span>
+                <span class="tag">Layer 2: legal</span>
+                <span class="tag">Layer 3: financial</span>
+              </div>
+            </div>
+          </div>
+          <div class="notes">
+            “Claims can exceed things” is the conceptual punch. Use “warehouse with multiple liens + equity + derivatives” example if needed.
+          </div>
+        </section>
+
+        <!-- Slide 6 -->
+        <section class="slide" data-title="Where value goes" data-sub="Wages, profits, rents, returns">
+          <h2>Where worker value goes today</h2>
+          <div class="card">
+            <ul>
+              <li><strong>Wages</strong> — direct compensation</li>
+              <li><strong>Profits</strong> — captured by owners of companies/assets</li>
+              <li><strong>Rents</strong> — payments for access (land, housing, infrastructure, platforms)</li>
+              <li><strong>Financial returns</strong> — distributed to shareholders/funds/institutions</li>
+            </ul>
+            <div class="callout" style="margin-top:12px;">
+              <p><strong>The shift isn’t “capture disappears.”</strong> It becomes mediated through ownership of systems rather than ownership of people.</p>
+            </div>
+          </div>
+          <div class="notes">
+            This slide is the “mechanics” summary. It sets up the question: how much value should feed back into stability?
+          </div>
+        </section>
+
+        <!-- Slide 7 -->
+        <section class="slide" data-title="Key nodes" data-sub="Control doesn’t require owning everything">
+          <h2>Investment firms: not everything — but key nodes</h2>
+          <div class="two-col">
+            <div class="card">
+              <p>Investment firms increasingly hold strategic categories:</p>
+              <ul style="margin-top:10px;">
+                <li>Housing portfolios</li>
+                <li>Warehouses/logistics</li>
+                <li>Hospitals/care facilities</li>
+                <li>Energy infrastructure</li>
+                <li>Manufacturing</li>
+                <li>Agricultural land</li>
+                <li>Data centers</li>
+              </ul>
+            </div>
+            <div class="card">
+              <div class="callout">
+                <p><strong>Control doesn’t require owning everything.</strong><br/>It requires owning bottlenecks and nodes.</p>
+              </div>
+              <p style="margin-top:12px;">That’s why debates feel “everywhere”: housing, healthcare, energy, and logistics are upstream of wages.</p>
+            </div>
+          </div>
+          <div class="notes">
+            Keep it neutral. Emphasize “node ownership” as a systems description, not villain narrative.
+          </div>
+        </section>
+
+        <!-- Slide 8 -->
+        <section class="slide" data-title="Our actual disagreement" data-sub="Tools, not values">
+          <h2>Where our conversation actually converges</h2>
+          <div class="two-col">
+            <div class="card">
+              <h3>We both want</h3>
+              <ul>
+                <li>Strong individual rights</li>
+                <li>Decentralized power where possible</li>
+                <li>Coordination where necessary</li>
+                <li>Infrastructure that expands opportunity</li>
+                <li>Systems that don’t require constant crisis</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>So the real question becomes</h3>
+              <div class="callout">
+                <p><strong>How much system productivity should feed back into baseline security so participation stays possible without coercion?</strong></p>
+              </div>
+              <p style="margin-top:12px; color: var(--muted);">
+                Different tools can serve that goal. The word choice (“redistribution,” “UBI”) is often where emotions attach.
+              </p>
+            </div>
+          </div>
+          <div class="notes">
+            This is the “olive branch.” Reframe as shared goal; disagreements = implementation constraints, not motives.
+          </div>
+        </section>
+
+        <!-- Slide 9 -->
+        <section class="slide" data-title="Government: force vs stability" data-sub="The paradox you spotted">
+          <h2>The paradox: “only military” vs “don’t point guns at citizens”</h2>
+          <div class="card">
+            <p>If the only function of government is force, it still holds the most dangerous tool.</p>
+            <p style="margin-top:10px;">If government provides infrastructure, it already shapes opportunity.</p>
+            <div class="callout" style="margin-top:12px;">
+              <p><strong>Infrastructure isn’t neutral.</strong> It’s policy made concrete: where people can live, move, work, and survive stress.</p>
+            </div>
+            <div class="tagrow">
+              <span class="tag warn">Centralization risk</span>
+              <span class="tag">Coordination need</span>
+              <span class="tag good">Constraints & accountability</span>
+            </div>
+          </div>
+          <div class="notes">
+            Mention: highways, zoning, utilities, interstate logistics. Keep tone: “this is why our definitions matter.”
+          </div>
+        </section>
+
+        <!-- Slide 10 -->
+        <section class="slide" data-title="Words for the structural fork" data-sub="Non-trigger vocabulary">
+          <h2>Words that describe the “structural fork” without ideology</h2>
+          <div class="two-col">
+            <div class="card">
+              <h3>Stability tools (examples)</h3>
+              <ul>
+                <li>Tax credits / negative income tax</li>
+                <li>Public services (healthcare, transit, education)</li>
+                <li>Profit sharing / employee ownership</li>
+                <li>Resource dividends (e.g., land/resource rents)</li>
+                <li>Baseline income (various designs)</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Neutral framing</h3>
+              <div class="callout">
+                <p><strong>Not “taking from X.”</strong><br/>More like: <strong>allocating part of system output</strong> to prevent cascade failure.</p>
+              </div>
+              <p style="margin-top:12px;">
+                The argument isn’t “markets vs no markets.” It’s how to keep a complex system free <em>and</em> stable.
+              </p>
+            </div>
+          </div>
+          <div class="notes">
+            Offer vocabulary: “stability dividend,” “social dividend,” “automation dividend,” “risk buffer,” “baseline floor.”
+          </div>
+        </section>
+
+        <!-- Slide 11 -->
+        <section class="slide" data-title="Bottom line" data-sub="The single question">
+          <h2>Bottom line</h2>
+          <div class="card">
+            <p>Abolition ended “humans as capital.”</p>
+            <p style="margin-top:10px;">But the allocation of value still depends on ownership of systems people must use.</p>
+            <div class="callout" style="margin-top:12px;">
+              <p><strong>The central modern question:</strong><br/>
+                Who owns the systems — and how should their productivity be shared so society stays free, stable, and adaptable?</p>
+            </div>
+            <p style="margin-top:12px; color: var(--muted);">
+              That’s the question we’re debating. Everything else is implementation detail and risk tolerance.
+            </p>
+          </div>
+          <div class="notes">
+            Close with invitation: “Let’s pick one failure mode (housing / automation / healthcare) and design constraints together.”
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="progress" aria-label="progress">
+        <div class="bar" id="bar"></div>
+      </div>
+
+      <div class="nav">
+        <button id="prevBtn" title="Previous (Left arrow)">Prev</button>
+        <button id="nextBtn" title="Next (Right arrow / Space)">Next</button>
+      </div>
+
+      <div class="hint">
+        <span id="counter">1 / 1</span>
+        <span style="opacity:.6">•</span>
+        <span><kbd>G</kbd> TOC</span>
+        <span><kbd>N</kbd> Notes</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- TOC Overlay -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Slide list">
+    <div class="modal">
+      <header style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:12px;color:var(--muted);">Slide list</div>
+          <h3 style="margin:0;">Jump to a slide</h3>
+        </div>
+        <button id="closeOverlay">Close</button>
+      </header>
+      <div class="toc" id="toc"></div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const slides = Array.from(document.querySelectorAll('.slide'));
+      const bar = document.getElementById('bar');
+      const counter = document.getElementById('counter');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const tocBtn = document.getElementById('tocBtn');
+      const notesBtn = document.getElementById('notesBtn');
+
+      const overlay = document.getElementById('overlay');
+      const toc = document.getElementById('toc');
+      const closeOverlay = document.getElementById('closeOverlay');
+
+      const deckTitle = document.getElementById('deckTitle');
+      const deckSubtitle = document.getElementById('deckSubtitle');
+
+      let idx = 0;
+
+      function clamp(n){ return Math.max(0, Math.min(slides.length - 1, n)); }
+
+      function setSlide(n, {focus=false} = {}){
+        idx = clamp(n);
+        slides.forEach((s,i)=> s.classList.toggle('active', i === idx));
+        const pct = ((idx+1) / slides.length) * 100;
+        bar.style.width = pct.toFixed(2) + '%';
+        counter.textContent = `${idx+1} / ${slides.length}`;
+
+        const active = slides[idx];
+        const t = active.getAttribute('data-title') || deckTitle.textContent;
+        const sub = active.getAttribute('data-sub') || '';
+        deckTitle.textContent = t;
+        deckSubtitle.textContent = sub;
+
+        // update hash for shareable deep link
+        history.replaceState(null, '', `#${idx+1}`);
+
+        if(focus){
+          active.scrollIntoView({block:'nearest', inline:'nearest'});
+        }
+      }
+
+      function next(){ setSlide(idx+1, {focus:true}); }
+      function prev(){ setSlide(idx-1, {focus:true}); }
+
+      function openTOC(){
+        // build TOC each time to reflect edits
+        toc.innerHTML = '';
+        slides.forEach((s,i)=>{
+          const title = s.getAttribute('data-title') || `Slide ${i+1}`;
+          const sub = s.getAttribute('data-sub') || '';
+          const btn = document.createElement('button');
+          btn.innerHTML = `<strong>${i+1}.</strong> ${escapeHtml(title)}<small>${escapeHtml(sub)}</small>`;
+          btn.addEventListener('click', ()=>{
+            overlay.classList.remove('open');
+            setSlide(i, {focus:true});
+          });
+          toc.appendChild(btn);
+        });
+        overlay.classList.add('open');
+      }
+
+      function closeTOC(){ overlay.classList.remove('open'); }
+
+      function toggleNotes(){
+        document.body.classList.toggle('show-notes');
+      }
+
+      function escapeHtml(str){
+        return (str || '')
+          .replaceAll('&','&amp;')
+          .replaceAll('<','&lt;')
+          .replaceAll('>','&gt;')
+          .replaceAll('"','&quot;')
+          .replaceAll("'","&#039;");
+      }
+
+      // Buttons
+      nextBtn.addEventListener('click', next);
+      prevBtn.addEventListener('click', prev);
+      tocBtn.addEventListener('click', openTOC);
+      closeOverlay.addEventListener('click', closeTOC);
+      overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeTOC(); });
+      notesBtn.addEventListener('click', toggleNotes);
+
+      // Keyboard
+      window.addEventListener('keydown', (e)=>{
+        if(overlay.classList.contains('open')){
+          if(e.key === 'Escape') closeTOC();
+          return;
+        }
+        if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); next(); }
+        if(e.key === 'ArrowLeft'  || e.key === 'Backspace' || e.key === 'PageUp'){ e.preventDefault(); prev(); }
+        if(e.key.toLowerCase() === 'g'){ openTOC(); }
+        if(e.key.toLowerCase() === 'n'){ toggleNotes(); }
+      });
+
+      // Hash deep-link: #3 -> slide 3
+      function initFromHash(){
+        const m = (location.hash || '').match(/#(\d+)/);
+        if(m){
+          const n = parseInt(m[1],10);
+          if(Number.isFinite(n)) setSlide(n-1);
+          else setSlide(0);
+        } else {
+          setSlide(0);
+        }
+      }
+
+      initFromHash();
+    })();
+  </script>
+</body>
+</html>
