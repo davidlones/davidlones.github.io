@@ -257,8 +257,10 @@ svg{
       <path id="policyInfra" class="policy" d="M140 330 Q300 200 450 150"/>
       <path id="policyHouseholds" class="policy" d="M140 330 Q280 500 430 550"/>
 
-      <path id="missingInfra" class="missing" d="M140 330 Q300 200 450 150"/>
-      <path id="missingFinanceInfra" class="missing" d="M450 330 Q455 200 455 150"/>
+      <path id="missingGovInfra" class="missing" d="M140 330 Q300 200 450 150"/>
+      <path id="missingInfraFinance" class="missing" d="M455 150 Q455 240 450 330"/>
+      <path id="missingFinanceHouseholds" class="missing" d="M450 330 Q450 440 450 560"/>
+      <path id="missingBenefitsToFirms" class="missing" d="M140 330 Q420 240 740 330"/>
     </svg>
   </div>
 
@@ -288,7 +290,7 @@ const layerContent={
   },
   missing:{
     title:"Layer: Missing links",
-    desc:"Flags fragile or under-built channels where the system often stalls in practice."
+    desc:"Traces the broken chain Government → Infrastructure → Finance → Households, while showing how health and retirement outlays are often captured by firms before households can build assets."
   }
 };
 
@@ -314,7 +316,12 @@ const buttons=document.querySelectorAll(".controls button");
 const nodes=document.querySelectorAll(".node");
 const flows=document.querySelectorAll(".flow");
 const policyLines=[document.getElementById("policyInfra"),document.getElementById("policyHouseholds")];
-const missingLines=[document.getElementById("missingInfra"),document.getElementById("missingFinanceInfra")];
+const missingLines=[
+  document.getElementById("missingGovInfra"),
+  document.getElementById("missingInfraFinance"),
+  document.getElementById("missingFinanceHouseholds"),
+  document.getElementById("missingBenefitsToFirms")
+];
 const log=document.getElementById("log");
 
 function addEntry(kind,name,text){
