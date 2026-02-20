@@ -8,15 +8,16 @@
 <style>
 :root{
   --bg:#070b12;
-  --panel:#111a2b;
-  --panel-soft:#15233a;
-  --node:#1f2f45;
+  --panel:#121d31;
+  --panel-soft:#182844;
+  --node:#243854;
   --accent:#7cd4ff;
   --accent2:#9cffb5;
   --warn:#ffb86b;
   --danger:#ff6b6b;
-  --text:#f2f6ff;
-  --muted:#a9bbd6;
+  --text:#f6f9ff;
+  --text-soft:#dbe6f8;
+  --muted:#b9c9e4;
 }
 
 *{box-sizing:border-box}
@@ -179,7 +180,7 @@ svg{
 
 .meta{
   margin:8px 0 16px;
-  color:#c1d0e8;
+  color:var(--text-soft);
   font-size:1.05rem;
   line-height:1.6;
 }
@@ -236,7 +237,8 @@ svg{
   align-items:center;
   padding-left:10px;
   font-size:18px;
-  color:#09111f;
+  color:#07101f;
+  text-shadow:none;
   font-weight:700;
   white-space:normal;
   line-height:1.2;
@@ -256,10 +258,13 @@ svg{
 
 .math-log{
   font-family:ui-monospace,monospace;
-  font-size:19px;
+  font-size:18px;
   white-space:pre-wrap;
   line-height:1.65;
-  color:#d3e0f4;
+  color:#e3edff;
+  background:var(--panel-soft);
+  border-radius:12px;
+  padding:14px;
 }
 
 @media (max-width:1200px){
@@ -280,7 +285,7 @@ svg{
 <body>
 <header>
   <h1>Money Flow Engine</h1>
-  <p>Layered ownership • policy leverage • interactive circulation map</p>
+  <p>A navigable map of circulation, ownership, and capacity routing</p>
 </header>
 
 <div id="wrap">
@@ -343,10 +348,10 @@ svg{
   </div>
 
   <div class="card side">
-    <h2 id="layerTitle">Layer: Base circulation</h2>
+    <h2 id="layerTitle">Layer: Circulation</h2>
     <p id="layerDesc" class="meta">Click any node or flow to inspect its role in the system.</p>
     <h3 id="focusTitle">Select a node or flow</h3>
-    <div id="detail">The map combines topology, ownership overlays, policy vectors, and diagnostic missing links.</div>
+    <div id="detail">Inspect a node or flow to see what it does in the circulation system.</div>
 
     <div class="log" id="log"></div>
   </div>
@@ -355,7 +360,8 @@ svg{
 <div id="capacityWrap">
   <div class="card">
     <h2>Foundational Systems Capacity</h2>
-    <p class="meta">A companion model: route more of the same spending directly into productive capacity to lower drag and increase output.</p>
+    <p class="meta">This companion model keeps total spending fixed while changing how directly funds reach productive systems.
+More direct routing reduces friction and increases usable capacity.</p>
 
     <label class="cap-label" for="direct">Direct capacity routing (<span id="directPct">55%</span>)</label>
     <input type="range" id="direct" min="20" max="90" value="55" aria-label="Direct capacity routing percentage">
@@ -385,39 +391,39 @@ svg{
 <script>
 const layerContent={
   base:{
-    title:"Layer: Base circulation",
-    desc:"Tracks movement of wages, spending, taxes, transfers, investment, and credit."
+    title:"Layer: Circulation",
+    desc:"Shows how income, spending, taxation, credit, and investment move through the system."
   },
   ownership:{
-    title:"Layer: Ownership",
-    desc:"Highlights where asset ownership concentrates cashflow and long-run control."
+    title:"Layer: Asset ownership",
+    desc:"Highlights where long-lived assets sit and which entities control productive capacity."
   },
   policy:{
-    title:"Layer: Policy pressure",
-    desc:"Shows direct levers public institutions can pull into infrastructure and households."
+    title:"Layer: Policy levers",
+    desc:"Displays the direct pathways public institutions can use to influence infrastructure and household stability."
   },
   missing:{
-    title:"Layer: Missing links",
-    desc:"Traces the broken chain Government → Infrastructure → Finance → Households, while showing how health and retirement outlays are often captured by firms before households can build assets."
+    title:"Layer: Structural gaps",
+    desc:"Reveals where spending reaches firms or finance before households accumulate durable assets."
   }
 };
 
 const nodeInfo={
-  Infrastructure:"Physical substrate: energy, roads, housing, and networks that set the economy's speed limit.",
-  Firms:"Production and pricing engine. Converts labor + capital into goods, services, and retained earnings.",
-  Finance:"Allocation layer. Chooses what gets funded, what gets delayed, and how risk is distributed.",
-  Government:"Rule author, stabilizer, and insurer. Collects taxes and redirects spending to shape outcomes.",
-  Households:"Labor supply and demand base. Income arrives mainly as wages and exits as consumption and taxes."
+  Infrastructure:"The physical backbone: housing, energy, transportation, digital networks, and public facilities. Determines the economy’s operating ceiling.",
+  Firms:"The production layer. Organizes labor and capital into goods, services, and retained earnings.",
+  Finance:"The allocation layer. Decides timing, scale, and risk of investment across sectors.",
+  Government:"The stabilizing layer. Sets rules, collects revenue, and redirects spending toward collective goals.",
+  Households:"The lived economy. Supplies labor, receives income, consumes output, and builds or loses assets."
 };
 
 const flowInfo={
-  Consumption:"Households → Firms: spending converts earned income into business revenue.",
-  Wages:"Firms → Households: labor compensation that seeds the next consumption cycle.",
-  Investment:"Firms → Infrastructure: long-lived capital commitments that increase future output.",
-  Taxes:"Households/Firms → Government: public revenue extraction for collective provisioning.",
-  Transfers:"Government → Households: stabilization and redistribution channel.",
-  Credit:"Finance → Firms/Households: creates purchasing power ahead of current income.",
-  Interest:"Economy → Finance: return stream that rewards lenders and reprices risk over time."
+  Consumption:"Households purchasing goods and services. Converts income into firm revenue.",
+  Wages:"Compensation from firms to households that seeds the next spending cycle.",
+  Investment:"Capital committed into infrastructure or productive equipment to increase future output.",
+  Taxes:"Revenue collected to fund shared systems and stabilization.",
+  Transfers:"Payments that smooth shocks and support baseline living conditions.",
+  Credit:"Future purchasing power pulled into the present through lending.",
+  Interest:"The price of borrowing that redistributes income toward lenders over time."
 };
 
 const buttons=document.querySelectorAll(".controls button");
@@ -529,22 +535,23 @@ function setBar(id,label,val){
 
 function renderMath(d,direct,indirect,drag,cap){
   document.getElementById("mathLog").innerText=
-`Pool = ${pool.toFixed(2)}T
+`Total pool = ${pool.toFixed(2)}T
 
 Direct routing = Pool × ${d.toFixed(2)}
 → ${direct.toFixed(2)}T
 
 Indirect routing = ${indirect.toFixed(2)}T
 
-Drag (25% of indirect) = ${drag.toFixed(2)}T
+System drag (25% of indirect) = ${drag.toFixed(2)}T
 
 Capacity produced =
 Direct + (Indirect − Drag)
 = ${cap.toFixed(2)}T
 
-Interpretation:
-Total spending stays constant.
-Routing changes output.`;
+Meaning:
+Total spending does not change.
+The pathway changes.
+Output changes.`;
 }
 
 slider.addEventListener("input",updateCapacity);
