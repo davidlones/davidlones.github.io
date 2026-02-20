@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seahorse Life — Remastered</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Text:ital,wght@0,400;1,400&display=swap');
+
+    :root {
+      --bg: #030c18;
+      --ink: #a8d8ea;
+      --panel: #08192acc;
+      --panel-border: #1a5570;
+      --panel-hover: #0c2840;
+      --accent: #5dd3ff;
+      --muted: #4a8a9877;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Crimson Text', serif;
+    }
+
+    canvas { position: absolute; inset: 0; }
+
+    #ui {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    #title {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Cinzel', serif;
+      font-size: clamp(16px, 2.1vw, 22px);
+      color: #d4f2ff;
+      text-shadow: 0 0 16px #33aaff88, 0 0 34px #0a9bff55;
+      letter-spacing: 0.45em;
+      white-space: nowrap;
+    }
+
+    #stats {
+      position: absolute;
+      top: 14px;
+      left: 18px;
+      color: #70b4c4bb;
+      line-height: 1.9;
+      font-size: 12px;
+    }
+
+    #lore {
+      position: absolute;
+      bottom: 72px;
+      left: 18px;
+      max-width: 280px;
+      font-size: 12px;
+      font-style: italic;
+      color: #3a7a8894;
+      line-height: 1.7;
+    }
+
+    #legend {
+      position: absolute;
+      bottom: 72px;
+      right: 18px;
+      text-align: right;
+      color: var(--muted);
+      line-height: 1.85;
+      font-size: 11px;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    #controls {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      pointer-events: all;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: min(95vw, 1000px);
+      padding: 8px;
+      border: 1px solid #1a557040;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+      background: #04111d66;
+    }
+
+    button,
+    .ctrl {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      color: #7acde8;
+      border-radius: 4px;
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 6px 12px;
+    }
+
+    button {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--panel-hover);
+      border-color: #44c2ff;
+      color: #dbf6ff;
+      box-shadow: 0 0 12px #34a6d666;
+    }
+
+    .ctrl {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    input[type="range"] {
+      width: 90px;
+      accent-color: var(--accent);
+    }
+
+    #toast {
+      position: absolute;
+      top: 54px;
+      right: 16px;
+      pointer-events: none;
+      font-size: 11px;
+      color: #b6e8ff;
+      opacity: 0;
+      transition: opacity 0.3s;
+      text-shadow: 0 0 12px #2dafff88;
+    }
+
+    #toast.show { opacity: 0.9; }
+
+    #paused {
+      position: absolute;
+      inset: 0;
+      display: none;
+      place-items: center;
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      letter-spacing: 0.26em;
+      color: #c4ebff;
+      background: radial-gradient(circle at center, #06203633 0%, #041422aa 70%);
+    }
+
+    #paused.visible { display: grid; }
+
+    @media (max-width: 820px) {
+      #legend, #lore { display: none; }
+      #stats { font-size: 11px; }
+      #controls { bottom: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="ui">
+    <div id="title">⟁ SEAHORSE LIFE ⟁</div>
+    <div id="stats">
+      Adults: <span id="pop">0</span> &nbsp;|&nbsp;
+      Eggs: <span id="eggs">0</span> &nbsp;|&nbsp;
+      FPS: <span id="fps">0</span><br />
+      Born: <span id="births">0</span> &nbsp;|&nbsp;
+      Died: <span id="deaths">0</span>
+    </div>
+    <div id="toast">tip: click to spawn, shift-click to drop food</div>
+    <div id="lore">
+      Their mating dance traces luminous particles through space. Each loop writes a living glyph into the egg's automaton; surviving cells hatch as offspring that inherit the pattern's character.
+    </div>
+    <div id="legend">
+      <span class="dot" style="background:#4fc8a0"></span>Juvenile<br>
+      <span class="dot" style="background:#2a9fd0"></span>Adult<br>
+      <span class="dot" style="background:#f84"></span>Hunting<br>
+      <span class="dot" style="background:#f44"></span>Fighting<br>
+      <span class="dot" style="background:#c080ff"></span>Dancing<br>
+      <span style="font-size:10px">✦ Glider-born ⬡ Stable-born</span>
+    </div>
+    <div id="controls">
+      <button id="spawnBtn">Spawn</button>
+      <button id="foodBtn">Food</button>
+      <button id="pauseBtn">Pause</button>
+      <button id="resetBtn">Reset</button>
+      <label class="ctrl">Tempo <input id="tempo" type="range" min="0.5" max="2" step="0.1" value="1"></label>
+      <label class="ctrl">Glow <input id="glow" type="range" min="0.6" max="1.6" step="0.05" value="1"></label>
+    </div>
+    <div id="paused">PAUSED</div>
+  </div>
+
+<script>
+'use strict';
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const popEl = document.getElementById('pop');
+const eggsEl = document.getElementById('eggs');
+const birthsEl = document.getElementById('births');
+const deathsEl = document.getElementById('deaths');
+const fpsEl = document.getElementById('fps');
+const pausedOverlay = document.getElementById('paused');
+
+let W, H, DPR;
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = Math.floor(W * DPR);
+  canvas.height = Math.floor(H * DPR);
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const dist2 = (x1, y1, x2, y2) => (x1 - x2) ** 2 + (y1 - y2) ** 2;
+function lerpAngle(a, b, t) {
+  let d = b - a;
+  while (d > Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  return a + d * t;
+}
+
+const MAX_POP = 95;
+const FOOD_MAX = 70;
+const GROW_TIME = 380;
+const MATURE_TIME = 760;
+const DANCE_FRAMES = 180;
+const EGG_CELL = 7;
+const EGG_GRID = 18;
+const EGG_TICK = 6;
+const EGG_LIFE = 280;
+
+let paused = false;
+let frame = 0;
+let totalBirths = 0;
+let totalDeaths = 0;
+let speedFactor = 1;
+let glowFactor = 1;
+
+let foods = [];
+let organisms = [];
+let eggs = [];
+let dances = [];
+
+function spawnFood(x, y) {
+  foods.push({ x: x ?? rand(40, W - 40), y: y ?? rand(40, H - 40), r: rand(2, 4), life: rand(700, 1100) });
+}
+for (let i = 0; i < 35; i++) spawnFood();
+
+function makeGenome(base) {
+  return {
+    hue: base?.hue ?? rand(0, 360),
+    speed: base?.speed ?? rand(0.5, 1.4),
+    size: base?.size ?? rand(0.6, 1.3),
+    aggression: base?.aggression ?? Math.random(),
+    sociality: base?.sociality ?? Math.random(),
+    danceFreq: base?.danceFreq ?? rand(0.04, 0.14),
+    danceAmp: base?.danceAmp ?? rand(18, 55),
+  };
+}
+
+function crossGenome(a, b) {
+  const m = (v) => v + rand(-0.13, 0.13);
+  return {
+    hue: rand(0, 1) < 0.5 ? a.hue + rand(-25, 25) : b.hue + rand(-25, 25),
+    speed: clamp(m((a.speed + b.speed) / 2), 0.3, 2.2),
+    size: clamp(m((a.size + b.size) / 2), 0.35, 2.0),
+    aggression: clamp(m((a.aggression + b.aggression) / 2), 0, 1),
+    sociality: clamp(m((a.sociality + b.sociality) / 2), 0, 1),
+    danceFreq: clamp(m((a.danceFreq + b.danceFreq) / 2), 0.02, 0.2),
+    danceAmp: clamp(m((a.danceAmp + b.danceAmp) / 2), 8, 70),
+  };
+}
+
+class MatingDance {
+  constructor(shA, shB) {
+    this.A = shA;
+    this.B = shB;
+    this.cx = (shA.x + shB.x) / 2;
+    this.cy = (shA.y + shB.y) / 2;
+    this.t = 0;
+    this.done = false;
+    this.G = EGG_GRID;
+    this.seed = Array.from({ length: this.G }, () => new Array(this.G).fill(0));
+    this.trailA = [];
+    this.trailB = [];
+
+    shA.state = 'dance'; shA.dancePartner = shB; shA.danceRef = this;
+    shB.state = 'dance'; shB.dancePartner = shA; shB.danceRef = this;
+  }
+
+  update() {
+    this.t++;
+    const G = this.G;
+    const fA = this.A.genome.danceFreq;
+    const fB = this.B.genome.danceFreq;
+    const rA = this.A.genome.danceAmp;
+    const rB = this.B.genome.danceAmp;
+
+    this.cx += Math.sin(this.t * 0.007) * 0.4;
+    this.cy += Math.cos(this.t * 0.011) * 0.4;
+    this.cx = clamp(this.cx, 80, W - 80);
+    this.cy = clamp(this.cy, 80, H - 80);
+
+    const ax = this.cx + Math.cos(this.t * fA) * rA + Math.sin(this.t * fB * 1.3) * rA * 0.4;
+    const ay = this.cy + Math.sin(this.t * fA) * rA * 0.8 + Math.cos(this.t * fA * 0.7) * rA * 0.5;
+    const bx = this.cx + Math.cos(this.t * fB + Math.PI) * rB + Math.sin(this.t * fA * 0.9) * rB * 0.3;
+    const by = this.cy + Math.sin(this.t * fB + Math.PI) * rB * 0.75 + Math.cos(this.t * fB * 1.1) * rB * 0.45;
+
+    this.A.x = ax; this.A.y = ay;
+    this.B.x = bx; this.B.y = by;
+    this.A.bodyAngle = lerpAngle(this.A.bodyAngle, Math.atan2(ay - this.cy, ax - this.cx) + Math.PI / 2, 0.15);
+    this.B.bodyAngle = lerpAngle(this.B.bodyAngle, Math.atan2(by - this.cy, bx - this.cx) + Math.PI / 2, 0.15);
+
+    this.trailA.push({ x: ax, y: ay });
+    this.trailB.push({ x: bx, y: by });
+    if (this.trailA.length > DANCE_FRAMES) this.trailA.shift();
+    if (this.trailB.length > DANCE_FRAMES) this.trailB.shift();
+
+    const boxR = Math.max(rA, rB) * 1.7;
+    const worldToGrid = (wx, wy) => {
+      const gc = Math.floor((wx - (this.cx - boxR)) / (boxR * 2) * G);
+      const gr = Math.floor((wy - (this.cy - boxR)) / (boxR * 2) * G);
+      return [clamp(gr, 0, G - 1), clamp(gc, 0, G - 1)];
+    };
+
+    { const [r, c] = worldToGrid(ax, ay); this.seed[r][c] = 1; }
+    { const [r, c] = worldToGrid(bx, by); this.seed[r][c] = 1; }
+    if (this.t % 4 === 0) {
+      const mx = (ax + bx) / 2 + rand(-5, 5), my = (ay + by) / 2 + rand(-5, 5);
+      const [r, c] = worldToGrid(mx, my); this.seed[r][c] = 1;
+    }
+
+    if (this.t >= DANCE_FRAMES) {
+      this.done = true;
+      return this.spawnEgg();
+    }
+    return null;
+  }
+
+  spawnEgg() {
+    this.A.state = 'wander'; this.A.dancePartner = null; this.A.matingCooldown = 900;
+    this.B.state = 'wander'; this.B.dancePartner = null; this.B.matingCooldown = 900;
+    this.A.energy -= 22; this.B.energy -= 22;
+    return new ConwayEgg(this.cx, this.cy, this.A.genome, this.B.genome, this.seed, this.trailA, this.trailB);
+  }
+
+  draw() {
+    const G = this.G;
+    const rA = this.A.genome.danceAmp;
+    const rB = this.B.genome.danceAmp;
+    const boxR = Math.max(rA, rB) * 1.7;
+    const hA = this.A.genome.hue;
+    const hB = this.B.genome.hue;
+
+    ctx.save();
+    ctx.globalAlpha = 0.06;
+    ctx.strokeStyle = `hsl(${hA},80%,65%)`;
+    ctx.beginPath(); ctx.arc(this.cx, this.cy, rA, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = `hsl(${hB},80%,65%)`;
+    ctx.beginPath(); ctx.arc(this.cx, this.cy, rB, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    const drawTrail = (trail, hue) => {
+      if (trail.length <= 1) return;
+      ctx.save();
+      for (let i = 1; i < trail.length; i++) {
+        const alpha = (i / trail.length) * 0.45;
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = `hsl(${hue},85%,65%)`;
+        ctx.shadowColor = `hsl(${hue},100%,70%)`;
+        ctx.shadowBlur = 4 * glowFactor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
+        ctx.lineTo(trail[i].x, trail[i].y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
+    drawTrail(this.trailA, hA);
+    drawTrail(this.trailB, hB);
+
+    const cellW = boxR * 2 / G;
+    const ox = this.cx - boxR;
+    const oy = this.cy - boxR;
+    ctx.save();
+    ctx.globalAlpha = 0.28 + Math.sin(frame * 0.07) * 0.06;
+    for (let r = 0; r < G; r++) {
+      for (let c = 0; c < G; c++) {
+        if (!this.seed[r][c]) continue;
+        const wx = ox + c * cellW + cellW * 0.1;
+        const wy = oy + r * cellW + cellW * 0.1;
+        const ww = cellW * 0.8;
+        ctx.fillStyle = `hsl(${(hA + hB) / 2 + r * 3},90%,65%)`;
+        ctx.shadowColor = `hsl(${(hA + hB) / 2},100%,70%)`;
+        ctx.shadowBlur = 5 * glowFactor;
+        ctx.fillRect(wx, wy, ww, ww);
+      }
+    }
+    ctx.restore();
+  }
+}
+
+class ConwayEgg {
+  constructor(x, y, genomeA, genomeB, seedGrid) {
+    this.x = x; this.y = y;
+    this.genomeA = genomeA; this.genomeB = genomeB;
+    this.age = 0; this.tickTimer = 0; this.generation = 0;
+    this.hatched = false; this.dead = false;
+    this.vx = rand(-0.25, 0.25); this.vy = rand(-0.25, 0.25);
+    this.G = EGG_GRID;
+    this.grid = seedGrid.map(row => [...row]);
+    this.history = [];
+    this.gliderDetected = false;
+    this.oscillatorDetected = false;
+    this.stableDetected = false;
+  }
+
+  step() {
+    const G = this.G;
+    const next = Array.from({ length: G }, () => new Array(G).fill(0));
+    let alive = 0;
+    for (let r = 0; r < G; r++) for (let c = 0; c < G; c++) {
+      let n = 0;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        n += this.grid[(r + dr + G) % G][(c + dc + G) % G];
+      }
+      const live = this.grid[r][c];
+      next[r][c] = (live && (n === 2 || n === 3)) || (!live && n === 3) ? 1 : 0;
+      if (next[r][c]) alive++;
+    }
+    this.grid = next;
+    this.history.push(alive);
+    if (this.history.length > 24) this.history.shift();
+
+    if (this.history.length >= 12) {
+      const rec = this.history.slice(-12);
+      const avg = rec.reduce((a, b) => a + b, 0) / 12;
+      const variance = rec.reduce((s, v) => s + (v - avg) ** 2, 0) / 12;
+      if (variance > 0.8 && variance < 10 && avg > 2) this.gliderDetected = true;
+      if (variance < 0.2 && avg > 4) this.stableDetected = true;
+      if (variance > 0.1 && variance < 1 && avg > 3) this.oscillatorDetected = true;
+    }
+
+    return alive;
+  }
+
+  update() {
+    this.age++;
+    this.x += this.vx; this.y += this.vy;
+    if (this.x < 70) { this.x = 70; this.vx = Math.abs(this.vx); }
+    if (this.x > W - 70) { this.x = W - 70; this.vx = -Math.abs(this.vx); }
+    if (this.y < 70) { this.y = 70; this.vy = Math.abs(this.vy); }
+    if (this.y > H - 70) { this.y = H - 70; this.vy = -Math.abs(this.vy); }
+
+    this.tickTimer++;
+    if (this.tickTimer >= EGG_TICK) {
+      this.tickTimer = 0;
+      this.generation++;
+      if (this.step() === 0) { this.dead = true; return null; }
+    }
+
+    if (this.age >= EGG_LIFE) return this.hatch();
+    return null;
+  }
+
+  hatch() {
+    this.hatched = true;
+    const G = this.G;
+    const eggW = G * EGG_CELL;
+    const ox = this.x - eggW / 2;
+    const oy = this.y - eggW / 2;
+
+    const bonuses = {};
+    if (this.gliderDetected) bonuses.speedBoost = true;
+    if (this.stableDetected) bonuses.robust = true;
+    if (this.oscillatorDetected) bonuses.sizeBoost = true;
+
+    const offspring = [];
+    for (let r = 0; r < G; r++) for (let c = 0; c < G; c++) {
+      if (!this.grid[r][c]) continue;
+      const wx = ox + c * EGG_CELL + EGG_CELL / 2;
+      const wy = oy + r * EGG_CELL + EGG_CELL / 2;
+      const g = crossGenome(this.genomeA, this.genomeB);
+      const edge = (r === 0 || r === G - 1 || c === 0 || c === G - 1) ? 0.15 : 0;
+      g.aggression = clamp(g.aggression + edge, 0, 1);
+      if (bonuses.speedBoost) g.speed = clamp(g.speed * 1.25, 0.3, 2.2);
+      if (bonuses.sizeBoost) g.size = clamp(g.size * 1.2, 0.35, 2.0);
+      if (bonuses.robust) g.sociality = clamp(g.sociality + 0.1, 0, 1);
+      offspring.push({ x: wx, y: wy, genome: g, bonuses: { ...bonuses, row: r, col: c } });
+    }
+
+    totalBirths += offspring.length;
+    return offspring.length ? offspring : null;
+  }
+
+  draw() {
+    const G = this.G;
+    const cs = EGG_CELL;
+    const eggW = G * cs;
+    const ox = this.x - eggW / 2;
+    const oy = this.y - eggW / 2;
+    const progress = this.age / EGG_LIFE;
+    const hMid = (this.genomeA.hue + this.genomeB.hue) / 2;
+
+    ctx.save();
+    ctx.globalAlpha = 0.13 + Math.sin(frame * 0.06) * 0.04;
+    const gg = ctx.createRadialGradient(this.x, this.y, eggW * 0.1, this.x, this.y, eggW * 0.75);
+    gg.addColorStop(0, `hsla(${hMid},85%,60%,0.5)`);
+    gg.addColorStop(0.6, `hsla(${hMid + 30},80%,45%,0.25)`);
+    gg.addColorStop(1, `hsla(${hMid},70%,30%,0)`);
+    ctx.fillStyle = gg;
+    ctx.beginPath(); ctx.arc(this.x, this.y, eggW * 0.75, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    for (let r = 0; r < G; r++) for (let c = 0; c < G; c++) {
+      if (!this.grid[r][c]) continue;
+      const x = ox + c * cs, y = oy + r * cs;
+      const cellHue = this.genomeA.hue + (r / G) * (this.genomeB.hue - this.genomeA.hue) + c * 2;
+      ctx.save();
+      ctx.globalAlpha = 0.72 + Math.sin(frame * 0.12 + r * 0.4 + c * 0.3) * 0.2;
+      ctx.shadowColor = `hsl(${cellHue},100%,72%)`;
+      ctx.shadowBlur = 8 * glowFactor;
+      ctx.fillStyle = `hsl(${cellHue},88%,${58 + progress * 18}%)`;
+      ctx.fillRect(x + 0.5, y + 0.5, cs - 1, cs - 1);
+      ctx.restore();
+    }
+  }
+}
+
+let uidc = 0;
+class Seahorse {
+  constructor(x, y, genome, bonuses) {
+    this.id = uidc++;
+    this.x = x; this.y = y;
+    this.vx = rand(-0.6, 0.6); this.vy = rand(-0.6, 0.6);
+    this.age = 0;
+    this.phase = 'cell';
+    this.energy = rand(75, 110);
+    this.genome = genome ?? makeGenome();
+    this.bonuses = bonuses ?? {};
+    this.state = 'wander';
+    this.stateTimer = 0;
+    this.target = null;
+    this.dancePartner = null;
+    this.danceRef = null;
+    this.matingCooldown = 0;
+    this.health = this.bonuses.robust ? 130 : 100;
+    this.maxHealth = this.health;
+    this.bodyAngle = Math.atan2(this.vy || 0.01, this.vx || 0.01);
+    this.tailWave = rand(0, Math.PI * 2);
+    this.dead = false;
+    this.birthFlash = bonuses ? 40 : 0;
+  }
+
+  get size() {
+    const g = this.genome.size;
+    if (this.phase === 'cell') return 4 + this.age / GROW_TIME * 8 * g;
+    if (this.phase === 'juvenile') return 12 * g + (this.age - GROW_TIME) / (MATURE_TIME - GROW_TIME) * 14 * g;
+    return 18 + 8 * g;
+  }
+
+  update(organisms, dances) {
+    this.age += speedFactor;
+    this.tailWave += 0.12 * speedFactor;
+    if (this.matingCooldown > 0) this.matingCooldown -= speedFactor;
+    if (this.birthFlash > 0) this.birthFlash -= speedFactor;
+
+    if (this.phase === 'cell' && this.age > GROW_TIME) this.phase = 'juvenile';
+    if (this.phase === 'juvenile' && this.age > MATURE_TIME) this.phase = 'adult';
+
+    const drain = this.phase === 'cell' ? 0.04 : this.phase === 'juvenile' ? 0.09 : 0.13;
+    this.energy -= drain * speedFactor;
+    if (this.energy <= 0 || this.health <= 0) { this.dead = true; totalDeaths++; return; }
+    if (this.age > 4500 + rand(0, 2000)) { this.dead = true; totalDeaths++; return; }
+
+    if (this.phase === 'cell') return this.drift();
+    if (this.state === 'dance') return;
+
+    const nearby = organisms.filter(o => o !== this && !o.dead && dist(this, o) < 180);
+    const nearFood = foods.filter(f => dist2(this.x, this.y, f.x, f.y) < 150 ** 2);
+
+    this.stateTimer -= speedFactor;
+    if (this.stateTimer <= 0) { this.state = 'wander'; this.target = null; }
+
+    if (this.phase === 'adult') {
+      if (this.energy < 50 && nearFood.length > 0) {
+        this.state = 'hunt_food';
+        this.target = nearFood.sort((a, b) => dist2(this.x, this.y, a.x, a.y) - dist2(this.x, this.y, b.x, b.y))[0];
+        this.stateTimer = 60;
+      } else if (this.energy < 40) {
+        const prey = nearby.filter(o => o.phase !== 'adult' || o.health < 40);
+        if (prey.length && this.genome.aggression > 0.35) {
+          this.state = 'hunt'; this.target = prey[0]; this.stateTimer = 120;
+        }
+      } else {
+        const adults = nearby.filter(o => o.phase === 'adult' && o.state !== 'dance');
+        if (adults.length > 0 && this.matingCooldown <= 0 && Math.random() < 0.003 * speedFactor) {
+          const mate = adults[Math.floor(Math.random() * adults.length)];
+          if (mate.matingCooldown <= 0 && mate.state !== 'dance') dances.push(new MatingDance(this, mate));
+        } else if (adults.length > 0 && Math.random() < this.genome.aggression * 0.004 * speedFactor) {
+          const rival = adults[Math.floor(Math.random() * adults.length)];
+          this.state = 'fight'; this.target = rival; this.stateTimer = 150;
+        }
+      }
+    }
+
+    if (this.state === 'hunt_food' && this.target) {
+      this.moveToward(this.target.x, this.target.y);
+      if (dist2(this.x, this.y, this.target.x, this.target.y) < 12 ** 2) {
+        this.energy = Math.min(120, this.energy + 30);
+        this.target.life = 0;
+        this.state = 'wander'; this.target = null;
+      }
+    } else if (this.state === 'hunt' && this.target && !this.target.dead) {
+      this.moveToward(this.target.x, this.target.y);
+      if (dist2(this.x, this.y, this.target.x, this.target.y) < (this.size + this.target.size) ** 2) {
+        this.target.health -= 12; this.energy = Math.min(120, this.energy + 12);
+      }
+    } else if (this.state === 'fight' && this.target && !this.target.dead) {
+      this.moveToward(this.target.x, this.target.y);
+      if (dist2(this.x, this.y, this.target.x, this.target.y) < (this.size + this.target.size) ** 2) {
+        this.target.health -= 7 * this.genome.aggression;
+        this.health -= 4 * this.target.genome.aggression;
+      }
+    } else {
+      const similar = nearby.filter(o => Math.abs(o.genome.hue - this.genome.hue) < 55);
+      if (similar.length > 0 && this.genome.sociality > 0.5) {
+        const cx = similar.reduce((s, o) => s + o.x, 0) / similar.length;
+        const cy = similar.reduce((s, o) => s + o.y, 0) / similar.length;
+        this.vx += (cx - this.x) * 0.0007;
+        this.vy += (cy - this.y) * 0.0007;
+      }
+      this.drift();
+    }
+
+    this.move();
+    this.bodyAngle = lerpAngle(this.bodyAngle, Math.atan2(this.vy, this.vx), 0.08);
+  }
+
+  drift() { this.vx += rand(-0.1, 0.1); this.vy += rand(-0.1, 0.1); }
+  moveToward(tx, ty) {
+    const dx = tx - this.x, dy = ty - this.y, d = Math.hypot(dx, dy) || 1;
+    this.vx += dx / d * 0.18; this.vy += dy / d * 0.18;
+  }
+  move() {
+    const spd = this.genome.speed * (this.phase === 'cell' ? 0.4 : 1);
+    const mag = Math.hypot(this.vx, this.vy) || 1;
+    if (mag > spd) { this.vx = this.vx / mag * spd; this.vy = this.vy / mag * spd; }
+    this.x += this.vx * speedFactor; this.y += this.vy * speedFactor;
+    if (this.x < 20) { this.x = 20; this.vx = Math.abs(this.vx); }
+    if (this.x > W - 20) { this.x = W - 20; this.vx = -Math.abs(this.vx); }
+    if (this.y < 20) { this.y = 20; this.vy = Math.abs(this.vy); }
+    if (this.y > H - 20) { this.y = H - 20; this.vy = -Math.abs(this.vy); }
+  }
+
+  draw() {
+    const sz = this.size;
+    if (this.phase === 'cell') return drawCell(this.x, this.y, sz, this.genome.hue, this.age / GROW_TIME);
+
+    if (this.birthFlash > 0) {
+      ctx.save();
+      ctx.globalAlpha = this.birthFlash / 40 * 0.65;
+      ctx.strokeStyle = `hsl(${this.genome.hue + 60},100%,82%)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(this.x, this.y, sz + (40 - this.birthFlash) * 1.8, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.bodyAngle - Math.PI / 2);
+    let bc = `hsl(${this.genome.hue},78%,55%)`, gc = `hsl(${this.genome.hue},100%,70%)`;
+    if (this.state === 'fight') bc = 'hsl(0,88%,52%)';
+    else if (this.state === 'dance') bc = 'hsl(280,88%,65%)';
+    else if (this.state === 'hunt' || this.state === 'hunt_food') bc = 'hsl(38,88%,55%)';
+    drawSeahorse(sz, bc, gc, this.tailWave, this.phase === 'juvenile');
+    ctx.restore();
+
+    if (this.bonuses.speedBoost) { ctx.save(); ctx.globalAlpha = 0.7; ctx.fillStyle = '#ffea00'; ctx.font = '11px serif'; ctx.fillText('✦', this.x, this.y - sz - 10); ctx.restore(); }
+    if (this.bonuses.sizeBoost) { ctx.save(); ctx.globalAlpha = 0.7; ctx.fillStyle = '#80ffcc'; ctx.font = '11px serif'; ctx.fillText('⬡', this.x + 10, this.y - sz - 10); ctx.restore(); }
+  }
+}
+
+function drawCell(x, y, r, hue, progress) {
+  const pulse = 1 + Math.sin(frame * 0.1) * 0.14;
+  ctx.save();
+  ctx.globalAlpha = 0.65 + progress * 0.32;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r * pulse);
+  g.addColorStop(0, `hsl(${hue},78%,82%)`);
+  g.addColorStop(0.5, `hsl(${hue},88%,55%)`);
+  g.addColorStop(1, `hsla(${hue},88%,38%,0)`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawSeahorse(sz, color, glow, wave, juvenile) {
+  const s = juvenile ? 0.6 : 1;
+  ctx.scale(s, s);
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 12 * glowFactor;
+  ctx.beginPath(); ctx.fillStyle = color; ctx.ellipse(0, -sz * 0.55, sz * 0.28, sz * 0.32, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, -sz * 0.15, sz * 0.22, sz * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 4;
+  ctx.beginPath(); ctx.ellipse(sz * 0.18, -sz * 0.75, sz * 0.07, sz * 0.12, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(sz * 0.1, -sz * 0.65, sz * 0.07, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(sz * 0.12, -sz * 0.65, sz * 0.04, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * sz * 0.06, -sz * 0.85); ctx.lineTo(i * sz * 0.08, -sz * (0.9 + Math.abs(i) * 0.05)); ctx.stroke(); }
+  ctx.beginPath(); ctx.strokeStyle = `${color}aa`; ctx.lineWidth = 1.5;
+  for (let t = 0; t <= 1; t += 0.1) {
+    const fx = -sz * 0.22 + t * sz * 0.15;
+    const fy = -sz * 0.3 + t * sz * 0.5;
+    const fw = sz * 0.25 * Math.sin(t * Math.PI + wave * 2) * Math.sin(t * Math.PI);
+    t === 0 ? ctx.moveTo(fx, fy) : ctx.lineTo(fx + fw, fy);
+  }
+  ctx.stroke();
+  ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = sz * 0.13; ctx.lineCap = 'round';
+  for (let i = 0; i <= 8; i++) {
+    const t = i / 8, curl = t * t * (Math.PI * 1.5 + Math.sin(wave) * 0.4), rad = sz * 0.35 * (1 - t * 0.6);
+    const tx = Math.sin(curl) * rad, ty = sz * 0.25 + t * sz * 0.45 + Math.cos(curl) * rad * 0.5;
+    i === 0 ? ctx.moveTo(tx, ty) : ctx.lineTo(tx, ty);
+  }
+  ctx.stroke();
+}
+
+const plankton = Array.from({ length: 70 }, () => ({
+  x: rand(0, 2000), y: rand(0, 2000),
+  vx: rand(-0.15, 0.15), vy: rand(-0.15, 0.15),
+  r: rand(0.5, 2), hue: rand(160, 240), alpha: rand(0.08, 0.2)
+}));
+
+function drawBG() {
+  ctx.fillStyle = '#030c18'; ctx.fillRect(0, 0, W, H);
+  const wg = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+  wg.addColorStop(0, '#061525'); wg.addColorStop(1, '#01080f');
+  ctx.fillStyle = wg; ctx.fillRect(0, 0, W, H);
+
+  ctx.save(); ctx.globalAlpha = 0.018; ctx.strokeStyle = '#4af'; ctx.lineWidth = 1;
+  const t = frame * 0.003;
+  for (let i = 0; i < 10; i++) {
+    const x0 = (Math.sin(t + i * 0.72) * 0.5 + 0.5) * W;
+    ctx.beginPath(); ctx.moveTo(x0, 0);
+    ctx.quadraticCurveTo(x0 + Math.sin(t * 1.3 + i) * 90, H / 2, x0 + Math.sin(t * 0.7 + i * 1.2) * 130, H);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.save();
+  for (const p of plankton) {
+    p.x = (p.x + p.vx * speedFactor + W) % W;
+    p.y = (p.y + p.vy * speedFactor + H) % H;
+    ctx.globalAlpha = p.alpha * (0.6 + Math.sin(frame * 0.05 + p.x) * 0.35);
+    ctx.fillStyle = `hsl(${p.hue},65%,60%)`;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawFood() {
+  for (const f of foods) {
+    if (f.life <= 0) continue;
+    const pulse = 1 + Math.sin(frame * 0.08 + f.x) * 0.28;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, f.life / 100) * 0.75;
+    ctx.shadowColor = '#8f8'; ctx.shadowBlur = 7 * glowFactor;
+    ctx.fillStyle = `hsl(${120 + Math.sin(f.x) * 28},78%,58%)`;
+    ctx.beginPath(); ctx.arc(f.x, f.y, f.r * pulse, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawInteractionLines() {
+  for (const o of organisms) {
+    if (o.dead || !o.target || o.target.dead || o.state === 'dance') continue;
+    let col = '#f44';
+    if (o.state === 'hunt') col = '#fa4';
+    ctx.save();
+    ctx.globalAlpha = 0.12;
+    ctx.strokeStyle = col;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(o.target.x, o.target.y); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function spawnCluster(x, y, n = 5) {
+  x = x ?? rand(W * 0.2, W * 0.8);
+  y = y ?? rand(H * 0.2, H * 0.8);
+  const bg = makeGenome();
+  for (let i = 0; i < n; i++) {
+    if (organisms.length >= MAX_POP) break;
+    organisms.push(new Seahorse(x + rand(-30, 30), y + rand(-30, 30), { ...bg, hue: bg.hue + rand(-18, 18) }));
+  }
+}
+
+function addFood(amount = 14, x, y) {
+  for (let i = 0; i < amount; i++) {
+    spawnFood(x ? x + rand(-35, 35) : rand(W * 0.15, W * 0.85), y ? y + rand(-35, 35) : rand(H * 0.15, H * 0.85));
+  }
+}
+
+function togglePause(force) {
+  paused = typeof force === 'boolean' ? force : !paused;
+  pausedOverlay.classList.toggle('visible', paused);
+}
+
+function resetWorld() {
+  organisms = [];
+  eggs = [];
+  dances = [];
+  foods = [];
+  frame = 0;
+  totalBirths = 0;
+  totalDeaths = 0;
+  uidc = 0;
+  for (let i = 0; i < 35; i++) spawnFood();
+  spawnCluster(W * 0.3, H * 0.4, 7);
+  spawnCluster(W * 0.7, H * 0.55, 7);
+}
+
+function showToast() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+spawnCluster(W * 0.3, H * 0.4, 7);
+spawnCluster(W * 0.7, H * 0.55, 7);
+showToast();
+
+canvas.addEventListener('click', (e) => {
+  if (e.shiftKey) addFood(8, e.clientX, e.clientY);
+  else if (organisms.length < MAX_POP) spawnCluster(e.clientX, e.clientY, 3);
+});
+
+document.getElementById('spawnBtn').addEventListener('click', () => spawnCluster(undefined, undefined, 6));
+document.getElementById('foodBtn').addEventListener('click', () => addFood());
+document.getElementById('pauseBtn').addEventListener('click', () => togglePause());
+document.getElementById('resetBtn').addEventListener('click', resetWorld);
+document.getElementById('tempo').addEventListener('input', (e) => speedFactor = Number(e.target.value));
+document.getElementById('glow').addEventListener('input', (e) => glowFactor = Number(e.target.value));
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === ' ') { e.preventDefault(); togglePause(); }
+  if (e.key.toLowerCase() === 'f') addFood(12);
+  if (e.key.toLowerCase() === 'r') resetWorld();
+});
+
+let lastStamp = performance.now();
+let smoothedFps = 60;
+function loop(now) {
+  const dt = now - lastStamp;
+  lastStamp = now;
+  smoothedFps = smoothedFps * 0.9 + (1000 / Math.max(1, dt)) * 0.1;
+
+  if (!paused) {
+    frame += speedFactor;
+    foods.forEach(f => f.life -= speedFactor);
+    foods = foods.filter(f => f.life > 0);
+    if (foods.length < FOOD_MAX && Math.random() < 0.05 * speedFactor) spawnFood();
+
+    dances = dances.filter(d => !d.done);
+    const newEggs = [];
+    for (const d of dances) {
+      const egg = d.update();
+      if (egg) newEggs.push(egg);
+    }
+
+    for (const o of organisms) if (!o.dead) o.update(organisms, dances);
+
+    eggs.push(...newEggs);
+    const newborns = [];
+    for (const egg of eggs) {
+      if (egg.hatched || egg.dead) continue;
+      const result = egg.update();
+      if (result) {
+        for (const b of result) {
+          if (organisms.filter(o => !o.dead).length < MAX_POP) newborns.push(new Seahorse(b.x, b.y, b.genome, b.bonuses));
+        }
+      }
+    }
+
+    organisms.push(...newborns);
+    organisms = organisms.filter(o => !o.dead);
+    eggs = eggs.filter(e => !e.hatched && !e.dead);
+
+    popEl.textContent = organisms.filter(o => o.phase === 'adult').length;
+    eggsEl.textContent = eggs.length;
+    birthsEl.textContent = totalBirths;
+    deathsEl.textContent = totalDeaths;
+    fpsEl.textContent = Math.round(smoothedFps);
+  }
+
+  drawBG();
+  drawFood();
+  for (const d of dances) d.draw();
+  for (const egg of eggs) egg.draw();
+  drawInteractionLines();
+  for (const o of organisms) o.draw();
+
+  requestAnimationFrame(loop);
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
