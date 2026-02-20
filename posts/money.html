@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Money Flow Engine</title>
+<title>Money Flow Engine — Layered</title>
 
 <style>
 :root{
@@ -13,6 +13,7 @@
 --node:#1b2a3a;
 --accent:#7cd4ff;
 --accent2:#9cffb5;
+--warn:#ffb86b;
 --text:#e8f1ff;
 --muted:#93a6c7;
 }
@@ -21,29 +22,24 @@ body{
 margin:0;
 background:radial-gradient(circle at 50% 20%, #0b1420, #06090f 70%);
 color:var(--text);
-font-family:Inter,system-ui,Segoe UI,Roboto;
+font-family:Inter,system-ui;
 display:flex;
 flex-direction:column;
 align-items:center;
 }
 
 header{
-padding:28px 20px 10px;
+padding:26px 20px 10px;
 text-align:center;
-}
-
-h1{
-font-weight:600;
-letter-spacing:.5px;
 }
 
 #wrap{
 width:100%;
-max-width:1200px;
-padding:20px;
+max-width:1250px;
+padding:18px;
 display:grid;
-grid-template-columns:1fr 340px;
-gap:20px;
+grid-template-columns:1fr 360px;
+gap:18px;
 }
 
 .card{
@@ -53,29 +49,36 @@ padding:18px;
 box-shadow:0 20px 50px rgba(0,0,0,.55);
 }
 
+.controls button{
+margin:4px;
+padding:6px 10px;
+border-radius:8px;
+border:1px solid #22344a;
+background:#121c2d;
+color:var(--muted);
+cursor:pointer;
+}
+
+.controls button.active{
+border-color:var(--accent);
+color:var(--text);
+}
+
 svg{
 width:100%;
-height:620px;
+height:640px;
 }
 
 .node circle{
 fill:var(--node);
 stroke:var(--accent);
 stroke-width:2;
-filter:drop-shadow(0 0 10px rgba(124,212,255,.25));
 transition:.25s;
-cursor:pointer;
 }
 
-.node:hover circle{
-stroke-width:3;
-transform:scale(1.05);
-}
-
-.node text{
-font-size:14px;
-fill:var(--text);
-pointer-events:none;
+.node.owned circle{
+stroke:var(--warn);
+filter:drop-shadow(0 0 12px rgba(255,184,107,.6));
 }
 
 .flow{
@@ -84,34 +87,34 @@ stroke:var(--accent2);
 stroke-width:3;
 stroke-dasharray:10 8;
 opacity:.6;
-transition:.25s;
 marker-end:url(#arrow);
 }
 
-.flow.active{
+.policy{
+stroke:var(--warn);
+stroke-width:2;
+stroke-dasharray:3 6;
+opacity:0;
+transition:.4s;
+}
+
+.policy.visible{
+opacity:.9;
+}
+
+.missing{
+stroke:#ff6b6b;
+stroke-width:4;
+stroke-dasharray:4 6;
+opacity:0;
+}
+
+.missing.visible{
 opacity:1;
-stroke-width:5;
-filter:drop-shadow(0 0 10px rgba(156,255,181,.6));
+filter:drop-shadow(0 0 10px rgba(255,107,107,.6));
 }
 
-.side h3{
-margin-top:0;
-font-weight:600;
-}
-
-.metric{
-font-size:13px;
-color:var(--muted);
-margin-top:8px;
-}
-
-#debug{
-margin-top:12px;
-font-size:12px;
-color:var(--muted);
-max-height:140px;
-overflow:auto;
-}
+.side h3{margin-top:0}
 </style>
 
 </head>
@@ -120,14 +123,21 @@ overflow:auto;
 
 <header>
 <h1>Money Flow Engine</h1>
-<div class="metric">Value circulation • ownership layers • policy levers</div>
+<div style="color:var(--muted)">Layered ownership • policy • structural forks</div>
 </header>
 
 <div id="wrap">
 
 <div class="card">
 
-<svg viewBox="0 0 900 620">
+<div class="controls">
+<button data-layer="base" class="active">Base</button>
+<button data-layer="ownership">Ownership</button>
+<button data-layer="policy">Policy</button>
+<button data-layer="missing">Missing links</button>
+</div>
+
+<svg viewBox="0 0 900 640">
 
 <defs>
 <marker id="arrow" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto">
@@ -135,93 +145,89 @@ overflow:auto;
 </marker>
 </defs>
 
-<g class="node" data-node="Infrastructure" transform="translate(450,100)">
-<circle r="85"/>
-<text text-anchor="middle" dy="5">Infrastructure</text>
+<g class="node" id="Infrastructure" transform="translate(450,110)">
+<circle r="85"/><text text-anchor="middle" dy="5">Infrastructure</text>
 </g>
 
-<g class="node" data-node="Government" transform="translate(140,320)">
-<circle r="85"/>
-<text text-anchor="middle" dy="5">Government</text>
+<g class="node owned" id="Firms" transform="translate(760,330)">
+<circle r="85"/><text text-anchor="middle" dy="5">Firms</text>
 </g>
 
-<g class="node" data-node="Finance" transform="translate(450,320)">
-<circle r="70"/>
-<text text-anchor="middle" dy="5">Finance</text>
+<g class="node owned" id="Finance" transform="translate(450,330)">
+<circle r="70"/><text text-anchor="middle" dy="5">Finance</text>
 </g>
 
-<g class="node" data-node="Firms" transform="translate(760,320)">
-<circle r="85"/>
-<text text-anchor="middle" dy="5">Firms</text>
+<g class="node" id="Government" transform="translate(140,330)">
+<circle r="85"/><text text-anchor="middle" dy="5">Government</text>
 </g>
 
-<g class="node" data-node="Households" transform="translate(450,540)">
-<circle r="85"/>
-<text text-anchor="middle" dy="5">Households</text>
+<g class="node" id="Households" transform="translate(450,560)">
+<circle r="85"/><text text-anchor="middle" dy="5">Households</text>
 </g>
 
-<path class="flow" data-flow="Consumption" d="M520 520 Q720 470 760 360"/>
-<path class="flow" data-flow="Wages" d="M700 320 Q560 470 500 520"/>
-<path class="flow" data-flow="Investment" d="M720 260 Q560 150 470 140"/>
-<path class="flow" data-flow="Taxes" d="M390 520 Q210 400 160 360"/>
-<path class="flow" data-flow="Transfers" d="M160 280 Q300 460 420 520"/>
-<path class="flow" data-flow="Credit" d="M450 320 Q620 320 740 320"/>
-<path class="flow" data-flow="Interest" d="M450 320 Q260 320 160 320"/>
+<!-- base flows -->
+
+<path class="flow" d="M520 540 Q720 480 760 370"/>
+<path class="flow" d="M700 330 Q560 480 500 540"/>
+<path class="flow" d="M720 260 Q560 160 470 150"/>
+<path class="flow" d="M390 540 Q210 410 160 370"/>
+<path class="flow" d="M160 290 Q300 470 420 540"/>
+<path class="flow" d="M450 330 Q620 330 740 330"/>
+<path class="flow" d="M450 330 Q260 330 160 330"/>
+
+<!-- policy overlay -->
+
+<path id="policyInfra" class="policy" d="M140 330 Q300 200 450 150"/>
+
+<!-- missing connection -->
+
+<path id="missingInfra" class="missing" d="M140 330 Q300 200 450 150"/>
 
 </svg>
 
 </div>
 
 <div class="card side">
-<h3 id="title">Explore the system</h3>
-<p id="desc">Click nodes or flows.</p>
-<div id="debug"></div>
+<h3 id="title">Layer: Base</h3>
+<p id="desc">
+Base layer shows circulation.  
+Other layers reveal ownership, policy leverage, and structural gaps.
+</p>
 </div>
 
 </div>
 
 <script>
-const nodeInfo={
-Households:"People. Consumption engine. Labor supply.",
-Firms:"Production layer. Converts inputs into goods/services.",
-Infrastructure:"Physical substrate. Slow, expensive, foundational.",
-Government:"Redistribution + stabilization layer.",
-Finance:"Time-shifting layer. Credit, asset pricing."
-};
+const buttons=document.querySelectorAll(".controls button");
+const policy=document.getElementById("policyInfra");
+const missing=document.getElementById("missingInfra");
+const nodes=document.querySelectorAll(".node");
 
-const flowInfo={
-Consumption:"Households → Firms (demand)",
-Wages:"Firms → Households (income)",
-Investment:"Firms → Infrastructure (future capacity)",
-Taxes:"Economy → Government",
-Transfers:"Government → Households",
-Credit:"Finance → Economy",
-Interest:"Economy → Finance"
-};
+buttons.forEach(b=>{
+b.onclick=()=>{
+buttons.forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
 
-const title=document.getElementById("title");
-const desc=document.getElementById("desc");
-const debug=document.getElementById("debug");
+const layer=b.dataset.layer;
 
-function log(m){debug.innerHTML=m+"<br>"+debug.innerHTML;}
+policy.classList.remove("visible");
+missing.classList.remove("visible");
+nodes.forEach(n=>n.classList.remove("owned"));
 
-document.querySelectorAll(".node").forEach(n=>{
-n.onclick=()=>{
-const name=n.dataset.node;
-title.textContent=name;
-desc.textContent=nodeInfo[name];
-log("Node: "+name);
-};
-});
+if(layer==="ownership"){
+document.getElementById("Firms").classList.add("owned");
+document.getElementById("Finance").classList.add("owned");
+}
 
-document.querySelectorAll(".flow").forEach(f=>{
-f.onclick=()=>{
-document.querySelectorAll(".flow").forEach(x=>x.classList.remove("active"));
-f.classList.add("active");
-const name=f.dataset.flow;
-title.textContent=name;
-desc.textContent=flowInfo[name];
-log("Flow: "+name);
+if(layer==="policy"){
+policy.classList.add("visible");
+}
+
+if(layer==="missing"){
+missing.classList.add("visible");
+}
+
+document.getElementById("title").textContent="Layer: "+layer;
 };
 });
 </script>
