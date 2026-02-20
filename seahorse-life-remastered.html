@@ -23,7 +23,7 @@ transition: opacity 1.8s ease;
 #primordial.fade-out { opacity:0; }
 
 #creation-title {
-font-family:'Cinzel',serif; font-weight:900;
+font-family:‘Cinzel’,serif; font-weight:900;
 font-size:clamp(28px,5vw,64px);
 color:#fff;
 text-shadow: 0 0 30px #6cf, 0 0 80px #08f8, 0 0 160px #04f4;
@@ -37,7 +37,7 @@ margin-bottom:18px;
 #creation-title.visible { opacity:1; transform:translateY(0); }
 
 #creation-sub {
-font-family:'Crimson Text',serif; font-style:italic;
+font-family:‘Crimson Text’,serif; font-style:italic;
 font-size:clamp(13px,2vw,20px);
 color:#7ad0ee99;
 letter-spacing:0.15em;
@@ -49,7 +49,7 @@ transition: opacity 2s ease 0.8s;
 
 #hatch-prompt {
 position:absolute; bottom:48px;
-font-family:'Cinzel',serif; font-size:13px;
+font-family:‘Cinzel’,serif; font-size:13px;
 color:#3a8aaa;
 letter-spacing:0.18em;
 opacity:0;
@@ -69,7 +69,7 @@ opacity:0; transition:opacity 2s ease;
 
 #title {
 position:absolute; top:16px; left:50%; transform:translateX(-50%);
-font-family:'Cinzel',serif; font-size:19px; color:#c8eeff;
+font-family:‘Cinzel’,serif; font-size:19px; color:#c8eeff;
 text-shadow:0 0 16px #3af,0 0 32px #08f4;
 letter-spacing:5px; white-space:nowrap;
 }
@@ -98,7 +98,7 @@ display:flex; gap:8px; pointer-events:all;
 }
 button {
 background:#08192aCC; border:1px solid #1a5570; color:#7acde8;
-font-family:'Cinzel',serif; font-size:11px; letter-spacing:1px;
+font-family:‘Cinzel’,serif; font-size:11px; letter-spacing:1px;
 padding:6px 14px; cursor:pointer; border-radius:3px; transition:all 0.2s;
 }
 button:hover { background:#0c2840; border-color:#3af; color:#cef; box-shadow:0 0 10px #3af4; }
@@ -183,6 +183,7 @@ const EGG_LIFE     = 280;
 const PRIM_CELL    = 11;      // px per cell in the primordial grid
 const PRIM_TICK    = 4;       // frames per GoL step during creation
 const PRIM_STEPS   = 120;     // GoL generations to run before allowing hatch
+const PRIM_SHOW    = 180;     // frames before title appears
 
 let paused    = false;
 let frame     = 0;
@@ -202,8 +203,19 @@ let worldSeed = {
   label:         '',
 };
 
+// ═══════════════════════════════════════════════════════════════════
+//  ██████╗ ██████╗ ██╗███╗   ███╗ ██████╗ ██████╗ ██████╗ ██╗ █████╗ ██╗
+//  ██╔══██╗██╔══██╗██║████╗ ████║██╔═══██╗██╔══██╗██╔══██╗██║██╔══██╗██║
+//  ██████╔╝██████╔╝██║██╔████╔██║██║   ██║██████╔╝██║  ██║██║███████║██║
+//  ██╔═══╝ ██╔══██╗██║██║╚██╔╝██║██║   ██║██╔══██╗██║  ██║██║██╔══██║██║
+//  ██║     ██║  ██║██║██║ ╚═╝ ██║╚██████╔╝██║  ██║██████╔╝██║██║  ██║███████╗
+//  ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝╚═╝  ╚═╝╚══════╝
+//
+//  The screen-filling creation engine. Its final state seeds the world.
+// ═══════════════════════════════════════════════════════════════════
 class PrimordialEgg {
   constructor(){
+    // Grid covers the whole screen
     this.cols = Math.ceil(W / PRIM_CELL) + 2;
     this.rows = Math.ceil(H / PRIM_CELL) + 2;
     this.grid  = this._makeGrid();
@@ -213,27 +225,34 @@ class PrimordialEgg {
     this.stepCount  = 0;
     this.frameCount = 0;
     this.hatched    = false;
-    this.hatching   = false;
+    this.hatching   = false;  // mid-burst animation
     this.hatchFrame = 0;
 
-    this.cellAlpha  = 0;
+    // Visual state
+    this.cellAlpha  = 0;    // fades in
     this.titleShown = false;
     this.promptShown= false;
     this.canHatch   = false;
 
+    // History for pattern detection
     this.history    = [];
     this.analysed   = false;
     this.analysis   = {};
 
+    // Hatch burst particles
     this.particles  = [];
   }
 
   _makeGrid(){
     const R=this.rows, C=this.cols;
+    // Seed with a rich random pattern + a few known interesting seeds
     const g = Array.from({length:R},()=>new Array(C).fill(0));
 
-    for(let r=0;r<R;r++) for(let c=0;c<C;c++) if(Math.random()<0.38) g[r][c]=1;
+    // Random soup — 38% density
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++)
+      if(Math.random()<0.38) g[r][c]=1;
 
+    // Stamp a glider gun near centre to guarantee interesting dynamics
     const mc=Math.floor(C/2)-18, mr=Math.floor(R/2)-5;
     const gun=[
       [0,24],[1,22],[1,24],[2,12],[2,13],[2,20],[2,21],[2,34],[2,35],
@@ -246,6 +265,7 @@ class PrimordialEgg {
       if(rr>=0&&rr<R&&cc>=0&&cc<C) g[rr][cc]=1;
     }
 
+    // R-pentomino near a different region
     const rp=[[0,1],[0,2],[1,0],[1,1],[2,1]];
     const rpR=Math.floor(R*0.3), rpC=Math.floor(C*0.7);
     for(const [dr,dc] of rp) if(rpR+dr<R&&rpC+dc<C) g[rpR+dr][rpC+dc]=1;
@@ -276,8 +296,11 @@ class PrimordialEgg {
   }
 
   _analyse(){
+    // Read the surviving pattern and set worldSeed
     const R=this.rows, C=this.cols;
     let alive=0;
+    const density=[];
+    // Divide screen into a coarse grid of zones, measure density per zone
     const ZR=8, ZC=12;
     const zones=Array.from({length:ZR},()=>new Array(ZC).fill(0));
     for(let r=0;r<R;r++) for(let c=0;c<C;c++){
@@ -288,7 +311,9 @@ class PrimordialEgg {
       }
     }
     const totalDensity = alive/(R*C);
+    const maxZone = Math.max(...zones.flat());
 
+    // Find cluster centres (zones with high density)
     const clusters=[];
     for(let zr=0;zr<ZR;zr++) for(let zc=0;zc<ZC;zc++){
       const d=zones[zr][zc]/((R/ZR)*(C/ZC));
@@ -302,6 +327,7 @@ class PrimordialEgg {
     }
     clusters.sort((a,b)=>b.density-a.density);
 
+    // Pattern detection from history
     const rec=this.history.slice(-20);
     const avg=rec.reduce((a,b)=>a+b,0)/rec.length;
     const variance=rec.reduce((s,v)=>s+(v-avg)**2,0)/rec.length;
@@ -310,10 +336,11 @@ class PrimordialEgg {
     const isOscillator= variance>10  && variance<200;
     const isDying     = avg < R*C*0.01;
 
-    worldSeed.hue          = isDying   ? 200
-                           : isGlider  ? 280
-                           : isStable  ? 170
-                           : 210;
+    // Build world traits from pattern analysis
+    worldSeed.hue          = isDying   ? 200  // cool blue death
+                           : isGlider  ? 280  // purple chaos
+                           : isStable  ? 170  // teal stability
+                           : 210;             // mid-ocean default
     worldSeed.foodDensity  = clamp(totalDensity*4, 0.3, 1.2);
     worldSeed.aggressionBias = isGlider  ? 0.7 : isDying ? 0.8 : 0.4;
     worldSeed.socialityBias  = isStable  ? 0.7 : isOscillator ? 0.55 : 0.4;
@@ -339,14 +366,17 @@ class PrimordialEgg {
   update(){
     this.frameCount++;
 
+    // Fade in cells
     if(this.cellAlpha<1) this.cellAlpha=Math.min(1,this.cellAlpha+0.008);
 
+    // Run GoL steps
     this.tickTimer++;
     if(this.tickTimer>=PRIM_TICK){
       this.tickTimer=0;
       this._step();
     }
 
+    // After enough steps, show title + allow hatch
     if(this.stepCount>=30&&!this.titleShown){
       this.titleShown=true;
       setTimeout(()=>document.getElementById('creation-title').classList.add('visible'),200);
@@ -359,11 +389,12 @@ class PrimordialEgg {
       this.canHatch=true;
     }
 
+    // Mid-hatch burst animation
     if(this.hatching){
       this.hatchFrame++;
       for(const p of this.particles){
         p.x+=p.vx; p.y+=p.vy;
-        p.vy+=0.04;
+        p.vy+=0.04; // gravity
         p.life--;
         p.vx*=0.98; p.vy*=0.98;
       }
@@ -379,8 +410,10 @@ class PrimordialEgg {
     if(!this.canHatch||this.hatching||this.hatched) return;
     this.hatching=true;
 
+    // Analyse the final state one more time
     if(!this.analysed) this._analyse();
 
+    // Spawn burst particles from every live cell
     const R=this.rows, C=this.cols;
     for(let r=0;r<R;r+=2) for(let c=0;c<C;c+=2){
       if(!this.grid[r][c]) continue;
@@ -399,6 +432,7 @@ class PrimordialEgg {
       });
     }
 
+    // Fade out the overlay
     document.getElementById('primordial').classList.add('fade-out');
   }
 
@@ -408,16 +442,19 @@ class PrimordialEgg {
     const R=this.rows, C=this.cols;
     const h=worldSeed.hue;
 
+    // Deep black void background during creation
     ctx.fillStyle='#000';
     ctx.fillRect(0,0,W,H);
 
+    // Subtle vignette
     const vg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*0.65);
     vg.addColorStop(0,'rgba(0,10,25,0)');
     vg.addColorStop(1,'rgba(0,0,0,0.85)');
     ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
 
+    // Draw GoL grid
     ctx.save();
-    const age=Math.min(1,this.stepCount/60);
+    const age=Math.min(1,this.stepCount/60); // brightness ramps up
     for(let r=0;r<R;r++){
       for(let c=0;c<C;c++){
         const live=this.grid[r][c];
@@ -425,19 +462,22 @@ class PrimordialEgg {
         if(!live&&!wasLive) continue;
 
         const wx=c*PRIM_CELL, wy=r*PRIM_CELL;
-        const cellH=h+(r/R)*40+(c/C)*20;
+        const cellH=h+(r/R)*40+(c/C)*20; // hue drifts across the field
 
         if(live){
+          // Alive cell — bright glowing square
           const flicker=0.75+Math.sin(frame*0.18+r*0.3+c*0.17)*0.2;
           ctx.globalAlpha=this.cellAlpha*age*flicker;
           ctx.shadowColor=`hsl(${cellH},100%,72%)`;
           ctx.shadowBlur=8;
           ctx.fillStyle=`hsl(${cellH},85%,${55+age*20}%)`;
           ctx.fillRect(wx+1,wy+1,PRIM_CELL-2,PRIM_CELL-2);
+          // Inner bright core
           ctx.globalAlpha=this.cellAlpha*age*0.5*flicker;
           ctx.fillStyle=`hsl(${cellH+15},100%,90%)`;
           ctx.fillRect(wx+PRIM_CELL*0.3,wy+PRIM_CELL*0.3,PRIM_CELL*0.4,PRIM_CELL*0.4);
         } else if(wasLive){
+          // Just died — faint ghost
           ctx.globalAlpha=this.cellAlpha*0.08*age;
           ctx.shadowBlur=0;
           ctx.fillStyle=`hsl(${cellH},60%,35%)`;
@@ -447,6 +487,7 @@ class PrimordialEgg {
     }
     ctx.restore();
 
+    // Scan-line pulse across the whole grid — visual heartbeat
     if(!this.hatching){
       const scanY=((frame*1.8)%H);
       ctx.save();
@@ -456,6 +497,7 @@ class PrimordialEgg {
       ctx.restore();
     }
 
+    // Generation counter (faint, bottom right)
     if(this.stepCount>5){
       ctx.save();
       ctx.globalAlpha=0.25;
@@ -466,6 +508,7 @@ class PrimordialEgg {
       ctx.restore();
     }
 
+    // Hatch burst particles
     if(this.hatching){
       ctx.save();
       for(const p of this.particles){
@@ -480,6 +523,7 @@ class PrimordialEgg {
       }
       ctx.restore();
 
+      // White flash at beginning of hatch
       if(this.hatchFrame<20){
         ctx.save();
         ctx.globalAlpha=(1-this.hatchFrame/20)*0.7;
@@ -491,13 +535,19 @@ class PrimordialEgg {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  FOOD
+// ═══════════════════════════════════════════════════════════════════
 let foods = [];
 function spawnFood(x,y){
   foods.push({x:x??rand(40,W-40), y:y??rand(40,H-40), r:rand(2,4), life:rand(700,1100)});
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  GENOME
+// ═══════════════════════════════════════════════════════════════════
 function makeGenome(base){
-  const ws=worldSeed;
+  const ws=worldSeed; // influenced by world conditions
   return {
     hue:       base?.hue        ?? rand(0,360),
     speed:     base?.speed      ?? rand(0.5,1.4)*ws.speedBias,
@@ -521,6 +571,9 @@ function crossGenome(a,b){
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  MATING DANCE
+// ═══════════════════════════════════════════════════════════════════
 class MatingDance {
   constructor(shA,shB){
     this.A=shA; this.B=shB;
@@ -603,6 +656,7 @@ class MatingDance {
       ctx.restore();
     }
 
+    // Seed grid overlay in world space
     const G=this.G, cellW=boxR*2/G;
     const ox=this.cx-boxR, oy=this.cy-boxR;
     ctx.save();ctx.globalAlpha=0.25+Math.sin(frame*0.07)*0.06;
@@ -623,8 +677,11 @@ class MatingDance {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  CONWAY EGG (mating-born)
+// ═══════════════════════════════════════════════════════════════════
 class ConwayEgg {
-  constructor(x,y,genomeA,genomeB,seedGrid){
+  constructor(x,y,genomeA,genomeB,seedGrid,trailA,trailB){
     this.x=x;this.y=y;
     this.genomeA=genomeA;this.genomeB=genomeB;
     this.age=0;this.tickTimer=0;this.generation=0;
@@ -667,7 +724,11 @@ class ConwayEgg {
   update(){
     this.age++;
     this.x+=this.vx;this.y+=this.vy;
-    if(this.x<70){this.x=70;this.vx=Math.abs(this.vx);} if(this.x>W-70){this.x=W-70;this.vx=-Math.abs(this.vx);} if(this.y<70){this.y=70;this.vy=Math.abs(this.vy);} if(this.y>H-70){this.y=H-70;this.vy=-Math.abs(this.vy);}    this.tickTimer++;
+    if(this.x<70){this.x=70;this.vx=Math.abs(this.vx);}
+    if(this.x>W-70){this.x=W-70;this.vx=-Math.abs(this.vx);}
+    if(this.y<70){this.y=70;this.vy=Math.abs(this.vy);}
+    if(this.y>H-70){this.y=H-70;this.vy=-Math.abs(this.vy);}
+    this.tickTimer++;
     if(this.tickTimer>=EGG_TICK){this.tickTimer=0;this.generation++;const a=this._step();if(a===0){this.dead=true;return null;}}
     if(this.age>=EGG_LIFE) return this._hatch();
     return null;
@@ -743,6 +804,9 @@ class ConwayEgg {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  SEAHORSE
+// ═══════════════════════════════════════════════════════════════════
 let uidc=0;
 class Seahorse {
   constructor(x,y,genome,bonuses){
@@ -884,6 +948,9 @@ class Seahorse {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  DRAWING PRIMITIVES
+// ═══════════════════════════════════════════════════════════════════
 function drawCell(x,y,r,hue,progress){
   const pulse=1+Math.sin(frame*0.1)*0.14;
   ctx.save();ctx.globalAlpha=0.65+progress*0.32;
@@ -905,13 +972,18 @@ function drawSeahorse(ctx,sz,color,glow,wave,isJuvenile){
   ctx.strokeStyle=color;ctx.lineWidth=2;ctx.shadowColor=glow;ctx.shadowBlur=8;
   for(let i=-2;i<=2;i++){ctx.beginPath();ctx.moveTo(i*sz*0.06,-sz*0.85);ctx.lineTo(i*sz*0.08,-sz*(0.9+Math.abs(i)*0.05));ctx.stroke();}
   ctx.beginPath();ctx.strokeStyle=`${color}aa`;ctx.lineWidth=1.5;
-  for(let t=0;t<=1;t+=0.1){const fx=-sz*0.22+t*sz*0.15,fy=-sz*0.3+t*sz*0.5,fw=sz*0.25*Math.sin(t*Math.PI+wave*2)*Math.sin(t*Math.PI);t===0?ctx.moveTo(fx,fy):ctx.lineTo(fx+fw,fy);}  ctx.stroke();
+  for(let t=0;t<=1;t+=0.1){const fx=-sz*0.22+t*sz*0.15,fy=-sz*0.3+t*sz*0.5,fw=sz*0.25*Math.sin(t*Math.PI+wave*2)*Math.sin(t*Math.PI);t===0?ctx.moveTo(fx,fy):ctx.lineTo(fx+fw,fy);}
+  ctx.stroke();
   ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=sz*0.13;ctx.lineCap='round';ctx.shadowBlur=6;
-  for(let i=0;i<=8;i++){const t=i/8,curl=t*t*(Math.PI*1.5+Math.sin(wave)*0.4),rad=sz*0.35*(1-t*0.6);const tx=Math.sin(curl)*rad,ty=sz*0.25+t*sz*0.45+Math.cos(curl)*rad*0.5;i===0?ctx.moveTo(tx,ty):ctx.lineTo(tx,ty);}  ctx.stroke();
+  for(let i=0;i<=8;i++){const t=i/8,curl=t*t*(Math.PI*1.5+Math.sin(wave)*0.4),rad=sz*0.35*(1-t*0.6);const tx=Math.sin(curl)*rad,ty=sz*0.25+t*sz*0.45+Math.cos(curl)*rad*0.5;i===0?ctx.moveTo(tx,ty):ctx.lineTo(tx,ty);}
+  ctx.stroke();
   ctx.shadowBlur=0;ctx.strokeStyle=`${color}55`;ctx.lineWidth=1;
   for(let i=0;i<4;i++){const py=-sz*0.35+i*sz*0.12;ctx.beginPath();ctx.arc(0,py,sz*0.2,Math.PI*0.2,Math.PI*0.8);ctx.stroke();}
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  SCENE + GAME BACKGROUND
+// ═══════════════════════════════════════════════════════════════════
 let organisms=[], eggs=[], dances=[];
 let gameRunning=false;
 
@@ -938,6 +1010,7 @@ function drawGameBG(){
   }
   ctx.restore();
 
+  // Draw cluster zones — subtle highlights where organisms will be more common
   for(const cl of worldSeed.clusters){
     ctx.save();ctx.globalAlpha=cl.density*0.04;
     const cg=ctx.createRadialGradient(cl.x,cl.y,0,cl.x,cl.y,80);
@@ -979,10 +1052,12 @@ function drawInteractionLines(){
   }
 }
 
+// ── Seed world from primordial analysis ─────────────────────────────
 function _beginLife(){
   gameRunning=true;
   document.getElementById('ui').classList.add('visible');
 
+  // Spawn food biased toward dense cluster regions
   const ws=worldSeed;
   const foodCount=Math.round(30*ws.foodDensity);
   for(let i=0;i<foodCount;i++){
@@ -994,8 +1069,11 @@ function _beginLife(){
     }
   }
 
+  // Spawn ancestor organisms from the primordial cluster positions
+  // Each cluster becomes a founding population
   const founding=ws.clusters.slice(0,6);
   if(founding.length===0){
+    // Fallback: random spawn
     spawnCluster(W*0.4,H*0.4,4);
     spawnCluster(W*0.6,H*0.6,4);
   } else {
@@ -1016,6 +1094,7 @@ function spawnCluster(x,y,n=4){
 function addFood(){for(let i=0;i<14;i++) spawnFood(rand(W*0.15,W*0.85),rand(H*0.15,H*0.85));}
 function togglePause(){paused=!paused;}
 
+// ─── Click handler ─────────────────────────────────────────────────
 canvas.addEventListener('click',e=>{
   if(!gameRunning){
     primordialEgg.triggerHatch();
@@ -1024,27 +1103,38 @@ canvas.addEventListener('click',e=>{
   }
 });
 
+// ═══════════════════════════════════════════════════════════════════
+//  PRIMORDIAL EGG — instantiated immediately
+// ═══════════════════════════════════════════════════════════════════
 let primordialEgg = new PrimordialEgg();
 
+// ═══════════════════════════════════════════════════════════════════
+//  MAIN LOOP
+// ═══════════════════════════════════════════════════════════════════
 function loop(){
   frame++;
 
   if(!primordialEgg.hatched){
+    // ── CREATION PHASE ──────────────────────────────────────────
     primordialEgg.update();
     primordialEgg.draw();
 
   } else {
+    // ── LIFE PHASE ───────────────────────────────────────────────
     if(!paused){
       foods.forEach(f=>f.life--);
       foods=foods.filter(f=>f.life>0);
       if(foods.length<FOOD_MAX&&Math.random()<0.05) spawnFood();
 
+      // Dances
       const newEggs=[];
       dances=dances.filter(d=>!d.done);
       for(const d of dances){const e=d.update();if(e)newEggs.push(e);}
 
+      // Seahorses
       for(const o of organisms) if(!o.dead) o.update(organisms,eggs,dances);
 
+      // Eggs
       eggs.push(...newEggs);
       const newBorns=[];
       for(const egg of eggs){
