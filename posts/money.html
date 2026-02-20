@@ -267,6 +267,34 @@ svg{
   padding:14px;
 }
 
+.analysis-grid{
+  width:100%;
+  max-width:1320px;
+  padding:0 18px 12px;
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:18px;
+}
+
+.analysis-grid h2,
+.analysis-grid h3{
+  margin-top:0;
+}
+
+.analysis-grid p,
+.analysis-grid li{
+  color:var(--text-soft);
+}
+
+.analysis-grid ul{
+  padding-left:20px;
+}
+
+.analysis-grid .accent{
+  color:var(--accent2);
+  font-weight:700;
+}
+
 @media (max-width:1200px){
   .big{font-size:22px}
   .math-log{font-size:17px}
@@ -274,7 +302,8 @@ svg{
 
 @media (max-width:1000px){
   #wrap,
-  #capacityWrap{grid-template-columns:1fr}
+  #capacityWrap,
+  .analysis-grid{grid-template-columns:1fr}
   svg{height:560px}
   .big{font-size:20px}
   .math-log{font-size:15px}
@@ -356,6 +385,44 @@ svg{
     <div class="log" id="log"></div>
   </div>
 </div>
+
+<section class="analysis-grid">
+  <article class="card">
+    <h2>Reallocation Reality Check</h2>
+    <p class="meta">This is a systems question disguised as a budget question: not “is spending category X wasteful,” but which spending streams could plausibly be redirected to infrastructure without increasing total spending.</p>
+
+    <h3>The current scale</h3>
+    <p>Recent U.S. federal spending is roughly <strong>$6.3T–$6.8T annually</strong>. Social Security, Medicare, Medicaid/health, defense, and debt interest absorb most of the total. Infrastructure mostly sits in the remaining "everything else" slice, which is meaningful but not dominant.</p>
+
+    <h3>The constraint</h3>
+    <p>If total spending and deficits stay fixed, new infrastructure dollars must come from existing commitments: defense, health programs, tax expenditures, other discretionary lines, or long-run debt-service reduction. That makes this a tradeoff problem, not a funding-discovery problem.</p>
+
+    <h3>Plausible reallocation channels</h3>
+    <ul>
+      <li><strong>Defense shifts:</strong> discretionary and large; even modest percentage changes can free tens of billions.</li>
+      <li><strong>Tax expenditures:</strong> functionally spending via foregone revenue; reform can create large fiscal room.</li>
+      <li><strong>Interest burden:</strong> compounding debt service creates drag that crowds out fresh physical investment.</li>
+      <li><strong>Fragmented discretionary programs:</strong> administrative complexity makes redirection slow even when agreed in principle.</li>
+    </ul>
+
+    <p class="accent">There is enough money in aggregate. The real constraint is where society chooses to park uncertainty: security, health, retirement, finance, or infrastructure.</p>
+  </article>
+
+  <aside class="card">
+    <h3>Visual implication</h3>
+    <p>The chart above already hints at it: Government-to-Infrastructure is often indirect, routed through firms, markets, and finance first.</p>
+    <p>That means infrastructure outcomes are shaped by institutional routing, not just headline totals.</p>
+    <h3>Model takeaway</h3>
+    <p>When infrastructure rises while totals stay flat, something else necessarily dims:</p>
+    <ul>
+      <li>security allocations,</li>
+      <li>transfer systems,</li>
+      <li>tax relief, or</li>
+      <li>pace of debt stabilization.</li>
+    </ul>
+    <p><strong>Budgets are moral geometry:</strong> every arrow strengthened in one direction weakens another.</p>
+  </aside>
+</section>
 
 <div id="capacityWrap">
   <div class="card">
