@@ -215,7 +215,7 @@ code{
   <div class="controls">
     <button id="expand">Expand all</button>
     <button id="collapse">Collapse all</button>
-    <button onclick="window.print()">Print / PDF</button>
+    <button id="print-pdf">Print Thesis PDF</button>
   </div>
 </header>
 
@@ -384,6 +384,12 @@ sections.forEach(s=>{
 
 document.getElementById("expand").onclick = expandAll;
 document.getElementById("collapse").onclick = collapseAll;
+
+document.getElementById("print-pdf").addEventListener("click", ()=>{
+  const sourceTexUrl = "https://raw.githubusercontent.com/davidlones/public/main/thesis/draft.tex";
+  const compiledPdfUrl = `https://latexonline.cc/compile?url=${encodeURIComponent(sourceTexUrl)}`;
+  window.open(compiledPdfUrl, "_blank", "noopener");
+});
 
 // Start collapsed for windowed contexts
 collapseAll();
