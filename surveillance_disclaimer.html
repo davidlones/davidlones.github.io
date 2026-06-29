@@ -3,142 +3,625 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Renovation Documentary / Property Cleanup Media Consent Form</title>
+  <title>Deer Valley Renovation / Property Cleanup Media Consent Form</title>
   <style>
-    :root { --ink:#181818; --muted:#5d6572; --line:#cbd5e1; --panel:#f8fafc; --accent:#1f5f8b; }
+    :root {
+      --ink: #172033;
+      --muted: #64748b;
+      --soft: #f8fafc;
+      --panel: #eef4f8;
+      --line: #cbd5e1;
+      --line-dark: #94a3b8;
+      --accent: #1f5f8b;
+      --accent-2: #2f7d63;
+      --accent-3: #b7791f;
+      --danger: #9f2d2d;
+      --paper: #ffffff;
+      --shadow: 0 22px 55px rgba(15, 23, 42, .17);
+      --radius: 20px;
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: #e9edf2; line-height: 1.35; }
-    .toolbar { position: sticky; top: 0; z-index: 10; display: flex; gap: .75rem; justify-content: center; padding: .75rem; background: rgba(255,255,255,.92); border-bottom: 1px solid var(--line); backdrop-filter: blur(8px); }
-    button { border: 0; border-radius: 999px; padding: .72rem 1rem; font-weight: 700; cursor: pointer; background: var(--accent); color: white; }
-    button.secondary { background: #334155; }
-    main { max-width: 900px; margin: 1.25rem auto; background: white; padding: 2rem; border-radius: 18px; box-shadow: 0 10px 35px rgba(15,23,42,.12); }
-    h1 { margin: 0 0 .3rem; font-size: clamp(1.55rem, 4vw, 2.2rem); letter-spacing: -.02em; }
-    h2 { margin: 1.5rem 0 .75rem; padding-top: .25rem; color: #0f172a; border-top: 2px solid var(--line); font-size: 1.15rem; }
-    .note { color: var(--muted); font-size: .95rem; }
-    .small { font-size: .88rem; color: var(--muted); }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(31, 95, 139, .18), transparent 30rem),
+        linear-gradient(145deg, #dfe8ef 0%, #f5f7fb 48%, #e6edf3 100%);
+      line-height: 1.42;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .65rem;
+      justify-content: center;
+      padding: .75rem;
+      background: rgba(255,255,255,.92);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: .74rem 1.05rem;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 6px 16px rgba(31, 95, 139, .22);
+      touch-action: manipulation;
+    }
+
+    button.secondary { background: #334155; box-shadow: 0 6px 16px rgba(51,65,85,.18); }
+    button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line-dark); box-shadow: none; }
+
+    main {
+      width: min(940px, calc(100% - 2rem));
+      margin: 1.35rem auto 2.5rem;
+      background: var(--paper);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, .42);
+    }
+
+    form { margin: 0; }
+
+    .hero {
+      position: relative;
+      padding: 2rem 2rem 1.45rem;
+      color: white;
+      background:
+        linear-gradient(135deg, rgba(23,32,51,.96), rgba(31,95,139,.92)),
+        linear-gradient(90deg, #172033, #1f5f8b);
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: auto -6rem -8rem auto;
+      width: 18rem;
+      height: 18rem;
+      border-radius: 50%;
+      background: rgba(255,255,255,.09);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      left: -4rem;
+      top: -6rem;
+      width: 16rem;
+      height: 16rem;
+      border-radius: 50%;
+      background: rgba(47,125,99,.24);
+    }
+
+    .hero-content { position: relative; z-index: 1; }
+
+    .eyebrow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .45rem;
+      align-items: center;
+      margin-bottom: .8rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .32rem .62rem;
+      border: 1px solid rgba(255,255,255,.34);
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.95);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 760px;
+      font-size: clamp(1.55rem, 4.7vw, 2.45rem);
+      line-height: 1.04;
+      letter-spacing: -.035em;
+    }
+
+    .subtitle {
+      max-width: 770px;
+      margin: .85rem 0 0;
+      color: rgba(255,255,255,.84);
+      font-size: 1rem;
+    }
+
+    .content { padding: 1.65rem 2rem 2rem; }
+
+    h2 {
+      margin: 1.65rem 0 .8rem;
+      padding-top: 1rem;
+      color: #0f172a;
+      border-top: 2px solid var(--line);
+      font-size: 1.08rem;
+      letter-spacing: -.01em;
+    }
+
+    h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+
+    p { margin: .7rem 0; }
+    .note { color: var(--muted); font-size: .94rem; }
+    .small { font-size: .86rem; color: var(--muted); }
+    .tight { margin-top: .2rem; }
+
+    .project-card {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .callout, .box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1rem;
+      background: var(--soft);
+    }
+
+    .callout {
+      background:
+        linear-gradient(180deg, rgba(31,95,139,.06), rgba(47,125,99,.04)),
+        var(--soft);
+      border-color: rgba(31,95,139,.28);
+    }
+
+    .callout strong { color: #0f3f60; }
+
+    .details-list {
+      display: grid;
+      gap: .45rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: .94rem;
+    }
+
+    .details-list li {
+      display: grid;
+      grid-template-columns: 7.8rem 1fr;
+      gap: .65rem;
+      padding-bottom: .45rem;
+      border-bottom: 1px dashed rgba(148,163,184,.55);
+    }
+
+    .details-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+    .details-list b { color: #334155; }
+
     .grid { display: grid; gap: 1rem; }
     .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    label.field { display: grid; gap: .35rem; font-weight: 700; }
-    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: .72rem .8rem; font: inherit; background: white; }
-    textarea { min-height: 86px; resize: vertical; }
-    .box { border: 1px solid var(--line); border-radius: 14px; padding: 1rem; background: var(--panel); }
-    .choice, .check { display: grid; grid-template-columns: 1.35rem 1fr; gap: .6rem; align-items: start; margin: .65rem 0; }
-    .choice input, .check input { margin-top: .18rem; transform: scale(1.08); }
-    .choice strong { display: block; }
-    .signature-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1rem; }
-    .sigline { margin-top: 1.25rem; border-bottom: 1.5px solid #111827; height: 2.3rem; }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    label.field {
+      display: grid;
+      gap: .35rem;
+      font-weight: 800;
+      color: #223047;
+    }
+
+    .field span.label-note { font-weight: 600; color: var(--muted); font-size: .82rem; }
+
+    input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea {
+      width: 100%;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      padding: .74rem .82rem;
+      font: inherit;
+      color: var(--ink);
+      background: white;
+      box-shadow: inset 0 1px 0 rgba(15,23,42,.04);
+    }
+
+    input:focus, textarea:focus {
+      outline: 3px solid rgba(31, 95, 139, .15);
+      border-color: var(--accent);
+    }
+
+    textarea { min-height: 96px; resize: vertical; }
+
+    .choice, .check {
+      display: grid;
+      grid-template-columns: 1.35rem 1fr;
+      gap: .65rem;
+      align-items: start;
+      margin: .7rem 0;
+    }
+
+    .choice input, .check input { margin-top: .18rem; transform: scale(1.1); accent-color: var(--accent); }
+    .choice strong { display: block; color: #0f172a; }
+
+    .consent-stack .choice {
+      padding: .78rem;
+      border: 1px solid rgba(203,213,225,.9);
+      border-radius: 13px;
+      background: white;
+    }
+
+    .consent-stack .choice:has(input:checked) {
+      border-color: rgba(31,95,139,.65);
+      background: rgba(31,95,139,.06);
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .7rem 1rem;
+    }
+
+    .pill-note {
+      display: inline-block;
+      margin: .35rem 0 .1rem;
+      padding: .4rem .62rem;
+      border-radius: 999px;
+      background: rgba(183,121,31,.12);
+      color: #7c4a03;
+      font-weight: 800;
+      font-size: .82rem;
+    }
+
+    .signature-grid {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .sigline {
+      margin-top: 1.05rem;
+      border-bottom: 1.6px solid #111827;
+      height: 2.35rem;
+    }
+
     .sigcaption { font-size: .82rem; color: var(--muted); margin-top: .25rem; }
-    footer { margin-top: 1.5rem; color: var(--muted); font-size: .86rem; }
-    @media (max-width: 760px) { main { margin: 0; border-radius: 0; padding: 1.25rem; } .two, .signature-grid { grid-template-columns: 1fr; } .toolbar { flex-wrap: wrap; } }
+
+    footer {
+      margin-top: 1.6rem;
+      padding: 1rem;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .86rem;
+    }
+
+    .mobile-note {
+      width: min(940px, calc(100% - 2rem));
+      margin: .8rem auto 0;
+      color: #475569;
+      font-size: .88rem;
+      text-align: center;
+    }
+
+    @media (max-width: 800px) {
+      main { width: 100%; margin: 0; border-radius: 0; border-left: 0; border-right: 0; }
+      .hero { padding: 1.45rem 1.2rem 1.15rem; }
+      .content { padding: 1.2rem; }
+      .two, .three, .project-card, .signature-grid, .mini-grid { grid-template-columns: 1fr; }
+      .details-list li { grid-template-columns: 1fr; gap: .15rem; }
+      .toolbar { justify-content: stretch; }
+      button { flex: 1 1 auto; }
+      .mobile-note { width: calc(100% - 1.4rem); }
+    }
+
+    @supports not selector(:has(*)) {
+      .consent-stack .choice { background: white; }
+    }
+
+    @page { size: letter; margin: .38in; }
+
     @media print {
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       body { background: white; }
-      .toolbar { display: none !important; }
-      main { box-shadow: none; border-radius: 0; margin: 0; padding: .35in; max-width: none; }
-      h2 { break-after: avoid; }
-      .box, .choice, .check, label.field { break-inside: avoid; }
-      input, textarea { border-color: #777 !important; }
+      .toolbar, .mobile-note { display: none !important; }
+      main { width: auto; max-width: none; margin: 0; border: 0; box-shadow: none; border-radius: 0; overflow: visible; }
+      .hero { color: #111827; background: white; border-bottom: 2px solid #111827; padding: 0 0 .16in; }
+      .hero::before, .hero::after { display: none; }
+      .badge { color: #111827; border-color: #777; background: white; }
+      .subtitle { color: #334155; }
+      .content { padding: .18in 0 0; }
+      h1 { font-size: 21pt; }
+      h2 { font-size: 12.5pt; margin-top: .16in; padding-top: .12in; break-after: avoid; page-break-after: avoid; }
+      p, .note, .small, label, li { font-size: 9.7pt; }
+      .box, .callout, .choice, .check, label.field, .signature-grid, footer { break-inside: avoid; page-break-inside: avoid; }
+      input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea { border-color: #777 !important; padding: .45rem .55rem; min-height: auto; }
+      textarea { min-height: .75in; }
+      .project-card { grid-template-columns: 1fr 1fr; }
+      .two { grid-template-columns: 1fr 1fr; }
+      .three { grid-template-columns: repeat(3, 1fr); }
+      .mini-grid { grid-template-columns: 1fr 1fr; }
+      .signature-grid { grid-template-columns: 1.45fr 1fr; }
+      .sigline { height: .42in; }
       a[href]::after { content: ""; }
     }
   </style>
 </head>
 <body>
-  <div class="toolbar">
-    <button type="button" onclick="window.print()">Print / Save as PDF</button>
-    <button type="button" class="secondary" onclick="document.querySelector('form').reset()">Clear Form</button>
+  <div class="toolbar" aria-label="Form actions">
+    <button type="button" id="printBtn">Print / Save as PDF</button>
+    <button type="button" class="secondary" id="clearParticipantBtn">Clear Participant</button>
+    <button type="button" class="ghost" id="blankBtn">Blank Copy</button>
   </div>
 
+  <p class="mobile-note">Mobile tip: use <strong>Print / Save as PDF</strong>, then choose your browserâs print/share option. No fields are required, so a blank copy prints cleanly too.</p>
+
   <main>
-    <form>
-      <h1>Renovation Documentary / Property Cleanup Media Consent Form</h1>
-      <p class="note">One form per identifiable person. This is a practical template for property cleanup, renovation, landscaping, exterior drone footage, before/after shots, and related documentary-style updates. It is not legal advice; get local legal review if the footage will be monetized, broadcast, or used in a formal real-estate campaign.</p>
+    <form id="consentForm" novalidate>
+      <section class="hero">
+        <div class="hero-content">
+          <div class="eyebrow">
+            <span class="badge">Deer Valley Road</span>
+            <span class="badge">5-acre cleanup</span>
+            <span class="badge">Drone / exterior footage</span>
+            <span class="badge">One form per person</span>
+          </div>
+          <h1>Renovation Documentary / Property Cleanup Media Consent Form</h1>
+          <p class="subtitle">For before, during, and after documentation of landscape work, outdoor cleanup, renovation progress, exterior drone footage, and related property-restoration updates at 536 Deer Valley Road in Weatherford, Texas.</p>
+        </div>
+      </section>
 
-      <h2>Project and Participant Information</h2>
-      <div class="grid two">
-        <label class="field">Project owner / filmmaker<input type="text" name="project_owner"></label>
-        <label class="field">Phone / email<input type="text" name="project_contact"></label>
-      </div>
-      <div class="grid two" style="margin-top:1rem;">
-        <label class="field">Property address or description<input type="text" name="property_address"></label>
-        <label class="field">Project name<input type="text" name="project_name" placeholder="House renovation / cleanup documentary"></label>
-      </div>
-      <div class="grid two" style="margin-top:1rem;">
-        <label class="field">Company / organization, if any<input type="text" name="company_name" placeholder="Firefighter Lawn Care, etc."></label>
-        <label class="field">Individual name<input type="text" name="individual_name"></label>
-      </div>
-      <div class="grid two" style="margin-top:1rem;">
-        <label class="field">Role<input type="text" name="role" placeholder="Owner, manager, crew member, visitor, etc."></label>
-        <label class="field">Date<input type="date" name="date"></label>
-      </div>
+      <section class="content">
+        <div class="project-card">
+          <div class="callout">
+            <strong>Project description</strong>
+            <p class="tight">This project documents the cleanup and renovation of a 5-acre residential property, including before/after comparisons, exterior landscape work, equipment and work progress, drone/wide shots, and optional short comments or interviews only when the person recorded has agreed to that level of inclusion.</p>
+            <p class="small">The practical default is simple: if someone does not want to be identifiable, footage can stay property-only, wide-angle, cropped, blurred, or removed from public edits. Consent: the miracle technology that prevents future weirdness.</p>
+          </div>
+          <div class="box">
+            <ul class="details-list" aria-label="Project details">
+              <li><b>Owner</b><span>David Lones</span></li>
+              <li><b>Property</b><span>536 Deer Valley Road, Weatherford, TX</span></li>
+              <li><b>Scope</b><span>5-acre exterior cleanup, landscaping, renovation documentation</span></li>
+              <li><b>Contact</b><span>davidlones365@mac.com<br>682-239-0836</span></li>
+            </ul>
+          </div>
+        </div>
 
-      <h2>Intended Uses</h2>
-      <div class="box">
-        <label class="check"><input type="checkbox" name="use_private"><span>Private renovation records only</span></label>
-        <label class="check"><input type="checkbox" name="use_social"><span>Social media updates</span></label>
-        <label class="check"><input type="checkbox" name="use_doc"><span>Documentary / video project</span></label>
-        <label class="check"><input type="checkbox" name="use_real_estate"><span>Real-estate listing or property marketing</span></label>
-        <label class="check"><input type="checkbox" name="use_contractor"><span>Contractor portfolio / work examples</span></label>
-        <label class="field" style="margin-top:.75rem;">Other intended use<input type="text" name="use_other"></label>
-      </div>
+        <h2>Project and Participant Information</h2>
+        <div class="grid two">
+          <label class="field">Project owner / filmmaker
+            <input type="text" name="project_owner" value="David Lones" data-project-default="David Lones">
+          </label>
+          <label class="field">Phone / email
+            <input type="text" name="project_contact" value="davidlones365@mac.com â¢ 682-239-0836" data-project-default="davidlones365@mac.com â¢ 682-239-0836">
+          </label>
+        </div>
+        <div class="grid two" style="margin-top:1rem;">
+          <label class="field">Property address or description
+            <input type="text" name="property_address" value="536 Deer Valley Road, Weatherford, TX â 5 acres" data-project-default="536 Deer Valley Road, Weatherford, TX â 5 acres">
+          </label>
+          <label class="field">Project name
+            <input type="text" name="project_name" value="Deer Valley Renovation & Property Cleanup Documentary" data-project-default="Deer Valley Renovation & Property Cleanup Documentary">
+          </label>
+        </div>
+        <div class="grid three" style="margin-top:1rem;">
+          <label class="field">Company / organization, if any
+            <input type="text" name="company_name" placeholder="Firefighter Lawn Care, etc.">
+          </label>
+          <label class="field">Individual name
+            <input type="text" name="individual_name" placeholder="Crew member, manager, visitor, etc.">
+          </label>
+          <label class="field">Role
+            <input type="text" name="role" placeholder="Owner, manager, crew member, visitor, etc.">
+          </label>
+        </div>
+        <div class="grid three" style="margin-top:1rem;">
+          <label class="field">Date
+            <input type="date" name="date" id="mainDate">
+          </label>
+          <label class="field">Visit / work phase
+            <input type="text" name="work_phase" placeholder="Estimate, cleanup, landscape work, follow-up, final shots">
+          </label>
+          <label class="field">Drone / camera provider, if different
+            <input type="text" name="camera_provider" placeholder="Realtor/church drone, licensed pilot, etc.">
+          </label>
+        </div>
 
-      <h2>Consent Choice</h2>
-      <div class="box">
-        <label class="choice"><input type="radio" name="consent_choice" value="full"><span><strong>Full consent.</strong> I consent to being recorded and allow my face, voice, name, company name, and work activity to appear in edited photos/videos without blurring.</span></label>
-        <label class="choice"><input type="radio" name="consent_choice" value="visual_no_voice"><span><strong>Visual only - no voice or interview.</strong> I consent to being visually included, but I do not consent to my voice, interview audio, or spoken comments being used.</span></label>
-        <label class="choice"><input type="radio" name="consent_choice" value="blur"><span><strong>Blur / anonymize me.</strong> I consent to being incidentally recorded, but my face should be blurred or otherwise made non-identifiable before anything is shared publicly.</span></label>
-        <label class="choice"><input type="radio" name="consent_choice" value="remove_public"><span><strong>Do not include me in final/public footage.</strong> I understand I may be accidentally captured in wide shots or raw work documentation, but I do not consent to being identifiable in any final/public photo or video. Any identifiable appearance should be cut, blurred, cropped, or otherwise removed before publication.</span></label>
-        <label class="choice"><input type="radio" name="consent_choice" value="no_record"><span><strong>Do not intentionally record me.</strong> I do not consent to being intentionally filmed, photographed, interviewed, or followed by camera. Filming should focus on the property, equipment, landscape, and before/after results.</span></label>
-      </div>
+        <h2>Intended Uses</h2>
+        <p class="note">Project ownerâs intended uses are marked below. The participantâs individual consent choice still controls whether they may appear identifiable, blurred, audio-free, or not included publicly.</p>
+        <div class="box">
+          <div class="mini-grid">
+            <label class="check"><input type="checkbox" name="use_private" checked data-project-checked="true"><span>Private renovation records only</span></label>
+            <label class="check"><input type="checkbox" name="use_social" checked data-project-checked="true"><span>Social media updates</span></label>
+            <label class="check"><input type="checkbox" name="use_doc" checked data-project-checked="true"><span>Documentary / video project</span></label>
+            <label class="check"><input type="checkbox" name="use_real_estate" checked data-project-checked="true"><span>Real-estate listing or property marketing</span></label>
+            <label class="check"><input type="checkbox" name="use_contractor" checked data-project-checked="true"><span>Contractor portfolio / work examples</span></label>
+            <label class="check"><input type="checkbox" name="use_before_after" checked data-project-checked="true"><span>Before/after comparisons and progress updates</span></label>
+          </div>
+          <label class="field" style="margin-top:.75rem;">Other intended use
+            <input type="text" name="use_other" value="All of the above listed uses, as applicable to the cleanup and renovation project." data-project-default="All of the above listed uses, as applicable to the cleanup and renovation project.">
+          </label>
+        </div>
 
-      <h2>Optional Permissions and Limits</h2>
-      <div class="box">
-        <label class="check"><input type="checkbox" name="ok_logo"><span>Company logo, uniform, vehicle, equipment, or work setup may appear.</span></label>
-        <label class="check"><input type="checkbox" name="ok_first_name"><span>My first name may be used.</span></label>
-        <label class="check"><input type="checkbox" name="ok_interview"><span>I am open to short interview/audio clips, subject to the consent choice above.</span></label>
-        <label class="check"><input type="checkbox" name="ok_wide"><span>Wide shots of the crew working are acceptable if they follow my consent choice above.</span></label>
-        <label class="field" style="margin-top:.75rem;">Specific limits, notes, or requested blur/crop instructions<textarea name="limits"></textarea></label>
-      </div>
+        <h2>Consent Choice</h2>
+        <p class="note">Choose one. This form is meant to make the boundary obvious before cameras, drones, or edits enter the chat and start acting employed.</p>
+        <div class="box consent-stack">
+          <label class="choice"><input type="radio" name="consent_choice" value="full"><span><strong>Full consent.</strong> I consent to being recorded and allow my face, voice, name, company name, and work activity to appear in edited photos/videos without blurring.</span></label>
+          <label class="choice"><input type="radio" name="consent_choice" value="visual_no_voice"><span><strong>Visual only â no voice or interview.</strong> I consent to being visually included, but I do not consent to my voice, interview audio, or spoken comments being used.</span></label>
+          <label class="choice"><input type="radio" name="consent_choice" value="blur"><span><strong>Blur / anonymize me.</strong> I consent to being incidentally recorded, but my face should be blurred or otherwise made non-identifiable before anything is shared publicly.</span></label>
+          <label class="choice"><input type="radio" name="consent_choice" value="remove_public"><span><strong>Do not include me in final/public footage.</strong> I understand I may be accidentally captured in wide shots or raw work documentation, but I do not consent to being identifiable in any final/public photo or video. Any identifiable appearance should be cut, blurred, cropped, or otherwise removed before publication.</span></label>
+          <label class="choice"><input type="radio" name="consent_choice" value="no_record"><span><strong>Do not intentionally record me.</strong> I do not consent to being intentionally filmed, photographed, interviewed, or followed by camera. Filming should focus on the property, equipment, landscape, and before/after results.</span></label>
+        </div>
 
-      <h2>Drone / Exterior Footage</h2>
-      <p>I understand that drone or exterior wide-angle footage may capture workers, vehicles, equipment, and general activity on the property. The project owner agrees to make reasonable efforts to respect the consent choice selected above before publishing or sharing footage.</p>
+        <h2>Optional Permissions and Limits</h2>
+        <div class="box">
+          <div class="mini-grid">
+            <label class="check"><input type="checkbox" name="ok_logo"><span>Company logo, uniform, vehicle, equipment, or work setup may appear.</span></label>
+            <label class="check"><input type="checkbox" name="ok_first_name"><span>My first name may be used.</span></label>
+            <label class="check"><input type="checkbox" name="ok_interview"><span>I am open to short interview/audio clips, subject to the consent choice above.</span></label>
+            <label class="check"><input type="checkbox" name="ok_wide"><span>Wide shots of the crew working are acceptable if they follow my consent choice above.</span></label>
+            <label class="check"><input type="checkbox" name="ok_timelapse"><span>Time-lapse/background work footage is acceptable if it follows my consent choice above.</span></label>
+            <label class="check"><input type="checkbox" name="ok_before_after"><span>Before/after shots may include my work area, tools, equipment, or completed results.</span></label>
+          </div>
+          <label class="field" style="margin-top:.75rem;">Specific limits, notes, or requested blur/crop instructions
+            <textarea name="limits" placeholder="Examples: blur my face, no closeups, no audio, no license plate, avoid showing phone screens, crop me out of social posts, etc."></textarea>
+          </label>
+        </div>
 
-      <h2>Privacy and Safety</h2>
-      <p>The project owner agrees not to intentionally record private conversations, personal phone calls, medical information, payment information, personal paperwork, license plates where avoidable, or private/off-duty activity unrelated to the work. No minors may be intentionally recorded without written consent from a parent or legal guardian.</p>
+        <h2>Drone / Exterior Footage</h2>
+        <div class="box">
+          <p>I understand that drone, exterior wide-angle, time-lapse, or ground-level footage may capture workers, vehicles, equipment, and general activity on the property. The project owner agrees to make reasonable efforts to respect the consent choice selected above before publishing or sharing footage.</p>
+          <span class="pill-note">Practical rule</span>
+          <p class="small">If a person has selected âblur,â âremove,â or âdo not intentionally record,â the final public edit should use property-only shots, wide angles, backs-of-head, cropping, blur, or omission where reasonably possible.</p>
+        </div>
 
-      <h2>Removal Request / Revocation</h2>
-      <div class="grid two">
-        <label class="field">Contact for removal or blur requests<input type="text" name="removal_contact"></label>
-        <label class="field">Deadline before publication, if any<input type="text" name="deadline"></label>
-      </div>
-      <p class="small">I may request that identifiable footage of me be removed, blurred, or cropped before publication. I understand that after footage has already been published, shared, downloaded, reposted, or archived, complete removal from all copies may not be possible.</p>
+        <h2>Privacy and Safety</h2>
+        <p>The project owner agrees not to intentionally record private conversations, personal phone calls, medical information, payment information, personal paperwork, license plates where avoidable, or private/off-duty activity unrelated to the work. No minors may be intentionally recorded without written consent from a parent or legal guardian.</p>
 
-      <h2>Compensation</h2>
-      <div class="box">
-        <label class="choice"><input type="radio" name="compensation" value="none"><span>I understand there is no payment or compensation for appearing in the footage.</span></label>
-        <label class="field" style="margin-top:.75rem;">Other compensation terms, if any<input type="text" name="compensation_other"></label>
-      </div>
+        <h2>Removal Request / Revocation</h2>
+        <div class="grid two">
+          <label class="field">Contact for removal or blur requests
+            <input type="text" name="removal_contact" value="David Lones â¢ davidlones365@mac.com â¢ 682-239-0836" data-project-default="David Lones â¢ davidlones365@mac.com â¢ 682-239-0836">
+          </label>
+          <label class="field">Deadline before publication, if any
+            <input type="text" name="deadline" placeholder="Example: before public posting or listing use">
+          </label>
+        </div>
+        <p class="small">I may request that identifiable footage of me be removed, blurred, or cropped before publication. I understand that after footage has already been published, shared, downloaded, reposted, or archived, complete removal from all copies may not be possible.</p>
 
-      <h2>Signatures</h2>
-      <div class="signature-grid">
-        <div><div class="sigline"></div><div class="sigcaption">Participant signature</div></div>
-        <label class="field">Printed name<input type="text" name="participant_printed"></label>
-      </div>
-      <div class="signature-grid" style="margin-top:1rem;">
-        <label class="field">Date<input type="text" name="participant_date"></label>
-        <label class="field">Company title, if applicable<input type="text" name="company_title"></label>
-      </div>
-      <div class="signature-grid" style="margin-top:1rem;">
-        <div><div class="sigline"></div><div class="sigcaption">Company representative signature, if applicable</div></div>
-        <label class="field">Printed name / title<input type="text" name="company_rep"></label>
-      </div>
-      <div class="signature-grid" style="margin-top:1rem;">
-        <div><div class="sigline"></div><div class="sigcaption">Project owner / filmmaker signature</div></div>
-        <label class="field">Date<input type="text" name="owner_date"></label>
-      </div>
+        <h2>Compensation</h2>
+        <div class="box">
+          <label class="choice"><input type="radio" name="compensation" value="none"><span>I understand there is no payment or compensation for appearing in the footage.</span></label>
+          <label class="field" style="margin-top:.75rem;">Other compensation terms, if any
+            <input type="text" name="compensation_other" placeholder="Leave blank unless there are separate written terms.">
+          </label>
+        </div>
 
-      <footer>
-        Company approval for logos, vehicles, equipment, or work examples does not replace the individual consent choice of each identifiable person. When in doubt: property-only before/after shots, wide angles, backs-of-head, cropping, or blur. The least dramatic paperwork is usually the best paperwork.
-      </footer>
+        <h2>Signatures</h2>
+        <div class="signature-grid">
+          <div><div class="sigline"></div><div class="sigcaption">Participant signature</div></div>
+          <label class="field">Printed name
+            <input type="text" name="participant_printed">
+          </label>
+        </div>
+        <div class="signature-grid" style="margin-top:1rem;">
+          <label class="field">Date
+            <input type="text" name="participant_date" placeholder="Month / day / year">
+          </label>
+          <label class="field">Company title, if applicable
+            <input type="text" name="company_title">
+          </label>
+        </div>
+        <div class="signature-grid" style="margin-top:1rem;">
+          <div><div class="sigline"></div><div class="sigcaption">Company representative signature, if applicable</div></div>
+          <label class="field">Printed name / title
+            <input type="text" name="company_rep">
+          </label>
+        </div>
+        <div class="signature-grid" style="margin-top:1rem;">
+          <div><div class="sigline"></div><div class="sigcaption">Project owner / filmmaker signature</div></div>
+          <label class="field">Date
+            <input type="text" name="owner_date" placeholder="Month / day / year">
+          </label>
+        </div>
+
+        <footer>
+          Company approval for logos, vehicles, equipment, or work examples does not replace the individual consent choice of each identifiable person. This is a practical media-consent template, not legal advice. For broadcast, monetized, contractor-advertising, or formal real-estate campaign use, local legal review is still the grown-up thing to do, tragically.
+        </footer>
+      </section>
     </form>
   </main>
+
+  <script>
+    (function () {
+      const form = document.getElementById('consentForm');
+      const printBtn = document.getElementById('printBtn');
+      const clearParticipantBtn = document.getElementById('clearParticipantBtn');
+      const blankBtn = document.getElementById('blankBtn');
+      const mainDate = document.getElementById('mainDate');
+
+      function todayISO() {
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const local = new Date(now.getTime() - offset * 60000);
+        return local.toISOString().slice(0, 10);
+      }
+
+      if (mainDate && !mainDate.value) mainDate.value = todayISO();
+
+      function commitActiveField() {
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+          document.activeElement.blur();
+        }
+      }
+
+      function safePrint() {
+        commitActiveField();
+        const doPrint = function () {
+          if (typeof window.print === 'function') {
+            window.print();
+          } else {
+            alert('This browser or in-app viewer does not expose printing. Open this file in Safari, Chrome, or a desktop browser, then use Share or Print to save as PDF.');
+          }
+        };
+        if (typeof requestAnimationFrame === 'function') {
+          requestAnimationFrame(function () { setTimeout(doPrint, 75); });
+        } else {
+          setTimeout(doPrint, 100);
+        }
+      }
+
+      function clearControl(control, keepProjectDefaults) {
+        if (keepProjectDefaults && control.dataset.projectDefault !== undefined) {
+          control.value = control.dataset.projectDefault;
+          return;
+        }
+        if (keepProjectDefaults && control.dataset.projectChecked !== undefined) {
+          control.checked = true;
+          return;
+        }
+        if (control.type === 'checkbox' || control.type === 'radio') {
+          control.checked = false;
+        } else if (control.type === 'date' && control.id === 'mainDate' && keepProjectDefaults) {
+          control.value = todayISO();
+        } else {
+          control.value = '';
+        }
+      }
+
+      function clearParticipantOnly() {
+        commitActiveField();
+        const controls = form.querySelectorAll('input, textarea');
+        controls.forEach(function (control) {
+          const isProjectDefault = control.dataset.projectDefault !== undefined || control.dataset.projectChecked !== undefined || control.id === 'mainDate';
+          if (!isProjectDefault) clearControl(control, false);
+        });
+      }
+
+      function blankCopy() {
+        commitActiveField();
+        if (!confirm('Clear every field, including David/project defaults, for a blank printable copy?')) return;
+        const controls = form.querySelectorAll('input, textarea');
+        controls.forEach(function (control) { clearControl(control, false); });
+      }
+
+      printBtn.addEventListener('click', safePrint);
+      clearParticipantBtn.addEventListener('click', clearParticipantOnly);
+      blankBtn.addEventListener('click', blankCopy);
+    }());
+  </script>
 </body>
 </html>
