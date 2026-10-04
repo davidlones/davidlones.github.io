@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>SOL Vision Monitor</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #e8f4ef;
+      --muted: #8fa8a4;
+      --line: rgba(128, 210, 188, 0.22);
+      --green: #8ce0b7;
+      --amber: #e7c87c;
+      --red: #ff8f9c;
+      --panel: rgba(10, 25, 29, 0.9);
+      --deep: #03090b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "IBM Plex Mono", "Liberation Mono", monospace;
+      background:
+        radial-gradient(circle at 75% 0%, rgba(44, 120, 94, 0.25), transparent 34rem),
+        repeating-linear-gradient(0deg, rgba(101, 193, 163, 0.025) 0 1px, transparent 1px 4px),
+        var(--deep);
+    }
+
+    main {
+      width: min(920px, calc(100vw - 24px));
+      margin: 0 auto;
+      padding: 18px 0 28px;
+    }
+
+    main.local-full-frame {
+      width: min(500px, calc(100vw - 24px));
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 2px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow, .label {
+      margin: 0;
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 5px 0 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(24px, 4vw, 38px);
+      font-weight: 400;
+      letter-spacing: .015em;
+    }
+
+    .clock { color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+    .mode-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 5px;
+      border: 1px solid var(--line);
+      background: rgba(3, 12, 13, .72);
+    }
+
+    .mode-picker button {
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid rgba(140, 224, 183, .28);
+      background: #071612;
+      color: var(--muted);
+      font: 700 10px/1.2 "IBM Plex Mono", "Liberation Mono", monospace;
+      letter-spacing: .06em;
+      cursor: pointer;
+    }
+
+    .mode-picker button[aria-pressed="true"] {
+      color: var(--green);
+      border-color: var(--green);
+      background: #0b2a20;
+    }
+
+    .viewport {
+      position: relative;
+      margin-top: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(140, 224, 183, .42);
+      background: #000;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .5), inset 0 0 60px rgba(93, 174, 144, .08);
+      aspect-ratio: 4 / 3;
+    }
+
+    .viewport::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent 49.85%, rgba(140, 224, 183, .1) 50%, transparent 50.15%);
+      mix-blend-mode: screen;
+    }
+
+    #camera {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: auto;
+    }
+
+    .viewport.rotated-full-frame {
+      aspect-ratio: 3 / 4;
+    }
+
+    #camera.local-focus {
+      position: absolute;
+      top: 12.5%;
+      left: -16.6667%;
+      width: 133.3333%;
+      height: 75%;
+      object-fit: fill;
+      transform: rotate(90deg);
+      transform-origin: center;
+    }
+
+    .live-tag {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 9px;
+      color: var(--green);
+      background: rgba(2, 10, 10, .78);
+      border: 1px solid var(--line);
+      font-size: 10px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .telemetry {
+      border: 1px solid var(--line);
+      border-top: 0;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+    }
+
+    .readouts {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .readout {
+      min-width: 0;
+      padding: 11px 13px;
+      border-right: 1px solid var(--line);
+    }
+
+    .readout:nth-child(3n) { border-right: 0; }
+    .readout:nth-child(-n+3) { border-bottom: 1px solid var(--line); }
+    .value { display: block; margin-top: 5px; color: var(--ink); font-size: 13px; overflow-wrap: anywhere; }
+    .good { color: var(--green); }
+    .warn { color: var(--amber); }
+    .bad { color: var(--red); }
+
+    .analysis {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(240px, .55fr);
+      gap: 0;
+    }
+
+    .caption, .services { padding: 14px; }
+    .caption { border-right: 1px solid var(--line); }
+    .assessment { margin-top: 10px; }
+    .assessment:first-of-type { margin-top: 8px; }
+    .assessment strong { display: block; color: var(--green); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .assessment p { margin: 4px 0 0; color: #cfddd7; font-family: Georgia, serif; font-size: 15px; line-height: 1.4; }
+    .detail-line { margin-top: 10px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+
+    .service-list { display: grid; gap: 7px; margin-top: 9px; }
+    .service { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 10px; }
+    .service strong { color: var(--ink); font-weight: 500; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 2px 0;
+      color: #69817d;
+      font-size: 10px;
+    }
+
+    @media (max-width: 700px) {
+      main { width: min(100% - 14px, 920px); padding-top: 8px; }
+      .readouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .readout:nth-child(3n) { border-right: 1px solid var(--line); }
+      .readout:nth-child(2n) { border-right: 0; }
+      .readout:nth-child(-n+4) { border-bottom: 1px solid var(--line); }
+      .analysis { grid-template-columns: 1fr; }
+      .caption { border-right: 0; border-bottom: 1px solid var(--line); }
+      header { align-items: start; }
+      footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">SOL / machine perception / camera 01</p>
+        <h1>Vision Monitor</h1>
+      </div>
+      <time id="clock" class="clock">initializing</time>
+    </header>
+
+    <nav class="mode-picker" aria-label="Camera presentation mode">
+      <button id="classic-mode" type="button" aria-pressed="false">Classic grayscale</button>
+      <button id="vision-mode" type="button" aria-pressed="true">Full-color Vision Monitor</button>
+    </nav>
+
+    <section class="viewport" aria-label="Live SOL vision webcam">
+      <img id="camera" alt="Live webcam used by SOL vision">
+      <div class="live-tag"><span class="dot"></span><span id="stream-state">connecting</span></div>
+    </section>
+
+    <section class="telemetry" aria-label="SOL vision telemetry">
+      <div class="readouts">
+        <div class="readout"><span class="label">Capture</span><span id="capture" class="value">checking</span></div>
+        <div class="readout"><span class="label">Frame</span><span id="frame" class="value">--</span></div>
+        <div class="readout"><span class="label">Observers</span><span id="observers" class="value">--</span></div>
+        <div class="readout"><span class="label">Perception</span><span id="inference" class="value">--</span></div>
+        <div class="readout"><span class="label">Motion</span><span id="motion" class="value">--</span></div>
+        <div class="readout"><span class="label">People</span><span id="people" class="value">--</span></div>
+      </div>
+      <div class="analysis">
+        <div class="caption">
+          <span class="label">Latest scene assessment</span>
+          <div class="assessment"><strong>In frame · model hypothesis</strong><p id="in-frame">Waiting for the vision backend to describe a stable frame.</p></div>
+          <div class="assessment"><strong>On screen · model hypothesis</strong><p id="on-screen">Awaiting the calibrated television crop.</p></div>
+          <div id="analysis-detail" class="detail-line">Motion and people evidence initializing.</div>
+        </div>
+        <div class="services">
+          <span class="label">Runtime</span>
+          <div id="services" class="service-list"><span class="service">Loading services...</span></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <span id="device">/dev/video0 · 324 × 240</span>
+      <span id="updated">No telemetry received</span>
+    </footer>
+  </main>
+
+  <script>
+    const ids = Object.fromEntries(
+      ["camera", "stream-state", "capture", "frame", "observers", "inference", "motion", "people", "in-frame", "on-screen", "analysis-detail", "services", "device", "updated", "clock", "classic-mode", "vision-mode"]
+        .map((id) => [id, document.getElementById(id)])
+    );
+    const serviceNames = {
+      "local-dashboard-api.service": "dashboard api",
+      "sol-chat-vision-fast.service": "vision backend",
+      "sol-observer.service": "observer loop",
+      "caddy-sol37.service": "site transport"
+    };
+    const localFocus = ["127.0.0.1", "localhost", "::1"].includes(window.location.hostname);
+    const modeKey = "sol_vision_monitor_mode";
+    let visionMode = localStorage.getItem(modeKey) !== "classic";
+    if (!localFocus && !localStorage.getItem(modeKey)) {
+      visionMode = false;
+    }
+
+    function selectCameraMode(useVision) {
+      visionMode = Boolean(useVision);
+      localStorage.setItem(modeKey, visionMode ? "vision" : "classic");
+      document.querySelector("main")?.classList.toggle("local-full-frame", visionMode);
+      ids.camera.closest(".viewport")?.classList.toggle("rotated-full-frame", visionMode);
+      ids["classic-mode"].setAttribute("aria-pressed", visionMode ? "false" : "true");
+      ids["vision-mode"].setAttribute("aria-pressed", visionMode ? "true" : "false");
+      const endpoint = visionMode
+        ? (localFocus ? "/api/dashboard/camera-tracked.mjpg" : "/api/dashboard/camera-vision.mjpg")
+        : "/api/dashboard/camera.mjpg";
+      ids.camera.src = `${endpoint}?mode=${visionMode ? "vision" : "classic"}&ts=${Date.now()}`;
+    }
+
+    selectCameraMode(visionMode);
+
+    function age(seconds) {
+      if (!Number.isFinite(Number(seconds))) return "unknown";
+      const value = Number(seconds);
+      return value < 1 ? `${Math.round(value * 1000)} ms` : `${value.toFixed(1)} s`;
+    }
+
+    function setTone(element, tone) {
+      element.classList.remove("good", "warn", "bad");
+      if (tone) element.classList.add(tone);
+    }
+
+    function render(data) {
+      const camera = data.camera || {};
+      const visionContext = camera.vision_context || {};
+      const sceneAssessment = visionContext.scene_assessment || {};
+      const contextTracking = visionContext.tracking || {};
+      const fresh = camera.camera_active && camera.frame_fresh && !camera.camera_error;
+      ids.capture.textContent = fresh ? `LIVE · ${age(camera.frame_age_s)} old` : (camera.camera_error || "DEGRADED");
+      setTone(ids.capture, fresh ? "good" : "bad");
+      ids["stream-state"].textContent = fresh ? "live capture" : "signal degraded";
+      setTone(ids["stream-state"], fresh ? "good" : "bad");
+      ids.frame.textContent = camera.frame_id ? `#${camera.frame_id} · ${(camera.frame_signature || "").replace("sha1:", "")}` : "waiting";
+      ids.observers.textContent = `${camera.viewer_count || 0} connected`;
+      const tracking = localFocus ? (camera.tracking || {}) : contextTracking;
+      const bodyDetector = tracking.body_detector || { available: tracking.body_detector_available };
+      const retrospective = localFocus
+        ? (camera.retrospective_person_inference || {})
+        : (visionContext.retrospective_person_inference || {});
+      const trackerReady = fresh && bodyDetector.available && tracking.screen_detected;
+      const activity = tracking.meaningful_activity || {};
+      ids.motion.textContent = !fresh ? "UNKNOWN · stale camera" : activity.status !== "ok" ? "WARMING UP" : `${activity.active ? (activity.trigger === "person" ? "PERSON ACTIVITY" : "SIGNIFICANT MOTION") : "QUIET"} · ${tracking.motion_object_count || 0} raw objects`;
+      setTone(ids.motion, !fresh ? "bad" : activity.active ? "warn" : "good");
+      ids.people.textContent = tracking.person_candidates_in_frame
+        ? `${tracking.person_candidates_in_frame} candidates · ${tracking.people_passed_total || 0} passed`
+        : retrospective.person_likely === true
+          ? `0 live · history likely · ${tracking.people_passed_total || 0} passed`
+          : `0 candidates · ${tracking.people_passed_total || 0} passed`;
+      ids.people.title = retrospective.summary || "";
+      setTone(ids.people, tracking.person_candidates_in_frame || retrospective.person_likely === true ? "warn" : "good");
+
+      const inferenceState = camera.caption_in_flight
+        ? (trackerReady ? "TRACKING + ANALYZING" : "ANALYZING")
+        : camera.caption_error
+          ? (trackerReady ? "TRACKING · SCENE DEGRADED" : "ERROR")
+          : camera.caption
+            ? (trackerReady ? "TRACKING + SCENE" : (camera.caption_cached ? "CACHED" : "CURRENT"))
+            : trackerReady ? "TRACKING · SCENE ARMED" : camera.auto_caption_enabled ? "ARMED" : "STANDBY";
+      ids.inference.textContent = inferenceState;
+      setTone(ids.inference, camera.caption_error && !trackerReady ? "bad" : camera.caption_in_flight || camera.caption_error ? "warn" : "good");
+      ids["in-frame"].textContent = sceneAssessment.in_frame || camera.caption_in_frame || camera.caption || (camera.caption_error && trackerReady
+        ? "Scene description is temporarily degraded; local screen, motion, and body tracking remain active."
+        : camera.caption_error) || "Waiting for the vision backend to describe a stable frame.";
+      ids["on-screen"].textContent = sceneAssessment.on_screen || camera.caption_on_screen || "Television content is not yet described.";
+      ids["analysis-detail"].textContent = `${sceneAssessment.motion || camera.caption_motion || `Deterministic tracker sees ${tracking.motion_object_count || 0} moving objects.`} ${sceneAssessment.people || camera.caption_people || `${tracking.person_candidates_in_frame || 0} body candidates; model ${bodyDetector.available ? "ready" : "unavailable"}.`} Screen: ${tracking.screen_detection_source || "unavailable"} at ${Math.round((tracking.screen_confidence || 0) * 100)}%. Counts are conservative candidates, not identity claims.`;
+      ids.device.textContent = visionMode
+        ? `${camera.camera_device || "/dev/video0"} · 324 × 240 sensor maximum · full-color Vision Monitor · 90° clockwise`
+        : `${camera.camera_device || "/dev/video0"} · classic 324 × 240 monochrome evidence feed`;
+
+      const selected = (data.services || []).filter((service) => serviceNames[service.id]);
+      const visionRuntime = (data.chat_health?.backends || []).find((backend) => backend.id === "vision_fast");
+      ids.services.replaceChildren(...selected.map((service) => {
+        const row = document.createElement("span");
+        row.className = "service";
+        const label = document.createElement("strong");
+        label.textContent = serviceNames[service.id];
+        const state = document.createElement("span");
+        const onDemandVision = service.id === "sol-chat-vision-fast.service" && visionRuntime?.running;
+        const healthy = onDemandVision || (service.active === "active" && service.substate === "running");
+        state.className = healthy ? "good" : "warn";
+        state.textContent = onDemandVision ? "on-demand/running" : `${service.active}/${service.substate}`;
+        row.append(label, state);
+        return row;
+      }));
+      ids.updated.textContent = `Telemetry ${new Date((data.generated_at || Date.now() / 1000) * 1000).toLocaleTimeString()}`;
+    }
+
+    async function refresh() {
+      try {
+        const response = await fetch("/api/dashboard/status", { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        render(await response.json());
+      } catch (error) {
+        ids.capture.textContent = `OFFLINE · ${error.message}`;
+        setTone(ids.capture, "bad");
+        ids.updated.textContent = "Telemetry unavailable";
+      }
+    }
+
+    ids.camera.addEventListener("load", () => {
+      ids["stream-state"].textContent = "live capture";
+      setTone(ids["stream-state"], "good");
+    });
+    ids["classic-mode"].addEventListener("click", () => selectCameraMode(false));
+    ids["vision-mode"].addEventListener("click", () => selectCameraMode(true));
+    ids.camera.addEventListener("error", () => {
+      ids["stream-state"].textContent = "stream offline";
+      setTone(ids["stream-state"], "bad");
+      window.setTimeout(() => {
+        ids.camera.src = `${cameraStream}?reconnect=${Date.now()}`;
+      }, 1500);
+    });
+
+    function tick() {
+      ids.clock.textContent = new Intl.DateTimeFormat(undefined, {
+        weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit"
+      }).format(new Date());
+    }
+
+    tick();
+    refresh();
+    setInterval(tick, 1000);
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>

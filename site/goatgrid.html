@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GoatGrid: a startup proposal and speculative white paper on goat-borne radio probes, opportunistic mesh service, and empirical rural tower-site discovery.">
+  <link rel="canonical" href="https://sol.system42.one/goatgrid.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="GoatGrid — Goats as Infrastructure">
+  <meta property="og:description" content="A startup proposal and speculative white paper for caprine-assisted radio surveys, temporary relay service, and permanent tower-site discovery.">
+  <meta property="og:url" content="https://sol.system42.one/goatgrid.html">
+  <meta property="og:image" content="https://sol.system42.one/assets/share-previews/goatgrid.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="A goat standing high on utility lines above the title GoatGrid.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="GoatGrid — Goats as Infrastructure">
+  <meta name="twitter:description" content="Startup proposal and speculative white paper for caprine-assisted radio infrastructure discovery.">
+  <meta name="twitter:image" content="https://sol.system42.one/assets/share-previews/goatgrid.png">
+  <title>GoatGrid — Goats as Infrastructure</title>
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"TechArticle","@id":"https://sol.system42.one/goatgrid.html#article","headline":"GoatGrid — Goats as Infrastructure","description":"A speculative white paper on goat-borne radio probes, opportunistic mesh service, and empirical rural tower-site discovery.","url":"https://sol.system42.one/goatgrid.html","mainEntityOfPage":"https://sol.system42.one/goatgrid.html","image":["https://sol.system42.one/assets/share-previews/goatgrid.png","https://sol.system42.one/assets/goatgrid/goatgrid-wide.jpeg","https://sol.system42.one/assets/goatgrid/goatgrid-close.jpeg"],"datePublished":"2026-07-31","dateModified":"2026-08-05","author":{"@type":"Person","@id":"https://sol.system42.one/#david-lones","name":"David Troy Lones"},"publisher":{"@type":"Organization","@id":"https://sol.system42.one/#organization","name":"Sol-37"},"keywords":["rural broadband","mesh networking","radio survey","tower-site discovery","speculative infrastructure","goat-borne sensors"],"articleSection":["Proposal","White paper"],"isAccessibleForFree":true}
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #edf1e7;
+      --muted: #b8c2b2;
+      --paper: #101713;
+      --paper-2: #17211a;
+      --line: #3c4b3d;
+      --moss: #91b175;
+      --gold: #d9b85f;
+      --rust: #c87852;
+      --sky: #9ab7cc;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.014) 1px, transparent 1px),
+        radial-gradient(circle at 20% 0%, rgba(145,177,117,.13), transparent 34rem),
+        #09100c;
+      background-size: 32px 32px, 32px 32px, auto;
+      color: var(--ink);
+      font: 17px/1.7 "DejaVu Sans", "Trebuchet MS", sans-serif;
+    }
+    a { color: var(--gold); text-underline-offset: .18em; }
+    a:hover { color: #ffe39a; }
+    img { max-width: 100%; }
+    .wrap { width: min(var(--max), calc(100% - 2rem)); margin: 0 auto; }
+    header {
+      min-height: 78vh;
+      display: grid;
+      align-items: end;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #0b130e;
+    }
+    .hero-image { position: absolute; inset: 0; margin: 0; }
+    .hero-image img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; filter: saturate(.72) contrast(1.05); }
+    .hero-image::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,9,6,.1), rgba(4,9,6,.2) 42%, rgba(4,9,6,.96) 92%); }
+    .hero-copy { position: relative; z-index: 1; padding: 7rem 0 3.5rem; }
+    .kicker, .label { margin: 0; color: var(--gold); font-size: .76rem; font-weight: 850; letter-spacing: .18em; text-transform: uppercase; }
+    h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; line-height: 1.08; letter-spacing: -.025em; }
+    h1 { margin: .4rem 0 0; font-size: clamp(4rem, 13vw, 9rem); }
+    .dek { max-width: 760px; margin: .8rem 0 0; color: #d6ddcf; font-size: clamp(1.05rem, 2.4vw, 1.45rem); }
+    .meta { margin: 1.2rem 0 0; color: #a9b7a8; font-size: .88rem; }
+    main { padding: 2rem 0 6rem; }
+    .notice, .proposal, .paper-head, .card, .metric, .phase, .equation, .figure { border: 1px solid var(--line); background: rgba(16,23,19,.93); box-shadow: 0 18px 44px rgba(0,0,0,.18); }
+    .notice { margin: 0 0 2rem; padding: 1rem 1.2rem; border-left: 5px solid var(--rust); color: var(--muted); }
+    .notice strong { color: var(--ink); }
+    .toc { margin: 0 0 3rem; padding: 1.2rem 1.4rem; border: 1px solid var(--line); background: rgba(23,33,26,.82); }
+    .toc ul { columns: 2; gap: 2rem; margin: .7rem 0 0; padding-left: 1.2rem; }
+    .toc li { break-inside: avoid; margin: .3rem 0; }
+    section { scroll-margin-top: 1.5rem; }
+    .proposal { padding: clamp(1.3rem, 4vw, 2.6rem); border-top: 5px solid var(--gold); }
+    .proposal h2, .paper-head h2 { margin: .3rem 0 1rem; font-size: clamp(2.3rem, 6vw, 4.4rem); }
+    .lead { color: #d9e0d4; font: 1.18rem/1.65 Georgia, serif; }
+    .pitch { margin: 2rem 0; padding: 1.4rem 1.6rem; border-left: 5px solid var(--moss); background: #0b120d; font: 1.35rem/1.5 Georgia, serif; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .card { padding: 1.15rem; }
+    .card h3 { margin: .15rem 0 .5rem; color: var(--gold); font-size: 1.3rem; }
+    .card p { margin: 0; color: var(--muted); }
+    .figure { margin: 2rem 0; overflow: hidden; }
+    .figure img { display: block; width: 100%; height: min(720px, 72vh); object-fit: cover; object-position: 50% 18%; }
+    .figure figcaption { padding: .9rem 1rem; color: var(--muted); font-size: .88rem; }
+    .paper-head { margin-top: 5rem; padding: clamp(1.3rem, 4vw, 2.6rem); background: linear-gradient(145deg, #17211a, #0d1410); }
+    article section { margin: 4rem 0; }
+    article h2 { margin: 0 0 1rem; font-size: clamp(2rem, 4vw, 3.25rem); }
+    article h3 { margin: 2rem 0 .6rem; color: var(--sky); font-size: 1.45rem; }
+    article p { max-width: 82ch; }
+    article li { margin: .35rem 0; }
+    blockquote { margin: 2rem 0; padding: .4rem 0 .4rem 1.3rem; border-left: 4px solid var(--gold); color: #dce4d8; font: 1.2rem/1.55 Georgia, serif; }
+    .architecture { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .architecture .card { border-top: 3px solid var(--moss); }
+    .equations { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .equation { padding: 1.3rem; }
+    .formula { display: block; margin: .8rem 0; color: var(--gold); font: 1.25rem/1.4 "DejaVu Sans Mono", monospace; }
+    .phases { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .8rem; counter-reset: phase; }
+    .phase { position: relative; padding: 1rem 1rem 1rem 3.8rem; counter-increment: phase; }
+    .phase::before { content: counter(phase); position: absolute; left: 1rem; top: 1rem; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; color: #10130d; background: var(--gold); font-weight: 900; }
+    .phase strong { display: block; color: var(--ink); }
+    .phase span { color: var(--muted); }
+    .risk-table { width: 100%; border-collapse: collapse; margin: 1.4rem 0; }
+    .risk-table th, .risk-table td { padding: .85rem; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .risk-table th { color: var(--gold); background: var(--paper-2); }
+    footer { padding: 2rem 1rem 3rem; border-top: 1px solid var(--line); color: #91a08e; font-size: .88rem; }
+    @media (max-width: 760px) {
+      body { font-size: 16px; }
+      header { min-height: 68vh; }
+      .hero-image img { object-position: 50% 25%; }
+      .hero-copy .kicker { max-width: 32ch; font-size: .66rem; letter-spacing: .12em; }
+      .toc ul { columns: 1; }
+      .grid, .architecture, .equations, .phases { grid-template-columns: 1fr; }
+      .risk-table { display: block; overflow-x: auto; }
+    }
+    @media print {
+      :root { color-scheme: light; }
+      body { background: white; color: #111; font-size: 11pt; }
+      header { min-height: 0; }
+      .hero-image { display: none; }
+      .hero-copy { padding: 2rem 0; }
+      .notice, .proposal, .paper-head, .card, .metric, .phase, .equation, .figure { background: white; box-shadow: none; color: #111; }
+      .dek, .meta, .card p, .phase span, .figure figcaption { color: #333; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <figure class="hero-image" aria-hidden="true"><img src="assets/goatgrid/goatgrid-wide.jpeg" alt=""></figure>
+    <div class="hero-copy wrap">
+      <p class="kicker">Rural cyberpunk research note 01</p>
+      <h1>GoatGrid</h1>
+      <p class="dek">Goats as infrastructure: a startup proposal and speculative white paper on mobile radio probes, entropy-coupled service boosts, and empirical tower-site discovery.</p>
+      <p class="meta">Proposal for Stef · Sol-37 white paper · July 31, 2026</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <aside class="notice">
+      <strong>Feasibility boundary.</strong> This is a serious treatment of a deliberately absurd premise, not deployment guidance. The pictured goat is an observation, not a model to reproduce. No experiment should encourage climbing, approach energized utility infrastructure, burden an animal, or substitute an animal-borne link for safety-critical communications.
+    </aside>
+
+    <nav class="toc" aria-label="Contents">
+      <p class="label">Contents</p>
+      <ul>
+        <li><a href="#proposal">Startup proposal</a></li>
+        <li><a href="#abstract">Abstract</a></li>
+        <li><a href="#concept">Concept and architecture</a></li>
+        <li><a href="#modes">Operational modes</a></li>
+        <li><a href="#discovery">Tower-site discovery</a></li>
+        <li><a href="#analysis">Analytical framework</a></li>
+        <li><a href="#business">Business model</a></li>
+        <li><a href="#limits">Limits, welfare, and security</a></li>
+        <li><a href="#pilot">Pilot program</a></li>
+        <li><a href="#scenario">Operational scenario</a></li>
+        <li><a href="#conclusion">Conclusion</a></li>
+      </ul>
+    </nav>
+
+    <section class="proposal" id="proposal">
+      <p class="label">Proposal</p>
+      <h2>Stef, hear me out: goats as infrastructure</h2>
+      <p class="lead">This began with TikTok goat videos, rural radio dead zones, and the ancient engineering tradition of attaching inexpensive telemetry to whatever is already traversing the terrain. The idea is called <strong>GoatGrid</strong>.</p>
+      <p>We equip goats already living on a participating farm or ranch with safe, lightweight GPS and radio-monitoring packs. We observe where they naturally go and ask whether those locations repeatedly coincide with better line of sight, stronger links, lower packet loss, or improved reachability.</p>
+      <div class="pitch"><strong>GoatGrid turns naturally occurring animal movement into empirical rural-network intelligence.</strong><br>Goats do not replace engineers. They suggest where engineers should look.</div>
+
+      <div class="grid">
+        <div class="card"><h3>The problem</h3><p>Rural survey work is expensive, candidate sites are imperfectly known, and useful local structures can disappear inside generalized terrain models.</p></div>
+        <div class="card"><h3>The experiment</h3><p>Correlate ordinary goat movement with GNSS position, passive RF observations, fixed-station measurements, and voluntary user reports.</p></div>
+        <div class="card"><h3>The product</h3><p>Ranked survey leads, coverage maps, recurring event evidence, and conventional fixed-node validation before any permanent installation.</p></div>
+      </div>
+
+      <h3>What we would sell</h3>
+      <ul>
+        <li><strong>Survey kits</strong> for ranches, rural cooperatives, municipalities, emergency services, telecom contractors, and environmental programs.</li>
+        <li><strong>Telemetry subscriptions</strong> with coverage maps, candidate-site rankings, movement histories, and network-performance correlations.</li>
+        <li><strong>Site validation</strong> using temporary fixed masts and ordinary RF engineering to test animal-generated leads.</li>
+        <li><strong>Analytics licensing</strong> for organizations that provide their own animals and monitoring stations.</li>
+      </ul>
+
+      <h3>The first question</h3>
+      <blockquote>Do goats, during normal supervised activity, repeatedly occupy safe locations that are unusually useful for radio links?</blockquote>
+      <p>If the answer is no, the pilot produces a detailed movement and RF-environment dataset. If the answer is yes, it creates a biologically assisted infrastructure-survey method by accident.</p>
+    </section>
+
+    <figure class="figure" id="evidence">
+      <img src="assets/goatgrid/goatgrid-close.jpeg" alt="A white goat standing on overhead utility lines against a clear blue sky, captured in a social-media video.">
+      <figcaption>Origin image: a goat occupying an improbable elevated urban position. It illustrates climbing behavior, not a safe or acceptable deployment environment. GoatGrid field work would explicitly exclude energized utilities and hazardous structures.</figcaption>
+    </figure>
+
+    <article>
+      <header class="paper-head" id="abstract">
+        <p class="label">White paper</p>
+        <h2>Caprine-Assisted Opportunistic Radio Infrastructure</h2>
+        <p class="lead">Goat-borne relay nodes, entropy-coupled coverage enhancement, and empirical tower-site discovery.</p>
+        <h3>Abstract</h3>
+        <p>This paper proposes an unconventional research architecture in which domesticated goats carry lightweight positioning, passive radio-sensing, and optional low-power communications equipment while moving normally through controlled rural terrain. Goats often seek elevated and structurally unusual positions; some of those positions may overlap with terrain features valued by radio engineers.</p>
+        <p>The goat is not treated as reliable infrastructure. It is treated as an <strong>entropy-coupled stochastic terrain probe</strong>. When a goat occupies a favorable safe position, the system records location, dwell time, network measurements, fixed-station telemetry, and user reports. Repeated observations can generate leads for conventional tower, repeater, or fixed-node surveys.</p>
+        <blockquote>Release enough instrumented goats into a bounded search space, observe where the network unexpectedly improves, and investigate the places where the goats may have exposed a propagation opportunity.</blockquote>
+      </header>
+
+      <section id="concept">
+        <p class="label">01 · Concept</p>
+        <h2>Chaotic empirical sampling</h2>
+        <p>Modern network planning uses terrain models, LiDAR, drive testing, spectrum analysis, line-of-sight calculations, and carefully selected candidate sites. Those methods remain authoritative. GoatGrid explores whether ordinary animal movement can add a cheap, persistent layer of biased sampling across ridges, rocks, sheds, cisterns, and other small local features.</p>
+        <p>The search agents are not random in a strict mathematical sense. Their movement reflects elevation, vegetation, shelter, social behavior, curiosity, perceived safety, and accessibility. The resulting samples may be biased, but the bias itself may be useful.</p>
+
+        <div class="architecture">
+          <div class="card"><h3>Animal node</h3><p>Breakaway harness, GNSS, IMU, protected battery, low-power radio sensor, local logger, remote ID, and optional visible beacon.</p></div>
+          <div class="card"><h3>Fixed stations</h3><p>Reference measurements for RSSI, SNR, packet delivery, throughput, latency, route visibility, interference, and mesh topology.</p></div>
+          <div class="card"><h3>Operations layer</h3><p>Time-aligns location, motion, RF data, weather, terrain, baseline performance, and voluntary human observations.</p></div>
+        </div>
+
+        <h3>Payload constraints</h3>
+        <p>The practical payload is conservative: low-power LoRa or Meshtastic-class telemetry, passive spectrum observations, environmental sensors, and GNSS logging. Cellular or licensed-radio modules require separate legal, power, thermal, carrier, and veterinary review. Animal safety takes precedence over transmit power or feature count.</p>
+      </section>
+
+      <section id="modes">
+        <p class="label">02 · Operations</p>
+        <h2>Four modes, in order of plausibility</h2>
+        <h3>Coverage survey</h3>
+        <p>The node measures the surrounding radio environment without relaying user traffic. This passive-first mode is the core research method and the appropriate starting point.</p>
+        <h3>Beacon and telemetry</h3>
+        <p>The node reports identity, coordinates, battery condition, altitude, motion state, and local observations. A visible beacon may assist supervised recovery but must not distract, overheat, or create entanglement risk.</p>
+        <h3>Store and forward</h3>
+        <p>Low-priority environmental or agricultural messages can be held locally and delivered when a fixed station becomes reachable. Latency is explicitly unbounded and unsuitable for urgent traffic.</p>
+        <h3>Opportunistic relay</h3>
+        <p>A low-power node may briefly connect otherwise partitioned test endpoints when link quality exceeds a threshold. This is the worst-case backup to the worst-case backup, never the primary safety network.</p>
+
+        <blockquote><strong>Entropy-Coupled Random Service Boost:</strong> a measurable link improvement that begins when an animal enters a favorable position and ends when it leaves.</blockquote>
+      </section>
+
+      <section id="discovery">
+        <p class="label">03 · Discovery pipeline</p>
+        <h2>From “goat present” to a real site survey</h2>
+        <ol>
+          <li><strong>Detect:</strong> identify a sustained improvement in SNR, packet delivery, latency, throughput, or route availability during goat occupancy.</li>
+          <li><strong>Repeat:</strong> require multiple visits, adequate dwell time, different animals, varied conditions, and independent measurement.</li>
+          <li><strong>Control:</strong> test likely confounders such as network load, weather, maintenance, interference, and movement of human users.</li>
+          <li><strong>Validate:</strong> install a temporary stationary mast at the candidate location and rerun conventional measurements without a goat.</li>
+          <li><strong>Review:</strong> assess land access, structure, power, backhaul, environment, spectrum, construction cost, and regulation.</li>
+          <li><strong>Propose:</strong> only persistent fixed-node gains become candidates for a repeater, passive reflector, solar mesh node, small cell, or tower.</li>
+        </ol>
+        <p>The animal supplies a lead. An engineer establishes causality and feasibility.</p>
+      </section>
+
+      <section id="analysis">
+        <p class="label">04 · Analysis</p>
+        <h2>Candidate scoring</h2>
+        <div class="equations">
+          <div class="equation">
+            <strong>Infrastructure Candidate Score</strong>
+            <span class="formula">C = (I × D × R × U) / (V + A)</span>
+            <p><em>I</em>: measured improvement; <em>D</em>: dwell time; <em>R</em>: repeatability; <em>U</em>: independently affected users; <em>V</em>: variability; <em>A</em>: access or installation difficulty.</p>
+          </div>
+          <div class="equation">
+            <strong>Goat Elevation Preference Index</strong>
+            <span class="formula">GEPI = (H × T × F) / (S + M)</span>
+            <p><em>H</em>: local height; <em>T</em>: dwell time; <em>F</em>: RF improvement; <em>S</em>: snack interruption; <em>M</em>: spontaneous migration likelihood.</p>
+          </div>
+        </div>
+        <p>These formulas are conceptual ranking aids, not validated scientific metrics. A pilot would preregister thresholds, preserve negative observations, and compare candidate detection against ordinary survey methods to avoid turning a joke into confirmation bias.</p>
+      </section>
+
+      <section id="business">
+        <p class="label">05 · Market</p>
+        <h2>The useful business hiding inside the joke</h2>
+        <p>GoatGrid is not Goat-as-a-Service and does not compete with telecom engineering. Its credible product is a low-cost field-observation layer for places where participating animals already live: ranches, conservation land, wildfire-monitoring regions, rural cooperatives, and research farms.</p>
+        <div class="grid">
+          <div class="card"><h3>Survey hardware</h3><p>Animal-safe sensor packs, fixed reference stations, charging and recovery tools, and deployment support.</p></div>
+          <div class="card"><h3>Data service</h3><p>Time-aligned maps, anomaly detection, candidate ranking, event replay, and exportable engineering evidence.</p></div>
+          <div class="card"><h3>Validation service</h3><p>Temporary mast tests and conventional RF studies performed by qualified partners.</p></div>
+        </div>
+        <p>Potential adjacent uses include environmental monitoring, wildfire sensing, agricultural telemetry, search-and-rescue research, delay-tolerant field data, and post-disaster mapping. Every use requires its own welfare, legal, and operational review.</p>
+      </section>
+
+      <section id="limits">
+        <p class="label">06 · Governance</p>
+        <h2>Limitations, welfare, and security</h2>
+        <table class="risk-table">
+          <thead><tr><th>Risk</th><th>Boundary or mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>Unpredictable mobility and no uptime</td><td>Observe rather than command movement; treat links as opportunistic and never safety-critical.</td></tr>
+            <tr><td>False correlation</td><td>Baseline first, preregister metrics, preserve null results, require repetition, and validate with a stationary mast.</td></tr>
+            <tr><td>Animal burden or entanglement</td><td>Veterinary review, conservative weight limits, rounded cool enclosures, protected batteries, and breakaway harnesses.</td></tr>
+            <tr><td>Hazardous climbing</td><td>Do not lure, train, or reward elevation; exclude utilities, roads, unstable structures, and hazardous terrain.</td></tr>
+            <tr><td>Radio and privacy regulation</td><td>Use lawful low-power equipment, minimize personal data, obtain landowner consent, and review spectrum/carrier rules.</td></tr>
+            <tr><td>Telemetry spoofing or device theft</td><td>Authenticated encrypted telemetry, tamper evidence, geofencing, and cross-validation between nodes and stations.</td></tr>
+            <tr><td>Snack-based routing attack</td><td>Never trust one goat; detect anomalous movement and require multi-animal or fixed-station confirmation.</td></tr>
+          </tbody>
+        </table>
+        <p>The goat remains an animal participating in an observational study, not a disposable biological mast. Any real protocol would require veterinary, institutional, landowner, radio-regulatory, and privacy review before field deployment.</p>
+      </section>
+
+      <section id="pilot">
+        <p class="label">07 · Pilot</p>
+        <h2>A passive-first three-month study</h2>
+        <p>Start with 10–12 goats already living on one cooperative ranch, two fixed stations, two or three known dead zones, GNSS logging, low-power telemetry, and no user-traffic relay.</p>
+        <div class="phases">
+          <div class="phase"><strong>Baseline survey</strong><span>Measure existing coverage without animal nodes.</span></div>
+          <div class="phase"><strong>Passive telemetry</strong><span>Track ordinary movement and the surrounding RF environment.</span></div>
+          <div class="phase"><strong>Correlation analysis</strong><span>Find repeated, statistically defensible location-performance events.</span></div>
+          <div class="phase"><strong>Fixed-node validation</strong><span>Test top-ranked safe sites using temporary stationary equipment.</span></div>
+          <div class="phase"><strong>Optional relay trial</strong><span>Only after welfare and baseline results, test low-power noncritical links.</span></div>
+          <div class="phase"><strong>Infrastructure proposal</strong><span>Prepare conventional plans only where fixed validation persists.</span></div>
+        </div>
+        <h3>Success criteria</h3>
+        <ul>
+          <li>No adverse welfare events or behavior changes attributable to equipment.</li>
+          <li>Reliable synchronization between animal location and fixed RF measurements.</li>
+          <li>At least one candidate that repeats and survives stationary-mast validation.</li>
+          <li>Transparent reporting of null results, confounders, and total operating cost.</li>
+        </ul>
+      </section>
+
+      <section id="scenario">
+        <p class="label">08 · Scenario</p>
+        <h2>Two valleys and an abandoned cistern</h2>
+        <p>A rural community has intermittent mesh connectivity between two valleys. Fifteen supervised goats carry passive sensor nodes. For several weeks, nothing useful happens. Then Goat 9 spends forty-three minutes on a safe, abandoned concrete cistern.</p>
+        <ul>
+          <li>Packet delivery rises from 31% to 94%.</li>
+          <li>Two previously isolated test nodes become reachable.</li>
+          <li>Telemetry latency drops below five seconds.</li>
+          <li>The event repeats four days later with Goat 3.</li>
+        </ul>
+        <p>A portable fixed mast is installed at the cistern. The improvement persists without animals present. The location advances to structural, access, environmental, and spectrum review for a solar-powered relay.</p>
+        <blockquote>The public report: “Candidate Site C provides favorable elevation and unobstructed line of sight.”<br>The internal log: “Two independent goats confirmed the survey lead.”</blockquote>
+      </section>
+
+      <section id="conclusion">
+        <p class="label">09 · Conclusion</p>
+        <h2>Where engineers should look</h2>
+        <p>Caprine-assisted radio research is not a replacement for propagation modeling, field crews, drones, towers, repeaters, or reliable emergency systems. It is a proposal to collect empirical observations from safe, lightweight sensors carried by animals already exploring difficult rural terrain.</p>
+        <p>The governing principle is simple:</p>
+        <blockquote>When the network improves, record everything.<br>When a goat is present, record that too.<br>When both happen repeatedly, send an engineer.</blockquote>
+        <p>In the worst case, the goat contributes nothing and the study produces a goat-movement map. In the best case, repeated observations reveal a place worth validating with real equipment. In the median case, a goat briefly improves a test link, leaves without documenting its methodology, and gives the network operations dashboard its best incident report of the quarter.</p>
+      </section>
+    </article>
+  </main>
+
+  <footer><div class="wrap">GoatGrid · Sol-37 speculative infrastructure series · Source conversation archived July 31, 2026.</div></footer>
+</body>
+</html>

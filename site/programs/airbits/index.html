@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#07151b">
+  <title>AirBits — Acoustic File Modem</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="airbits-shell">
+    <header class="airbits-hero">
+      <div>
+        <p class="eyebrow">Sol-37 field instrument / acoustic link</p>
+        <h1>AirBits</h1>
+        <p class="subtitle">A browser-to-browser modem for passing short messages and tiny files through nearby speakers and microphones.</p>
+      </div>
+      <div id="statusPill" class="status-pill">Idle</div>
+    </header>
+
+    <section class="panel">
+      <div class="section-heading"><div><span class="section-index">01</span><h2>Transmit</h2></div><span class="section-note">speaker output</span></div>
+      <div class="tabs" role="tablist"><button class="tab active" data-tab="textPane">Text</button><button class="tab" data-tab="filePane">Local file</button><button class="tab" data-tab="sitePane">Site file</button></div>
+      <div id="textPane" class="tabpane active"><label for="message">Message</label><textarea id="message" rows="5" maxlength="2048" placeholder="Type a short message…">Hello from the acoustic internet.</textarea></div>
+      <div id="filePane" class="tabpane"><label for="fileInput">Choose any file</label><input id="fileInput" type="file"><div id="fileMeta" class="file-meta">No file selected.</div></div>
+      <div id="sitePane" class="tabpane">
+        <label for="siteSearch">Choose from Sol-37</label>
+        <input id="siteSearch" type="search" placeholder="Filter site files by path or extension">
+        <select id="siteFileSelect" size="8"></select>
+        <div id="siteFileMeta" class="file-meta">Loading site file index.</div>
+      </div>
+      <div class="grid"><label>Symbol rate<select id="baud"><option value="50">50 baud · robust</option><option value="100" selected>100 baud · balanced</option><option value="200">200 baud · experimental</option></select></label><label>Output volume<input id="volume" type="range" min="0.05" max="0.8" step="0.05" value="0.35"></label></div>
+      <div class="actions"><button id="sendBtn" class="primary">Broadcast</button><button id="stopSendBtn" disabled>Stop</button><button id="previewBtn">Handshake only</button></div>
+      <div class="progress-wrap"><div class="progress-label"><span id="txLabel">Ready</span><strong id="airtime">—</strong></div><progress id="txProgress" value="0" max="1"></progress></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading"><div><span class="section-index">02</span><h2>Receive</h2></div><span class="section-note">microphone input</span></div>
+      <p class="hint">Start listening on the receiving phone first. Keep devices close and avoid clipping the sender.</p>
+      <div class="actions"><button id="listenBtn" class="primary">Start listening</button><button id="clearBtn">Clear</button></div>
+      <div class="visualizer"><canvas id="scope" width="900" height="180" aria-label="Microphone waveform"></canvas></div>
+      <div class="progress-wrap"><div class="progress-label"><span id="rxLabel">Waiting for transmission</span><strong id="rxPercent">0%</strong></div><progress id="rxProgress" value="0" max="1"></progress></div>
+      <label for="received">Received text</label><textarea id="received" rows="5" readonly placeholder="Decoded text will appear here."></textarea>
+      <div id="downloadCard" class="download-card hidden"><div><strong id="downloadName">received.bin</strong><div id="downloadMeta" class="hint"></div></div><a id="downloadLink" class="button-link" download>Save file</a></div>
+      <details><summary>Decoder log</summary><pre id="log"></pre></details>
+    </section>
+
+    <section class="panel compact"><div class="section-heading"><div><span class="section-index">03</span><h2>Protocol</h2></div><span class="section-note">proof of concept</span></div><div class="protocol"><code>55 × 24</code><span>preamble</span><code>D3 91 A7 5C</code><span>sync word</span><code>manifest</code><span>name, MIME type, size, chunks</span><code>CRC-16</code><span>per-frame integrity</span><code>SHA-256</code><span>whole-file verification</span></div><p class="hint">Audio bandwidth is tiny. Text, contact cards, keys, tiny images, and configuration files are the sensible use cases.</p></section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

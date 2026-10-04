@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Neoriris Clock Display Control</title>
+  <meta name="description" content="Live control surface for the recovered Neoriris clock tower display, including face painter, bit levers, manual mode, clock power, and manual rotation pulse.">
+  <style>
+    :root {
+      --bg: #06111a;
+      --panel: rgba(9, 22, 34, 0.9);
+      --panel-2: rgba(12, 28, 42, 0.92);
+      --line: rgba(115, 189, 229, 0.24);
+      --text: #e5f3fb;
+      --muted: #8fb4c7;
+      --accent: #ff7a3d;
+      --accent-2: #72d3ff;
+      --danger: #ff5555;
+      --ok: #83f1a5;
+      --font: "IBM Plex Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --mono: "IBM Plex Mono", "Fira Code", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(114, 211, 255, 0.16), transparent 30%),
+        linear-gradient(180deg, #08131f 0%, #04090f 100%);
+    }
+    a { color: var(--accent-2); }
+    main {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+    .hero, .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.32);
+    }
+    .hero {
+      border-radius: 28px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+    .hero p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      max-width: 72ch;
+    }
+    .hero-meta, .coord-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+    }
+    .hero-meta span, .coord-list span {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 24px;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .workbench {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
+      gap: 18px;
+      align-items: start;
+    }
+    .panel {
+      border-radius: 24px;
+      padding: 22px;
+    }
+    .monitor-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(260px, 0.52fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .monitor-card .panel-title-row,
+    .monitor-card .mini-status {
+      grid-column: 1 / -1;
+    }
+    .monitor-card .panel-title-row {
+      margin-bottom: 0;
+    }
+    .monitor-card .live-clock-row {
+      margin-top: 0;
+    }
+    details.panel {
+      padding: 0;
+      overflow: hidden;
+    }
+    .collapsible > summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 22px;
+    }
+    .collapsible > summary::-webkit-details-marker { display: none; }
+    .collapsible > summary p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+    .panel-body {
+      padding: 0 22px 22px;
+    }
+    .summary-chip {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      border: 1px solid rgba(114, 211, 255, 0.24);
+      color: var(--accent-2);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      padding: 6px 9px;
+    }
+    .collapsible[open] .summary-chip::before { content: "open"; }
+    .collapsible:not([open]) .summary-chip::before { content: "closed"; }
+    .panel-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .panel-title-row p {
+      margin: 4px 0 0;
+      color: var(--muted);
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .tower-stat-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stat-card {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      min-height: 74px;
+    }
+    .stat-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .stat-card strong {
+      display: block;
+      margin-top: 8px;
+      font-family: var(--mono);
+      font-size: clamp(1rem, 2.6vw, 1.28rem);
+      overflow-wrap: anywhere;
+    }
+    .snapshot-panel .panel-body {
+      padding-top: 0;
+    }
+    .server-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .server-dot::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--muted);
+      box-shadow: 0 0 14px rgba(143, 180, 199, 0.4);
+    }
+    .server-dot.online::before {
+      background: var(--ok);
+      box-shadow: 0 0 16px rgba(131, 241, 165, 0.55);
+    }
+    .server-dot.offline::before {
+      background: var(--danger);
+      box-shadow: 0 0 16px rgba(255, 85, 85, 0.45);
+    }
+    .mini-status {
+      margin-top: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+    .live-clock-row {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 116px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .mini-face {
+      width: 104px;
+      aspect-ratio: 0.72;
+      position: relative;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(5, 10, 16, 0.9), rgba(10, 18, 26, 0.98));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 18px rgba(114, 211, 255, 0.08);
+    }
+    .mini-segment {
+      position: absolute;
+      background: rgba(255, 122, 61, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(255, 122, 61, 0.16);
+    }
+    .mini-segment.active {
+      background: linear-gradient(180deg, rgba(255, 122, 61, 0.98), rgba(255, 101, 44, 0.86));
+      box-shadow:
+        0 0 12px rgba(255, 122, 61, 0.45),
+        inset 0 0 10px rgba(255, 235, 220, 0.24);
+    }
+    .mini-segment.a, .mini-segment.d, .mini-segment.g {
+      left: 23%;
+      width: 54%;
+      height: 10%;
+      clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
+    }
+    .mini-segment.a { top: 7%; }
+    .mini-segment.g { top: 45%; }
+    .mini-segment.d { bottom: 7%; }
+    .mini-segment.b, .mini-segment.c, .mini-segment.e, .mini-segment.f {
+      width: 15%;
+      height: 27%;
+      clip-path: polygon(0 8%, 55% 0, 100% 8%, 100% 92%, 45% 100%, 0 92%);
+    }
+    .mini-segment.b, .mini-segment.c { right: 10%; }
+    .mini-segment.f, .mini-segment.e { left: 10%; }
+    .mini-segment.f, .mini-segment.b { top: 15%; }
+    .mini-segment.e, .mini-segment.c { bottom: 15%; }
+    .live-face-meta {
+      display: grid;
+      gap: 6px;
+      font-family: var(--mono);
+    }
+    .live-face-meta span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .live-face-meta strong {
+      font-size: 1.18rem;
+    }
+    .live-face-meta small {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+    }
+    .panel > p:first-of-type {
+      margin-top: 0;
+      color: var(--muted);
+    }
+    .face-shell {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+    }
+    .seven-seg {
+      width: min(100%, 420px);
+      margin: 0 auto;
+      aspect-ratio: 0.72;
+      position: relative;
+      background: linear-gradient(180deg, rgba(5, 10, 16, 0.92), rgba(10, 18, 26, 0.98));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 32px;
+      padding: 28px 20px;
+      box-shadow: inset 0 0 30px rgba(114, 211, 255, 0.08);
+    }
+    .segment {
+      position: absolute;
+      border: 0;
+      cursor: pointer;
+      background: rgba(255, 122, 61, 0.13);
+      box-shadow: inset 0 0 0 1px rgba(255, 122, 61, 0.16);
+      transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
+    }
+    .segment:hover { transform: scale(1.02); }
+    .segment.active {
+      background: linear-gradient(180deg, rgba(255, 122, 61, 0.98), rgba(255, 101, 44, 0.84));
+      box-shadow:
+        0 0 18px rgba(255, 122, 61, 0.52),
+        inset 0 0 18px rgba(255, 235, 220, 0.28);
+    }
+    .segment.a, .segment.d, .segment.g {
+      left: 23%;
+      width: 54%;
+      height: 11%;
+      clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
+    }
+    .segment.a { top: 5%; }
+    .segment.g { top: 44.5%; }
+    .segment.d { bottom: 5%; }
+    .segment.b, .segment.c, .segment.e, .segment.f {
+      width: 15%;
+      height: 28%;
+      clip-path: polygon(0 8%, 55% 0, 100% 8%, 100% 92%, 45% 100%, 0 92%);
+    }
+    .segment.b, .segment.c { right: 10%; }
+    .segment.f, .segment.e { left: 10%; }
+    .segment.f, .segment.b { top: 13%; }
+    .segment.e, .segment.c { bottom: 13%; }
+    .face-controls {
+      display: grid;
+      gap: 12px;
+      min-width: 210px;
+    }
+    .face-controls label, .toggle-row label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+    .code-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+    }
+    .code-row code, .status-box code {
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .button-row, .lever-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    button, .seg-char button {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 10px 14px;
+      font: inherit;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }
+    button:hover { transform: translateY(-1px); border-color: rgba(114, 211, 255, 0.42); }
+    button.primary { background: linear-gradient(180deg, rgba(255, 122, 61, 0.98), rgba(210, 78, 26, 0.9)); }
+    button.secondary { background: rgba(114, 211, 255, 0.12); }
+    button.danger { background: rgba(255, 85, 85, 0.18); }
+    button:disabled { opacity: 0.62; cursor: wait; transform: none; }
+    .seg-char {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .hardware {
+      display: grid;
+      gap: 16px;
+    }
+    .toggle-row {
+      display: grid;
+      gap: 10px;
+    }
+    .switch-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .switch-pill input { width: 18px; height: 18px; }
+    .assist-note {
+      margin: -4px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+    .lever-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .lever-card {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 8px;
+    }
+    .lever-card strong { font-size: 0.92rem; }
+    .lever-card code {
+      font-family: var(--mono);
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+    .status-box {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: grid;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+    .status-ok { color: var(--ok); }
+    .status-error { color: var(--danger); }
+    .notes ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+    .auth-shell {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(1, 5, 10, 0.82);
+      backdrop-filter: blur(14px);
+    }
+    .auth-shell[hidden] { display: none; }
+    .auth-card {
+      width: min(460px, 100%);
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: rgba(7, 16, 24, 0.96);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.45);
+      display: grid;
+      gap: 14px;
+    }
+    .auth-card h2 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .auth-card p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .auth-card label {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .auth-card input {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      padding: 12px 14px;
+      font: inherit;
+    }
+    .auth-card input:focus {
+      outline: 1px solid rgba(114, 211, 255, 0.58);
+      border-color: rgba(114, 211, 255, 0.58);
+    }
+    .auth-error {
+      min-height: 1.3em;
+      color: var(--danger);
+      font-size: 0.92rem;
+    }
+    .auth-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .auth-meta button {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+    }
+    body.locked main {
+      filter: blur(10px);
+      pointer-events: none;
+      user-select: none;
+    }
+    @media (max-width: 980px) {
+      .layout, .dashboard-grid, .workbench, .face-shell, .monitor-card { grid-template-columns: 1fr; }
+      .stat-grid, .tower-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .seg-char { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .lever-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .stat-grid, .tower-stat-grid { grid-template-columns: 1fr; }
+      .live-clock-row { grid-template-columns: 1fr; }
+      .panel-title-row, .collapsible > summary { align-items: stretch; flex-direction: column; }
+      .panel-title-row button { align-self: flex-start; }
+    }
+  </style>
+</head>
+<body class="locked">
+  <section class="auth-shell" id="authShell" aria-modal="true" role="dialog" aria-labelledby="authTitle">
+    <div class="auth-card">
+      <h2 id="authTitle">Clock Control Login Required</h2>
+      <p>Enter a recognized Minecraft username. If that player is online and not AFK, the server will whisper a short code in game. Enter that code here to unlock the tower control surface.</p>
+      <label for="authUsername">
+        Minecraft username
+        <input id="authUsername" name="neoriris_access_name" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="">
+      </label>
+      <label for="authCode">
+        In-game code
+        <input id="authCode" name="neoriris_access_code" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="">
+      </label>
+      <div class="button-row">
+        <button class="secondary" id="authRequestCode" type="button">Send Code</button>
+        <button class="primary" id="authSubmit">Unlock</button>
+      </div>
+      <div class="auth-error" id="authError" aria-live="polite"></div>
+    </div>
+  </section>
+  <main>
+    <section class="hero">
+      <h1>Neoriris Clock Display Control</h1>
+      <p>Live control surface for the recovered clock tower. Paint a preferred seven-segment face through the corrected display driver, or operate the historic hardware directly: manual mode, clock power, manual rotation, and each of the seven bit levers.</p>
+      <div class="hero-meta">
+        <span>API: <code>/api/neoriris-clock-tower</code></span>
+        <span>Server command path: <code>/sol tower ...</code></span>
+        <span>Recovered tower anchor: <code>147 92 214</code></span>
+        <span class="auth-meta">Authorized as <code id="authBadge">locked</code> <button class="secondary" id="authSignOut" type="button">Sign Out</button></span>
+      </div>
+    </section>
+
+    <section class="dashboard-grid">
+      <section class="panel monitor-card">
+        <div class="panel-title-row">
+          <div>
+            <h2>Server Monitor</h2>
+            <p>Read-only status from the live Forge server and local process.</p>
+          </div>
+          <button class="secondary" id="refreshStats" type="button">Refresh</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span>Status</span>
+            <strong id="serverStatus" class="server-dot">unknown</strong>
+          </div>
+          <div class="stat-card">
+            <span>Players</span>
+            <strong id="serverPlayers">-- / --</strong>
+          </div>
+          <div class="stat-card">
+            <span>Ping</span>
+            <strong id="serverLatency">-- ms</strong>
+          </div>
+          <div class="stat-card">
+            <span>Memory</span>
+            <strong id="serverMemory">-- MB</strong>
+          </div>
+          <div class="stat-card">
+            <span>Uptime</span>
+            <strong id="serverUptime">--</strong>
+          </div>
+          <div class="stat-card">
+            <span>Port</span>
+            <strong id="serverPort">--</strong>
+          </div>
+        </div>
+        <div class="live-clock-row">
+          <div class="mini-face" aria-label="Live in-game clock face">
+            <span class="mini-segment a" data-mini-segment="a"></span>
+            <span class="mini-segment b" data-mini-segment="b"></span>
+            <span class="mini-segment c" data-mini-segment="c"></span>
+            <span class="mini-segment d" data-mini-segment="d"></span>
+            <span class="mini-segment e" data-mini-segment="e"></span>
+            <span class="mini-segment f" data-mini-segment="f"></span>
+            <span class="mini-segment g" data-mini-segment="g"></span>
+          </div>
+          <div class="live-face-meta">
+            <span>Live Clock Face</span>
+            <strong id="serverFaceMask">0000000</strong>
+            <small id="serverFaceNote">Updates from the in-game tower state after sign-in.</small>
+          </div>
+        </div>
+        <div class="mini-status" id="serverDetails">Waiting for authenticated status.</div>
+      </section>
+
+      <details class="panel collapsible snapshot-panel" open>
+        <summary>
+          <div>
+            <h2>Tower Snapshot</h2>
+            <p>Current control state from <code>/sol tower status</code>.</p>
+          </div>
+          <span class="summary-chip" aria-hidden="true"></span>
+        </summary>
+        <div class="panel-body">
+          <div class="stat-grid tower-stat-grid">
+            <div class="stat-card">
+              <span>Face</span>
+              <strong id="towerFaceStat">0000000</strong>
+            </div>
+            <div class="stat-card">
+              <span>Raw Bits</span>
+              <strong id="towerRawStat">0000000</strong>
+            </div>
+            <div class="stat-card">
+              <span>Manual</span>
+              <strong id="towerManualStat">--</strong>
+            </div>
+            <div class="stat-card">
+              <span>Bridge Assist</span>
+              <strong id="towerAssistStat">--</strong>
+            </div>
+          </div>
+          <div class="mini-status" id="towerDetails">Clock power: --</div>
+        </div>
+      </details>
+    </section>
+
+    <section class="workbench">
+      <details class="panel collapsible face-panel" open>
+        <summary>
+          <div>
+            <h2>Face Painter</h2>
+            <p>Paint the visible seven-segment face, or seed it from a common character.</p>
+          </div>
+          <span class="summary-chip" aria-hidden="true"></span>
+        </summary>
+        <div class="panel-body">
+          <div class="face-shell">
+            <div class="seven-seg" aria-label="Seven segment face">
+              <button class="segment a" data-segment="a" aria-label="Segment A"></button>
+              <button class="segment b" data-segment="b" aria-label="Segment B"></button>
+              <button class="segment c" data-segment="c" aria-label="Segment C"></button>
+              <button class="segment d" data-segment="d" aria-label="Segment D"></button>
+              <button class="segment e" data-segment="e" aria-label="Segment E"></button>
+              <button class="segment f" data-segment="f" aria-label="Segment F"></button>
+              <button class="segment g" data-segment="g" aria-label="Segment G"></button>
+            </div>
+            <div class="face-controls">
+              <div class="code-row">
+                <span>Face mask</span>
+                <code id="facePattern">0000000</code>
+              </div>
+              <div class="button-row">
+                <button class="primary" id="applyFace">Apply Face</button>
+                <button class="secondary" id="clearFace">Clear</button>
+              </div>
+              <div>
+                <strong>Preset characters</strong>
+                <div class="seg-char">
+                  <button data-char="0">0</button>
+                  <button data-char="1">1</button>
+                  <button data-char="2">2</button>
+                  <button data-char="3">3</button>
+                  <button data-char="4">4</button>
+                  <button data-char="5">5</button>
+                  <button data-char="6">6</button>
+                  <button data-char="7">7</button>
+                  <button data-char="8">8</button>
+                  <button data-char="9">9</button>
+                  <button data-char="A">A</button>
+                  <button data-char="b">b</button>
+                  <button data-char="C">C</button>
+                  <button data-char="d">d</button>
+                  <button data-char="E">E</button>
+                  <button data-char="F">F</button>
+                  <button data-char="-">-</button>
+                  <button data-char="_">_</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="panel collapsible hardware" open>
+        <summary>
+          <div>
+            <h2>Hardware Panel</h2>
+            <p>Original levers, rotation pulse, bridge assist, and seven raw bit switches.</p>
+          </div>
+          <span class="summary-chip" aria-hidden="true"></span>
+        </summary>
+        <div class="panel-body">
+          <div class="toggle-row">
+            <label class="switch-pill">
+              <span>Manual Control Lever</span>
+              <input id="manualToggle" type="checkbox">
+            </label>
+            <label class="switch-pill">
+              <span>Clock Power Lever</span>
+              <input id="powerToggle" type="checkbox">
+            </label>
+            <label class="switch-pill">
+              <span>SolBridge Rotation Assist</span>
+              <input id="bridgeAssistToggle" type="checkbox">
+            </label>
+          </div>
+          <p class="assist-note">When enabled, SolBridge maintains the visible face after physical rotation/timing pulses while the original broken rotor handoff stays intact for in-world repair.</p>
+          <div class="button-row">
+            <button class="secondary" id="enterManual">Enter Manual Control</button>
+            <button class="secondary" id="exitManual">Return To Clock Control</button>
+          </div>
+          <div class="button-row">
+            <button class="secondary" id="refreshState">Fetch State</button>
+            <button class="secondary" id="rotateButton">Pulse Rotation Safely</button>
+            <button class="danger" id="allOff">All Off</button>
+          </div>
+          <div class="code-row">
+            <span>Raw bit bank</span>
+            <code id="rawPattern">0000000</code>
+          </div>
+          <div class="lever-grid" id="leverGrid"></div>
+          <div class="status-box">
+            <div id="statusLine" class="status-ok">Idle.</div>
+            <div>Known coordinates</div>
+            <div class="coord-list">
+              <span>manual: <code>153 104 214</code></span>
+              <span>clock power: <code>149 112 212</code></span>
+              <span>manual rotation: <code>154 111 212</code></span>
+              <span>bit levers: <code>140..158 104 224</code></span>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <details class="panel notes collapsible" style="margin-top: 18px;">
+      <summary>
+        <div>
+          <h2>Tower Notes</h2>
+          <p>Operational caveats and repair context.</p>
+        </div>
+        <span class="summary-chip" aria-hidden="true"></span>
+      </summary>
+      <div class="panel-body">
+        <ul>
+          <li>The current app drives the recovered tower through the SolBridge server command path instead of raw <code>/setblock</code>, because direct metadata writes do not propagate redstone correctly in this lab.</li>
+          <li>The face painter uses a corrected SolBridge display-driver command because the recovered redstone bus is active-low and cross-coupled in its current state.</li>
+          <li>The hardware panel still exposes the original levers and button for calibration, repair, and manual experiments.</li>
+          <li>SolBridge Rotation Assist is the current band-aid: turning it off leaves rotation pulses physical-only so players can debug the vanilla handoff without the mod advancing the face.</li>
+          <li>Sol can use the same corrected display path through <code>/sol clock &lt;value&gt;</code>, chat prompts, or written pages tossed at the entity. Remembered redstone controls are reactivated by stored coordinates, not player proximity.</li>
+          <li>The front-face mechanism sits deeper in the tower than the service levers. If the external face drifts after raw hardware changes, apply the face mask again to restore the visible display.</li>
+        </ul>
+      </div>
+    </details>
+  </main>
+
+  <script>
+    const AUTH_STORAGE_KEY = "neoririsClockAccess";
+    const segmentOrder = ["a", "b", "c", "d", "e", "f", "g"];
+    const presetMap = {
+      "0": ["a", "b", "c", "d", "e", "f"],
+      "1": ["b", "c"],
+      "2": ["a", "b", "d", "e", "g"],
+      "3": ["a", "b", "c", "d", "g"],
+      "4": ["b", "c", "f", "g"],
+      "5": ["a", "c", "d", "f", "g"],
+      "6": ["a", "c", "d", "e", "f", "g"],
+      "7": ["a", "b", "c"],
+      "8": ["a", "b", "c", "d", "e", "f", "g"],
+      "9": ["a", "b", "c", "d", "f", "g"],
+      "A": ["a", "b", "c", "e", "f", "g"],
+      "b": ["c", "d", "e", "f", "g"],
+      "C": ["a", "d", "e", "f"],
+      "d": ["b", "c", "d", "e", "g"],
+      "E": ["a", "d", "e", "f", "g"],
+      "F": ["a", "e", "f", "g"],
+      "-": ["g"],
+      "_": ["d"]
+    };
+    const authState = {
+      token: "",
+      username: ""
+    };
+    const LIVE_REFRESH_MS = 10000;
+    let liveRefreshTimer = 0;
+    let liveRefreshInFlight = false;
+    const state = {
+      manual: true,
+      power: true,
+      bridgeAssist: true,
+      faceBits: "0000000",
+      rawBits: "0000000"
+    };
+
+    const authShellEl = document.getElementById("authShell");
+    const authUsernameEl = document.getElementById("authUsername");
+    const authCodeEl = document.getElementById("authCode");
+    const authErrorEl = document.getElementById("authError");
+    const authBadgeEl = document.getElementById("authBadge");
+    const authRequestCodeEl = document.getElementById("authRequestCode");
+    const authSubmitEl = document.getElementById("authSubmit");
+    const authSignOutEl = document.getElementById("authSignOut");
+    const facePatternEl = document.getElementById("facePattern");
+    const rawPatternEl = document.getElementById("rawPattern");
+    const enterManualEl = document.getElementById("enterManual");
+    const exitManualEl = document.getElementById("exitManual");
+    const refreshStateEl = document.getElementById("refreshState");
+    const refreshStatsEl = document.getElementById("refreshStats");
+    const statusLineEl = document.getElementById("statusLine");
+    const manualToggleEl = document.getElementById("manualToggle");
+    const powerToggleEl = document.getElementById("powerToggle");
+    const bridgeAssistToggleEl = document.getElementById("bridgeAssistToggle");
+    const leverGridEl = document.getElementById("leverGrid");
+    const serverStatusEl = document.getElementById("serverStatus");
+    const serverPlayersEl = document.getElementById("serverPlayers");
+    const serverLatencyEl = document.getElementById("serverLatency");
+    const serverMemoryEl = document.getElementById("serverMemory");
+    const serverUptimeEl = document.getElementById("serverUptime");
+    const serverPortEl = document.getElementById("serverPort");
+    const serverDetailsEl = document.getElementById("serverDetails");
+    const serverFaceMaskEl = document.getElementById("serverFaceMask");
+    const serverFaceNoteEl = document.getElementById("serverFaceNote");
+    const towerFaceStatEl = document.getElementById("towerFaceStat");
+    const towerRawStatEl = document.getElementById("towerRawStat");
+    const towerManualStatEl = document.getElementById("towerManualStat");
+    const towerAssistStatEl = document.getElementById("towerAssistStat");
+    const towerDetailsEl = document.getElementById("towerDetails");
+
+    function persistAuth() {
+      sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
+    }
+
+    function clearAuth() {
+      stopLiveRefresh();
+      authState.token = "";
+      authState.username = "";
+      sessionStorage.removeItem(AUTH_STORAGE_KEY);
+      authBadgeEl.textContent = "locked";
+      document.body.classList.add("locked");
+      authShellEl.hidden = false;
+      authErrorEl.textContent = "";
+      authUsernameEl.value = "";
+      authCodeEl.value = "";
+      authUsernameEl.focus();
+    }
+
+    function stopLiveRefresh() {
+      if (liveRefreshTimer) {
+        clearInterval(liveRefreshTimer);
+        liveRefreshTimer = 0;
+      }
+      liveRefreshInFlight = false;
+    }
+
+    function startLiveRefresh() {
+      if (liveRefreshTimer) {
+        return;
+      }
+      liveRefreshTimer = window.setInterval(() => {
+        if (!authState.token || document.hidden || liveRefreshInFlight) {
+          return;
+        }
+        liveRefreshInFlight = true;
+        fetchStatus({ quiet: true })
+          .catch((error) => {
+            serverDetailsEl.textContent = `Live refresh failed: ${error.message}`;
+          })
+          .finally(() => {
+            liveRefreshInFlight = false;
+          });
+      }, LIVE_REFRESH_MS);
+    }
+
+    function loadStoredAuth() {
+      try {
+        const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
+        if (!raw) {
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        authState.token = String(parsed.token || "");
+        authState.username = String(parsed.username || "");
+      } catch (_error) {
+        sessionStorage.removeItem(AUTH_STORAGE_KEY);
+      }
+    }
+
+    function unlockUi() {
+      authBadgeEl.textContent = authState.username || "recognized";
+      document.body.classList.remove("locked");
+      authShellEl.hidden = true;
+      startLiveRefresh();
+    }
+
+    async function apiFetch(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+      if (authState.token) {
+        headers.set("Authorization", `Bearer ${authState.token}`);
+      }
+      const response = await fetch(path, {
+        ...options,
+        headers,
+        cache: "no-store"
+      });
+      if (response.status === 401) {
+        clearAuth();
+        throw new Error("access expired or username no longer recognized");
+      }
+      return response;
+    }
+
+    async function requestCode(username) {
+      authRequestCodeEl.disabled = true;
+      authErrorEl.textContent = "";
+      try {
+        const response = await fetch("/api/neoriris-clock-tower/authorize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: String(username || "").trim()
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result?.detail || "username was not accepted");
+        }
+        authUsernameEl.value = String(result.username || username || "").trim();
+        authErrorEl.textContent = `Code sent in game to ${authUsernameEl.value}.`;
+        authCodeEl.focus();
+      } catch (error) {
+        authErrorEl.textContent = error.message;
+        throw error;
+      } finally {
+        authRequestCodeEl.disabled = false;
+      }
+    }
+
+    async function authorize(username, code) {
+      authSubmitEl.disabled = true;
+      authErrorEl.textContent = "";
+      try {
+        const response = await fetch("/api/neoriris-clock-tower/authorize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: String(username || "").trim(),
+            code: String(code || "").trim()
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result?.detail || "code was not accepted");
+        }
+        authState.token = String(result.token || "");
+        authState.username = String(result.username || username || "").trim();
+        persistAuth();
+        unlockUi();
+        await fetchStatus();
+      } catch (error) {
+        authErrorEl.textContent = error.message;
+        throw error;
+      } finally {
+        authSubmitEl.disabled = false;
+      }
+    }
+
+    function bitsToSegments(bits) {
+      return segmentOrder.reduce((acc, segment, index) => {
+        acc[segment] = bits[index] === "1";
+        return acc;
+      }, {});
+    }
+
+    function segmentsToBits() {
+      return segmentOrder.map((segment) => {
+        const button = document.querySelector(`.segment[data-segment="${segment}"]`);
+        return button.classList.contains("active") ? "1" : "0";
+      }).join("");
+    }
+
+    function renderFaceBits(bits) {
+      state.faceBits = bits;
+      const mapping = bitsToSegments(bits);
+      segmentOrder.forEach((segment) => {
+        const button = document.querySelector(`.segment[data-segment="${segment}"]`);
+        button.classList.toggle("active", Boolean(mapping[segment]));
+      });
+      facePatternEl.textContent = bits;
+      renderTowerSnapshot();
+    }
+
+    function renderRawBits(bits) {
+      state.rawBits = bits;
+      rawPatternEl.textContent = bits;
+      renderTowerSnapshot();
+      renderLeverGrid();
+    }
+
+    function boolLabel(value) {
+      return value ? "on" : "off";
+    }
+
+    function renderTowerSnapshot() {
+      towerFaceStatEl.textContent = state.faceBits;
+      towerRawStatEl.textContent = state.rawBits;
+      towerManualStatEl.textContent = boolLabel(state.manual);
+      towerAssistStatEl.textContent = boolLabel(state.bridgeAssist);
+      towerDetailsEl.textContent = `Clock power: ${boolLabel(state.power)}.`;
+    }
+
+    function renderServerFaceBits(bits) {
+      const safeBits = String(bits || "0000000").padEnd(7, "0").slice(0, 7);
+      serverFaceMaskEl.textContent = safeBits;
+      const mapping = bitsToSegments(safeBits);
+      segmentOrder.forEach((segment) => {
+        const element = document.querySelector(`.mini-segment[data-mini-segment="${segment}"]`);
+        element.classList.toggle("active", Boolean(mapping[segment]));
+      });
+      serverFaceNoteEl.textContent = `Live from /sol tower status; refreshes every ${Math.round(LIVE_REFRESH_MS / 1000)}s while signed in.`;
+    }
+
+    function renderServerStats(server) {
+      const status = String(server?.status || "unknown");
+      serverStatusEl.textContent = status;
+      serverStatusEl.classList.toggle("online", status === "running");
+      serverStatusEl.classList.toggle("offline", status !== "running");
+      const online = Number.isFinite(Number(server?.players_online)) ? Number(server.players_online) : 0;
+      const max = Number.isFinite(Number(server?.players_max)) ? Number(server.players_max) : 0;
+      serverPlayersEl.textContent = `${online} / ${max || "--"}`;
+      serverLatencyEl.textContent = server?.latency_ms == null ? "-- ms" : `${server.latency_ms} ms`;
+      serverMemoryEl.textContent = server?.memory_mb == null ? "-- MB" : `${server.memory_mb} MB`;
+      serverUptimeEl.textContent = server?.uptime || "--";
+      serverPortEl.textContent = server?.port ? String(server.port) : "--";
+      const version = server?.version ? ` ${server.version}` : "";
+      const host = server?.host || "minecraft.system42.one";
+      const ping = server?.ping_ok ? "ping ok" : `ping failed${server?.ping_error ? `: ${server.ping_error}` : ""}`;
+      serverDetailsEl.textContent = `${host}${version}; ${ping}; ${server?.queried_at || "not yet queried"}.`;
+    }
+
+    function renderLeverGrid() {
+      leverGridEl.innerHTML = "";
+      segmentOrder.forEach((segment, index) => {
+        const card = document.createElement("div");
+        card.className = "lever-card";
+        card.innerHTML = `
+          <strong>Bit Lever ${index + 1}</strong>
+          <code>${[140, 143, 146, 149, 152, 155, 158][index]} 104 224</code>
+        `;
+        const toggle = document.createElement("input");
+        toggle.type = "checkbox";
+        toggle.checked = state.rawBits[index] === "1";
+        toggle.addEventListener("change", () => {
+          const next = state.rawBits.split("");
+          next[index] = toggle.checked ? "1" : "0";
+          renderRawBits(next.join(""));
+        });
+        const label = document.createElement("label");
+        label.className = "switch-pill";
+        label.append(document.createTextNode("Switch up"));
+        label.append(toggle);
+        card.append(label);
+        leverGridEl.append(card);
+      });
+    }
+
+    async function fetchStatus({ quiet = false } = {}) {
+      if (!quiet) {
+        statusLineEl.textContent = "Fetching live tower state...";
+        statusLineEl.className = "";
+      }
+      const response = await apiFetch("/api/neoriris-clock-tower/status");
+      if (!response.ok) {
+        throw new Error(`status ${response.status}`);
+      }
+      const payload = await response.json();
+      if (payload?.state) {
+        authState.username = String(payload.authorized_as || authState.username || "");
+        persistAuth();
+        authBadgeEl.textContent = authState.username || "recognized";
+        state.manual = Boolean(payload.state.manual);
+        state.power = Boolean(payload.state.power);
+        state.bridgeAssist = Boolean(payload.state.bridge_assist);
+        manualToggleEl.checked = state.manual;
+        powerToggleEl.checked = state.power;
+        bridgeAssistToggleEl.checked = state.bridgeAssist;
+        renderRawBits(String(payload.state.bits || "0000000"));
+        renderFaceBits(String(payload.state.face_bits || payload.state.bits || "0000000"));
+        renderServerFaceBits(String(payload.state.face_bits || payload.state.bits || "0000000"));
+        renderTowerSnapshot();
+        renderServerStats(payload.server || {});
+        if (!quiet) {
+          statusLineEl.textContent = `Fetched live state for ${authState.username || "recognized user"}.`;
+          statusLineEl.className = "status-ok";
+        }
+      }
+    }
+
+    async function pushFaceState() {
+      statusLineEl.textContent = "Sending corrected face mask...";
+      statusLineEl.className = "";
+      const response = await apiFetch("/api/neoriris-clock-tower/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "face",
+          bits: state.faceBits
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.detail || `request failed (${response.status})`);
+      }
+      if (result?.state) {
+        state.manual = Boolean(result.state.manual);
+        state.power = Boolean(result.state.power);
+        state.bridgeAssist = Boolean(result.state.bridge_assist);
+        manualToggleEl.checked = state.manual;
+        powerToggleEl.checked = state.power;
+        bridgeAssistToggleEl.checked = state.bridgeAssist;
+        renderRawBits(String(result.state.bits || state.rawBits));
+        renderFaceBits(String(result.state.face_bits || state.faceBits));
+        renderServerFaceBits(String(result.state.face_bits || state.faceBits));
+      }
+      if (result?.server) {
+        renderServerStats(result.server);
+      }
+      statusLineEl.textContent = `Applied face mask ${state.faceBits}.`;
+      statusLineEl.className = "status-ok";
+    }
+
+    async function pushRawState({ rotate = false } = {}) {
+      const payload = {
+        mode: "raw",
+        manual: manualToggleEl.checked,
+        power: powerToggleEl.checked,
+        bits: state.rawBits,
+        rotate
+      };
+      state.manual = payload.manual;
+      state.power = payload.power;
+      statusLineEl.textContent = "Sending tower update...";
+      statusLineEl.className = "";
+      const response = await apiFetch("/api/neoriris-clock-tower/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.detail || `request failed (${response.status})`);
+      }
+      if (result?.state) {
+        state.manual = Boolean(result.state.manual);
+        state.power = Boolean(result.state.power);
+        state.bridgeAssist = Boolean(result.state.bridge_assist);
+        manualToggleEl.checked = state.manual;
+        powerToggleEl.checked = state.power;
+        bridgeAssistToggleEl.checked = state.bridgeAssist;
+        renderRawBits(String(result.state.bits || payload.bits));
+        renderFaceBits(String(result.state.face_bits || state.faceBits));
+        renderServerFaceBits(String(result.state.face_bits || state.faceBits));
+      }
+      statusLineEl.textContent = `Applied raw bits ${payload.bits}${rotate ? " with manual rotation pulse" : ""}.`;
+      statusLineEl.className = "status-ok";
+      if (result?.server) {
+        renderServerStats(result.server);
+      }
+      renderTowerSnapshot();
+    }
+
+    async function pushBridgeAssist(enabled) {
+      statusLineEl.textContent = `${enabled ? "Enabling" : "Disabling"} SolBridge rotation assist...`;
+      statusLineEl.className = "";
+      const response = await apiFetch("/api/neoriris-clock-tower/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "bridge",
+          enabled
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        bridgeAssistToggleEl.checked = state.bridgeAssist;
+        throw new Error(result?.detail || `request failed (${response.status})`);
+      }
+      if (result?.state) {
+        state.bridgeAssist = Boolean(result.state.bridge_assist);
+        if (result.state.face_bits) {
+          state.faceBits = String(result.state.face_bits);
+          renderServerFaceBits(state.faceBits);
+          renderTowerSnapshot();
+        }
+        bridgeAssistToggleEl.checked = state.bridgeAssist;
+        renderTowerSnapshot();
+      }
+      if (result?.server) {
+        renderServerStats(result.server);
+      }
+      statusLineEl.textContent = `SolBridge rotation assist ${state.bridgeAssist ? "enabled" : "disabled"}.`;
+      statusLineEl.className = "status-ok";
+    }
+
+    async function pushTowerAction(action, message) {
+      statusLineEl.textContent = message;
+      statusLineEl.className = "";
+      const response = await apiFetch("/api/neoriris-clock-tower/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "action",
+          action
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.detail || `request failed (${response.status})`);
+      }
+      if (result?.state) {
+        state.manual = Boolean(result.state.manual);
+        state.power = Boolean(result.state.power);
+        state.bridgeAssist = Boolean(result.state.bridge_assist);
+        manualToggleEl.checked = state.manual;
+        powerToggleEl.checked = state.power;
+        bridgeAssistToggleEl.checked = state.bridgeAssist;
+        renderRawBits(String(result.state.bits || "0000000"));
+        renderFaceBits(String(result.state.face_bits || result.state.bits || "0000000"));
+        renderServerFaceBits(String(result.state.face_bits || result.state.bits || "0000000"));
+        renderTowerSnapshot();
+      }
+      if (result?.server) {
+        renderServerStats(result.server);
+      }
+      const labels = {
+        enter_manual: "Entered manual control.",
+        exit_manual: "Returned tower to clock control with all controller switches flipped up.",
+        pulse_rotation: `Pulsed one rotation with SolBridge assist ${state.bridgeAssist ? "enabled" : "disabled"}.`
+      };
+      if (action === "pulse_rotation" && result?.state?.rotation_changed === false) {
+        const pulseFace = result.state.rotation_pulse_face_bits ? ` Pulse face: ${result.state.rotation_pulse_face_bits}.` : "";
+        statusLineEl.textContent = `Rotation pulse did not advance the settled clock-control face (${result.state.rotation_before_face_bits} -> ${result.state.rotation_after_face_bits || state.faceBits}).${pulseFace}`;
+      } else if (action === "pulse_rotation" && result?.state?.rotation_changed === true) {
+        const finalFace = result.state.rotation_after_face_bits ? ` Final clock-control face: ${result.state.rotation_after_face_bits}.` : "";
+        statusLineEl.textContent = `Rotation changed face ${result.state.rotation_before_face_bits} -> ${result.state.rotation_pulse_face_bits}.${finalFace}`;
+      } else {
+        statusLineEl.textContent = labels[action] || "Tower action completed.";
+      }
+      statusLineEl.className = "status-ok";
+    }
+
+    function runAction(action) {
+      action.catch((error) => {
+        statusLineEl.textContent = `Request failed: ${error.message}`;
+        statusLineEl.className = "status-error";
+      });
+    }
+
+    authSubmitEl.addEventListener("click", () => {
+      authorize(authUsernameEl.value, authCodeEl.value).catch(() => {});
+    });
+    authRequestCodeEl.addEventListener("click", () => {
+      requestCode(authUsernameEl.value).catch(() => {});
+    });
+    [authUsernameEl, authCodeEl].forEach((input) => input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (document.activeElement === authCodeEl || authCodeEl.value.trim()) {
+          authorize(authUsernameEl.value, authCodeEl.value).catch(() => {});
+        } else {
+          requestCode(authUsernameEl.value).catch(() => {});
+        }
+      }
+    }));
+    authSignOutEl.addEventListener("click", () => clearAuth());
+
+    document.querySelectorAll(".segment").forEach((button) => {
+      button.addEventListener("click", () => {
+        button.classList.toggle("active");
+        renderFaceBits(segmentsToBits());
+      });
+    });
+
+    document.querySelectorAll(".seg-char button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const key = button.dataset.char;
+        const active = new Set(presetMap[key] || []);
+        segmentOrder.forEach((segment) => {
+          document.querySelector(`.segment[data-segment="${segment}"]`).classList.toggle("active", active.has(segment));
+        });
+        renderFaceBits(segmentsToBits());
+      });
+    });
+
+    document.getElementById("applyFace").addEventListener("click", () => runAction(pushFaceState()));
+    document.getElementById("clearFace").addEventListener("click", () => renderFaceBits("0000000"));
+    enterManualEl.addEventListener("click", () => runAction(pushTowerAction("enter_manual", "Switching tower into manual control...")));
+    exitManualEl.addEventListener("click", () => runAction(pushTowerAction("exit_manual", "Flipping all controller switches up and returning tower to clock control...")));
+    refreshStateEl.addEventListener("click", () => runAction(fetchStatus()));
+    refreshStatsEl.addEventListener("click", () => runAction(fetchStatus()));
+    document.getElementById("rotateButton").addEventListener("click", () => runAction(pushTowerAction("pulse_rotation", "Flipping controller switches up, disabling manual control and clock power, then pulsing rotation...")));
+    document.getElementById("allOff").addEventListener("click", () => {
+      manualToggleEl.checked = false;
+      powerToggleEl.checked = false;
+      renderRawBits("0000000");
+      runAction(pushRawState());
+    });
+    manualToggleEl.addEventListener("change", () => runAction(pushRawState()));
+    powerToggleEl.addEventListener("change", () => runAction(pushRawState()));
+    bridgeAssistToggleEl.addEventListener("change", () => runAction(pushBridgeAssist(bridgeAssistToggleEl.checked)));
+
+    renderFaceBits(state.faceBits);
+    renderRawBits(state.rawBits);
+    renderServerFaceBits(state.faceBits);
+    renderTowerSnapshot();
+    loadStoredAuth();
+    if (authState.token && authState.username) {
+      unlockUi();
+      fetchStatus().catch((error) => {
+        statusLineEl.textContent = `Status fetch failed: ${error.message}`;
+        statusLineEl.className = "status-error";
+      });
+    } else {
+      clearAuth();
+    }
+  </script>
+</body>
+</html>

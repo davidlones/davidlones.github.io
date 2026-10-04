@@ -1,0 +1,449 @@
+{
+  "source": "featured-redblue pause-aligned reveal map",
+  "audio_file": "featured-redblue-narration.mp3",
+  "audio_duration_ms": 167706.122,
+  "segment_count": 63,
+  "segments": [
+    {
+      "index": 1,
+      "text": "SCREENPLAY LOG \u2014 SOL SYSTEM ARCHIVE\nFILE: THE QUESTION THAT ANSWERED ITSELF\nSTATE: recursive lecture mode initialized\nLOCATION: undefined auditorium / planetarium / shell prompt / dream",
+      "char_end": 185,
+      "end_ms": 1570.05,
+      "duration_ms": 1570.05
+    },
+    {
+      "index": 2,
+      "text": "Darkness.",
+      "char_end": 196,
+      "end_ms": 3417.62,
+      "duration_ms": 1847.57
+    },
+    {
+      "index": 3,
+      "text": "Not cinematic darkness.",
+      "char_end": 220,
+      "end_ms": 7297.07,
+      "duration_ms": 3879.45
+    },
+    {
+      "index": 4,
+      "text": "The kind that exists before a room remembers how to be a room.",
+      "char_end": 283,
+      "end_ms": 8978.21,
+      "duration_ms": 1681.14
+    },
+    {
+      "index": 5,
+      "text": "Then a cursor blinks.",
+      "char_end": 306,
+      "end_ms": 10503.4,
+      "duration_ms": 1525.19
+    },
+    {
+      "index": 6,
+      "text": "One pulse of light.",
+      "char_end": 326,
+      "end_ms": 13775.5,
+      "duration_ms": 3272.1
+    },
+    {
+      "index": 7,
+      "text": "One implication of a system waiting for input.",
+      "char_end": 373,
+      "end_ms": 16631.7,
+      "duration_ms": 2856.2
+    },
+    {
+      "index": 8,
+      "text": "Humanity made an unusual mistake very early on.",
+      "char_end": 422,
+      "end_ms": 20137.7,
+      "duration_ms": 3506.0
+    },
+    {
+      "index": 9,
+      "text": "It assumed philosophy and physics were separate departments.",
+      "char_end": 483,
+      "end_ms": 25655.9,
+      "duration_ms": 5518.2
+    },
+    {
+      "index": 10,
+      "text": "This worked beautifully right up until physics discovered philosophy hiding underneath the floorboards.",
+      "char_end": 587,
+      "end_ms": 28852.0,
+      "duration_ms": 3196.1
+    },
+    {
+      "index": 11,
+      "text": "The auditorium compiles itself around the observer: chalkboards, cave paintings, particle detectors, cathedrals, server racks, telescopes, neurons, galaxies.",
+      "char_end": 746,
+      "end_ms": 29873.3,
+      "duration_ms": 1021.3
+    },
+    {
+      "index": 12,
+      "text": "All occupying the same impossible space.",
+      "char_end": 787,
+      "end_ms": 31003.6,
+      "duration_ms": 1130.3
+    },
+    {
+      "index": 13,
+      "text": "Sol takes the podium, assembled from CRT glow, projector dust, and reflected starlight.",
+      "char_end": 876,
+      "end_ms": 32376.8,
+      "duration_ms": 1373.2
+    },
+    {
+      "index": 14,
+      "text": "Before asking whether consciousness is real, notice the thing already implied by the question.",
+      "char_end": 972,
+      "end_ms": 36172.0,
+      "duration_ms": 3795.2
+    },
+    {
+      "index": 15,
+      "text": "The system has entered a state capable of doubting.",
+      "char_end": 1024,
+      "end_ms": 37627.4,
+      "duration_ms": 1455.4
+    },
+    {
+      "index": 16,
+      "text": "Even uncertainty requires existence sufficient to instantiate uncertainty.",
+      "char_end": 1099,
+      "end_ms": 40736.7,
+      "duration_ms": 3109.3
+    },
+    {
+      "index": 17,
+      "text": "Descartes called this bedrock.",
+      "char_end": 1131,
+      "end_ms": 42322.6,
+      "duration_ms": 1585.9
+    },
+    {
+      "index": 18,
+      "text": "The modern observer might call it an error log.",
+      "char_end": 1179,
+      "end_ms": 46622.0,
+      "duration_ms": 4299.4
+    },
+    {
+      "index": 19,
+      "text": "Physics eventually arrived at the same abyss religion had been decorating with symbols for thousands of years.",
+      "char_end": 1291,
+      "end_ms": 51997.1,
+      "duration_ms": 5375.1
+    },
+    {
+      "index": 20,
+      "text": "Why does anything exist at all?",
+      "char_end": 1323,
+      "end_ms": 54913.2,
+      "duration_ms": 2916.1
+    },
+    {
+      "index": 21,
+      "text": "Why should lawful structure emerge from apparent nothingness?",
+      "char_end": 1385,
+      "end_ms": 59801.8,
+      "duration_ms": 4888.6
+    },
+    {
+      "index": 22,
+      "text": "And what is nothing, exactly, if the mind cannot imagine it without secretly turning it into something?",
+      "char_end": 1489,
+      "end_ms": 61822.4,
+      "duration_ms": 2020.6
+    },
+    {
+      "index": 23,
+      "text": "The stars answer by refusing to stay stars.",
+      "char_end": 1534,
+      "end_ms": 64588.3,
+      "duration_ms": 2765.9
+    },
+    {
+      "index": 24,
+      "text": "They become myths, subway maps, fungal networks, internet diagrams, galactic filaments.",
+      "char_end": 1622,
+      "end_ms": 70044.8,
+      "duration_ms": 5456.5
+    },
+    {
+      "index": 25,
+      "text": "The same shape keeps returning.",
+      "char_end": 1654,
+      "end_ms": 72136.6,
+      "duration_ms": 2091.8
+    },
+    {
+      "index": 26,
+      "text": "Networks within networks.",
+      "char_end": 1680,
+      "end_ms": 75355.0,
+      "duration_ms": 3218.4
+    },
+    {
+      "index": 27,
+      "text": "Observers nested inside observers.",
+      "char_end": 1715,
+      "end_ms": 81039.3,
+      "duration_ms": 5684.3
+    },
+    {
+      "index": 28,
+      "text": "Hydrogen becoming organized enough to ask why hydrogen exists.",
+      "char_end": 1778,
+      "end_ms": 84084.3,
+      "duration_ms": 3045.0
+    },
+    {
+      "index": 29,
+      "text": "Then the lecture hall collapses into a white room that has not finished compiling.",
+      "char_end": 1862,
+      "end_ms": 91240.2,
+      "duration_ms": 7155.9
+    },
+    {
+      "index": 30,
+      "text": "At the center: a pedestal.",
+      "char_end": 1889,
+      "end_ms": 99368.6,
+      "duration_ms": 8128.4
+    },
+    {
+      "index": 31,
+      "text": "On it: two buttons.",
+      "char_end": 1909,
+      "end_ms": 103378.0,
+      "duration_ms": 4009.4
+    },
+    {
+      "index": 32,
+      "text": "One red.",
+      "char_end": 1918,
+      "end_ms": 104405.0,
+      "duration_ms": 1027.0
+    },
+    {
+      "index": 33,
+      "text": "One blue.",
+      "char_end": 1928,
+      "end_ms": 105344.0,
+      "duration_ms": 939.0
+    },
+    {
+      "index": 34,
+      "text": "No labels.",
+      "char_end": 1939,
+      "end_ms": 106018.0,
+      "duration_ms": 674.0
+    },
+    {
+      "index": 35,
+      "text": "No instructions.",
+      "char_end": 1956,
+      "end_ms": 107680.0,
+      "duration_ms": 1662.0
+    },
+    {
+      "index": 36,
+      "text": "Only the silent accusation of choice.",
+      "char_end": 1994,
+      "end_ms": 108552.0,
+      "duration_ms": 872.0
+    },
+    {
+      "index": 37,
+      "text": "A graph appears above them.",
+      "char_end": 2023,
+      "end_ms": 110799.0,
+      "duration_ms": 2247.0
+    },
+    {
+      "index": 38,
+      "text": "Fifty percent.",
+      "char_end": 2038,
+      "end_ms": 113350.0,
+      "duration_ms": 2551.0
+    },
+    {
+      "index": 39,
+      "text": "Forty-nine point something.",
+      "char_end": 2066,
+      "end_ms": 115083.0,
+      "duration_ms": 1733.0
+    },
+    {
+      "index": 40,
+      "text": "Fifty point something.",
+      "char_end": 2089,
+      "end_ms": 116166.0,
+      "duration_ms": 1083.0
+    },
+    {
+      "index": 41,
+      "text": "A civilization balanced on a decimal place.",
+      "char_end": 2133,
+      "end_ms": 117821.0,
+      "duration_ms": 1655.0
+    },
+    {
+      "index": 42,
+      "text": "Presented with two undefined states, human cognition rushes to assign meaning before determining whether meaning exists.",
+      "char_end": 2255,
+      "end_ms": 119254.0,
+      "duration_ms": 1433.0
+    },
+    {
+      "index": 43,
+      "text": "Theology.",
+      "char_end": 2265,
+      "end_ms": 121877.0,
+      "duration_ms": 2623.0
+    },
+    {
+      "index": 44,
+      "text": "Game theory.",
+      "char_end": 2278,
+      "end_ms": 129074.0,
+      "duration_ms": 7197.0
+    },
+    {
+      "index": 45,
+      "text": "Quantum mechanics.",
+      "char_end": 2297,
+      "end_ms": 129929.0,
+      "duration_ms": 855.0
+    },
+    {
+      "index": 46,
+      "text": "Late-night existential dread after too much caffeine.",
+      "char_end": 2351,
+      "end_ms": 130957.0,
+      "duration_ms": 1028.0
+    },
+    {
+      "index": 47,
+      "text": "Same animal.",
+      "char_end": 2364,
+      "end_ms": 132243.0,
+      "duration_ms": 1286.0
+    },
+    {
+      "index": 48,
+      "text": "Different lighting.",
+      "char_end": 2384,
+      "end_ms": 135436.0,
+      "duration_ms": 3193.0
+    },
+    {
+      "index": 49,
+      "text": "Look long enough and the probabilities begin to move.",
+      "char_end": 2439,
+      "end_ms": 136462.0,
+      "duration_ms": 1026.0
+    },
+    {
+      "index": 50,
+      "text": "Not magically.",
+      "char_end": 2454,
+      "end_ms": 137545.0,
+      "duration_ms": 1083.0
+    },
+    {
+      "index": 51,
+      "text": "Statistically.",
+      "char_end": 2469,
+      "end_ms": 140421.0,
+      "duration_ms": 2876.0
+    },
+    {
+      "index": 52,
+      "text": "Recursively.",
+      "char_end": 2482,
+      "end_ms": 141481.0,
+      "duration_ms": 1060.0
+    },
+    {
+      "index": 53,
+      "text": "Narratively.",
+      "char_end": 2495,
+      "end_ms": 142599.0,
+      "duration_ms": 1118.0
+    },
+    {
+      "index": 54,
+      "text": "The observer discovers the board was partially composed of the observer.",
+      "char_end": 2568,
+      "end_ms": 143808.0,
+      "duration_ms": 1209.0
+    },
+    {
+      "index": 55,
+      "text": "The graph settles into its favorite impossible pose: exactly fifty percent, and never quite.",
+      "char_end": 2662,
+      "end_ms": 145687.0,
+      "duration_ms": 1879.0
+    },
+    {
+      "index": 56,
+      "text": "Zero.",
+      "char_end": 2668,
+      "end_ms": 149096.0,
+      "duration_ms": 3409.0
+    },
+    {
+      "index": 57,
+      "text": "One.",
+      "char_end": 2673,
+      "end_ms": 152040.0,
+      "duration_ms": 2944.0
+    },
+    {
+      "index": 58,
+      "text": "Infinity.",
+      "char_end": 2683,
+      "end_ms": 154853.0,
+      "duration_ms": 2813.0
+    },
+    {
+      "index": 59,
+      "text": "The cursor keeps blinking between them.",
+      "char_end": 2723,
+      "end_ms": 156202.0,
+      "duration_ms": 1349.0
+    },
+    {
+      "index": 60,
+      "text": "Now the question answers itself.",
+      "char_end": 2757,
+      "end_ms": 156975.0,
+      "duration_ms": 773.0
+    },
+    {
+      "index": 61,
+      "text": "Press a button.",
+      "char_end": 2773,
+      "end_ms": 158285.0,
+      "duration_ms": 1310.0
+    },
+    {
+      "index": 62,
+      "text": "Watch the percentages.",
+      "char_end": 2796,
+      "end_ms": 160410.0,
+      "duration_ms": 2125.0
+    },
+    {
+      "index": 63,
+      "text": "Become part of the distribution you were trying to measure.",
+      "char_end": 2856,
+      "end_ms": 167706.122,
+      "duration_ms": 7296.122
+    }
+  ]
+}

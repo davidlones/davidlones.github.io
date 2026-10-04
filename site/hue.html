@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="indexifembedded">
+<title>Audio Orb v5.0</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #05060a; overflow: hidden; }
+    canvas { display: block; width: 100vw; height: 100vh; }
+
+    .hud {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      font: 12px/1.25 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: rgba(255,255,255,0.82);
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 10px 12px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      max-width: min(520px, calc(100vw - 28px));
+      transition: opacity 500ms ease, transform 600ms ease;
+      will-change: opacity, transform;
+    }
+
+    .hud.hidden {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+
+    .hud.remote-only {
+      display: none;
+    }
+
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .hint { opacity: 0.75; margin-top: 8px; }
+    .title { font-weight: 700; margin-bottom: 8px; }
+
+    .btn {
+      cursor: pointer;
+      user-select: none;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.9);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+
+  <div class="hud" id="hud">
+    <div class="title" id="title">Audio Orb</div>
+    <div class="row">
+      <button class="btn" id="playBtn">Play / Resume</button>
+      <button class="btn" id="pauseBtn">Pause</button>
+      <input id="file" type="file" accept="audio/mpeg,audio/mp3,audio/mp4,audio/*" />
+    </div>
+    <div class="hint" id="hint">
+      Tip: choose an audio file, then hit <b>Play / Resume</b> to wake the analyzer.
+    </div>
+  </div>
+
+  <audio id="a" crossorigin="anonymous" playsinline></audio>
+  <script src="/assets/hue-visualizer.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const canvas = document.getElementById("c");
+    const hud = document.getElementById("hud");
+    const titleEl = document.getElementById("title");
+    const hintEl = document.getElementById("hint");
+    const audioEl = document.getElementById("a");
+    const fileEl = document.getElementById("file");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const hideControls = params.get("controls") === "0";
+    const remoteSrc = params.get("src") || "";
+    const remoteTitle = params.get("title") || "";
+    const muted = params.get("mute") === "1";
+    let hudLocked = false;
+
+    const visualizer = window.createHueVisualizer({ canvas, mediaEl: audioEl });
+    audioEl.muted = muted;
+    if (remoteTitle) titleEl.textContent = remoteTitle;
+
+    function hideHudForever() {
+      if (hideControls || hudLocked) return;
+      hudLocked = true;
+      hud.classList.add("hidden");
+      setTimeout(() => {
+        hud.style.display = "none";
+      }, 700);
+    }
+
+    async function playCurrent() {
+      await visualizer.unlock();
+      try {
+        await audioEl.play();
+      } catch {}
+      if (!audioEl.paused) hideHudForever();
+    }
+
+    function loadSource(src, title = "") {
+      if (!src) return;
+      if (title) titleEl.textContent = title;
+      audioEl.src = src;
+      audioEl.load();
+    }
+
+    if (remoteSrc) {
+      loadSource(remoteSrc, remoteTitle);
+      hintEl.textContent = muted
+        ? "Visualizer mode is bound to a remote playback source."
+        : "Remote playback source loaded.";
+    }
+
+    if (hideControls) {
+      hud.classList.add("remote-only");
+    }
+
+    fileEl.addEventListener("change", () => {
+      const file = fileEl.files && fileEl.files[0];
+      if (!file) return;
+      titleEl.textContent = file.name.replace(/\.[^.]+$/, "");
+      audioEl.src = URL.createObjectURL(file);
+      audioEl.load();
+    });
+
+    playBtn.addEventListener("click", playCurrent);
+    pauseBtn.addEventListener("click", () => audioEl.pause());
+
+    audioEl.addEventListener("play", hideHudForever);
+    window.addEventListener("pointerdown", () => visualizer.unlock(), { passive: true });
+    window.addEventListener("keydown", () => visualizer.unlock(), { passive: true });
+  </script>
+</body>
+</html>

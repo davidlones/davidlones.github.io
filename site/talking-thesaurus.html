@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="indexifembedded">
+<title>The Talking Thesaurus</title>
+<meta name="description" content="A memoir on externalizing an atypical mind and building tools that let the overlay finally feel transparent.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260420b">
+<link rel="alternate icon" href="/favicon.ico?v=20260420b">
+<link rel="canonical" href="https://sol.system42.one/talking-thesaurus.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Sol-37">
+<meta property="og:title" content="The Talking Thesaurus">
+<meta property="og:description" content="A memoir on externalizing an atypical mind and building tools that let the overlay finally feel transparent.">
+<meta property="og:url" content="https://sol.system42.one/talking-thesaurus.html">
+<meta property="og:image" content="https://sol.system42.one/assets/share-previews/talking-thesaurus-social-preview.png">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="1536">
+<meta property="og:image:alt" content="Sol-37 desktop screenshot with the Talking Thesaurus title panel open beneath the retro desktop shell.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Talking Thesaurus">
+<meta name="twitter:description" content="A memoir on externalizing an atypical mind and building tools that let the overlay finally feel transparent.">
+<meta name="twitter:image" content="https://sol.system42.one/assets/share-previews/talking-thesaurus-social-preview.png">
+<meta name="twitter:image:alt" content="Sol-37 desktop screenshot with the Talking Thesaurus title panel open beneath the retro desktop shell.">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-0: #03161c;
+    --bg-1: #07242c;
+    --bg-2: #0d3941;
+    --panel: rgba(5, 20, 26, 0.9);
+    --panel-2: rgba(7, 27, 34, 0.82);
+    --line: rgba(111, 214, 220, 0.22);
+    --line-strong: rgba(111, 214, 220, 0.48);
+    --text: #eef6ee;
+    --muted: #a9c5c5;
+    --accent: #2fd4d0;
+    --accent-soft: #8ce8d8;
+    --paper: #f2ecdc;
+    --shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+    --mono: "Lucida Console", "Courier New", Courier, monospace;
+    --sans: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
+    --display: "Courier New", Courier, monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100%;
+    color: var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(47, 212, 208, 0.16), transparent 26%),
+      radial-gradient(circle at top right, rgba(140, 232, 216, 0.12), transparent 28%),
+      linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 30%, var(--bg-0) 100%);
+    font-family: var(--sans);
+  }
+
+  body.narration-blocked .autoplay-note {
+    color: #ffd9a8;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.026) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.026) 1px, transparent 1px);
+    background-size: 100% 32px, 32px 100%;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 92%);
+  }
+
+  .page {
+    width: min(1180px, calc(100vw - 32px));
+    margin: 0 auto;
+    padding: 118px 0 88px;
+  }
+
+  .narrator-dock {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    z-index: 30;
+    width: min(1120px, calc(100vw - 20px));
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 18px;
+    background: rgba(4, 14, 19, 0.78);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.34);
+  }
+
+  .narrator-orb {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 30% 24%, rgba(255,255,255,0.08), rgba(255,255,255,0) 26%),
+      radial-gradient(circle at 76% 78%, rgba(47,212,208,0.08), rgba(47,212,208,0) 38%),
+      #041016;
+    box-shadow:
+      inset 0 0 0 3px rgba(47, 212, 208, 0.22),
+      0 0 0 8px rgba(4, 26, 31, 0.6),
+      0 18px 26px rgba(0, 0, 0, 0.34);
+  }
+
+  .narrator-orb::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 999px;
+    border: 1px solid rgba(47, 212, 208, 0.24);
+    opacity: 0.7;
+  }
+
+  .narrator-orb[data-state="playing"] {
+    box-shadow:
+      inset 0 0 0 3px rgba(47, 212, 208, 0.22),
+      0 0 0 8px rgba(4, 26, 31, 0.6),
+      0 0 36px rgba(47, 212, 208, 0.34),
+      0 18px 26px rgba(0, 0, 0, 0.34);
+  }
+
+  .narrator-orb canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 999px;
+  }
+
+  .narrator-meta {
+    min-width: 0;
+  }
+
+  .narrator-title {
+    margin: 0 0 4px;
+    color: var(--accent-soft);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .narrator-status {
+    margin: 0;
+    color: var(--paper);
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .autoplay-note {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+
+  .narrator-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .version-switcher {
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .version-button,
+  .transport-button {
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--paper);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .version-button[aria-pressed="true"],
+  .transport-button:hover,
+  .transport-button:focus-visible,
+  .version-button:hover,
+  .version-button:focus-visible {
+    border-color: rgba(47, 212, 208, 0.4);
+    color: #ffffff;
+    background: rgba(47, 212, 208, 0.1);
+  }
+
+  .frame {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(8, 22, 27, 0.96), rgba(4, 14, 19, 0.98));
+    box-shadow: var(--shadow);
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-soft);
+  }
+
+  .status::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 18px rgba(140, 232, 216, 0.6);
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 470px);
+    gap: 30px;
+    padding: 34px 34px 28px;
+    align-items: center;
+  }
+
+  .eyebrow,
+  .kicker,
+  .tiny {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: var(--accent-soft);
+    font-size: 12px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 36px;
+    height: 1px;
+    background: currentColor;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(44px, 8vw, 92px);
+    line-height: 0.92;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .dek {
+    margin: 22px 0 0;
+    max-width: 44rem;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: clamp(18px, 2.2vw, 24px);
+    line-height: 1.5;
+    text-wrap: balance;
+  }
+
+  .summary {
+    margin-top: 26px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    max-width: 42rem;
+    font-size: 18px;
+    line-height: 1.9;
+    color: var(--paper);
+  }
+
+  .meta-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  .meta-card {
+    padding: 16px 16px 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .meta-card strong,
+  .panel h2,
+  .audio-card h2 {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--accent-soft);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .meta-card span {
+    display: block;
+    color: var(--paper);
+    line-height: 1.45;
+    font-size: 15px;
+  }
+
+  .hero-media {
+    position: relative;
+  }
+
+  .desktop-shot {
+    display: block;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    box-shadow: 0 24px 44px rgba(0, 0, 0, 0.36);
+  }
+
+  .hero-badge {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    max-width: calc(100% - 32px);
+    padding: 12px 14px;
+    border: 1px solid rgba(47, 212, 208, 0.28);
+    border-radius: 14px;
+    background: rgba(2, 12, 16, 0.74);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  }
+
+  .hero-badge strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .hero-badge span {
+    color: var(--paper);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    gap: 22px;
+    padding: 0 34px 34px;
+  }
+
+  .panel,
+  .audio-card {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    padding: 22px;
+  }
+
+  .panel p,
+  .audio-card p {
+    margin: 0;
+    color: var(--paper);
+    font-size: 17px;
+    line-height: 1.85;
+  }
+
+  .panel p + p,
+  .audio-card p + p {
+    margin-top: 16px;
+  }
+
+  .terminal {
+    margin: 18px 0 0;
+    padding: 14px 16px;
+    border: 1px solid rgba(47, 212, 208, 0.26);
+    border-radius: 14px;
+    background: #010709;
+    color: #39f58d;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .quote {
+    margin: 20px 0 0;
+    padding: 18px 18px 18px 20px;
+    border-left: 3px solid var(--accent);
+    background: rgba(255, 255, 255, 0.035);
+    color: #d7f0e4;
+    font-size: 17px;
+    line-height: 1.8;
+  }
+
+  .audio-shell {
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.18);
+  }
+
+  .audio-shell ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--paper);
+  }
+
+  .audio-shell li + li {
+    margin-top: 8px;
+  }
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 34px 32px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .footer-easter {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px 6px 8px;
+    border-radius: 999px;
+    background: rgba(6, 18, 24, 0.42);
+    box-shadow:
+      inset 0 0 0 1px rgba(140, 232, 216, 0.08),
+      0 8px 18px rgba(0, 0, 0, 0.16);
+    color: rgba(140, 232, 216, 0.72);
+    letter-spacing: 0.12em;
+  }
+
+  .footer-easter-badge {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    overflow: hidden;
+    flex: 0 0 auto;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 0 18px rgba(73, 143, 255, 0.16);
+  }
+
+  .footer-easter-badge::after {
+    content: "";
+    position: absolute;
+    inset: -5px;
+    border-radius: 999px;
+    border: 1px solid rgba(140, 232, 216, 0.18);
+    opacity: 0.72;
+  }
+
+  .footer-easter-badge img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .footer-easter-logo {
+    position: absolute;
+    left: 16%;
+    top: 61%;
+    width: 68%;
+    height: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 0 4px rgba(108, 166, 255, 0.3));
+  }
+
+  .footer-easter-copy {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.05;
+  }
+
+  .footer-easter-copy small {
+    color: rgba(140, 232, 216, 0.42);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  .footer-easter-copy strong {
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .footer a:hover,
+  .footer a:focus-visible {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 960px) {
+    .hero,
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-media {
+      max-width: 640px;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .narrator-dock {
+      grid-template-columns: 1fr;
+      justify-items: start;
+      gap: 12px;
+      top: 8px;
+      width: calc(100vw - 12px);
+      padding: 12px;
+    }
+
+    .narrator-controls {
+      justify-content: flex-start;
+    }
+
+    .page {
+      width: min(100vw, calc(100vw - 12px));
+      padding-top: 220px;
+    }
+
+    .hero,
+    .content-grid,
+    .footer {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+
+    .hero {
+      padding-top: 24px;
+    }
+
+    .meta-strip {
+      grid-template-columns: 1fr;
+    }
+
+    .summary,
+    .panel p,
+    .audio-card p {
+      font-size: 16px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="narrator-dock" aria-label="Page narration controls">
+    <button class="narrator-orb" id="narrator-orb" type="button" aria-label="Play page narration" data-state="paused"></button>
+    <div class="narrator-meta">
+      <p class="narrator-title">Persistent narration overlay</p>
+      <p class="narrator-status" id="narrator-status">Loading narration. The page will attempt to start automatically.</p>
+      <span class="autoplay-note" id="autoplay-note">If the browser blocks sound-on-load, use the orb or play button.</span>
+    </div>
+    <div class="narrator-controls">
+      <div class="version-switcher" role="group" aria-label="Narration version">
+        <button class="version-button" id="version-a" type="button" aria-pressed="true" data-track="a">Narration A</button>
+        <button class="version-button" id="version-b" type="button" aria-pressed="false" data-track="b">Narration B</button>
+      </div>
+      <button class="transport-button" id="transport-button" type="button">Play</button>
+    </div>
+    <audio id="narration-audio" preload="metadata">
+      <source src="/audio/talking-thesaurus-narration-a.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
+  <main class="page">
+    <article class="frame">
+      <div class="topbar">
+        <span>Sol-37 Memoir Surface</span>
+        <span class="status">Public overlay online</span>
+      </div>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">A memoir in public tooling</div>
+          <h1>The Talking Thesaurus</h1>
+          <p class="dek">A virtual desktop, an unapologetic voice, and the system that made it transparent.</p>
+          <p class="summary">
+            I grew up needing a thesaurus the way other kids needed snacks or sports equipment. Not as a school accessory,
+            but as a bridge between what I meant and what I could get out in time for another human being to catch it.
+          </p>
+
+          <div class="meta-strip" aria-label="Project summary">
+            <div class="meta-card">
+              <strong>Format</strong>
+              <span>Memoir, interface note, and public explanation layer.</span>
+            </div>
+            <div class="meta-card">
+              <strong>Surface</strong>
+              <span>Retro desktop shell, iframe windows, and a voice-forward system log.</span>
+            </div>
+            <div class="meta-card">
+              <strong>Address</strong>
+              <span><code>sol.system42.one</code></span>
+            </div>
+          </div>
+        </div>
+
+        <figure class="hero-media">
+          <img
+            class="desktop-shot"
+            src="/assets/share-previews/talking-thesaurus-social-preview.png"
+            alt="Sol-37 desktop screenshot with the Talking Thesaurus title panel open beneath the retro desktop shell."
+          >
+          <figcaption class="hero-badge">
+            <strong>Preview image</strong>
+            <span>The same screenshot used for social sharing is embedded here as part of the page, so the public card matches the actual narrative surface.</span>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel">
+          <h2>Why this exists</h2>
+          <p>While conversations flowed around me, I was internally flipping pages, searching for the precise word that could release the dense cluster of thoughts, observations, and feelings trapped behind my hesitation.</p>
+          <p>No diagnosis explained it then. No one named the wiring that made real-time social decoding exhausting, or the backlog that formed between internal complexity and external speech. So I built workarounds. The thesaurus was the first one that felt reliable.</p>
+          <div class="terminal">
+            &gt; boot overlay<br>
+            &gt; mount /memory<br>
+            &gt; translate thought_buffer --output human_readable
+          </div>
+          <p>Decades later, that imaginary system has a public address. The Sol-37 desktop is not just a website aesthetic. It is the materialized version of a private assistive fiction: a windowed interface for making thought legible before it evaporates under timing pressure.</p>
+          <div class="quote">The public conversation keeps asking whether AI will make people less real. For some of us, the more immediate question is simpler: what if the tool finally lets us arrive in public at the same speed we were always thinking in private?</div>
+        </div>
+
+        <aside class="audio-card">
+          <h2>Listen</h2>
+          <p>This page keeps the spoken layer up front because voice is part of the thesis, not a decorative extra. The desktop, the narration, and the transcript logic are all versions of the same external bridge.</p>
+          <div class="audio-shell">
+            <ul>
+              <li>The sticky overlay at the top stays visible while you scroll.</li>
+              <li>The orb toggles playback directly from local MP3 narration files.</li>
+              <li>You can switch between two recorded versions without leaving the page.</li>
+            </ul>
+          </div>
+          <p>To every undiagnosed spectrum kid now navigating adulthood: your thoughts were always valid. The lag between mind and mouth was never proof of absence. It was a transport problem.</p>
+          <p>Keep booting the command line. Keep querying your own system.</p>
+        </aside>
+      </section>
+
+      <footer class="footer">
+        <span>Talking Thesaurus // Sol-37</span>
+        <a class="footer-easter" href="/davedot/intro.html" aria-label="Open Transmission Archive">
+          <span class="footer-easter-badge" aria-hidden="true">
+            <img src="/davedot/assets/images/black_hole_nasa.webp" alt="">
+            <img class="footer-easter-logo" src="/davedot/assets/images/Dave%20Dot%20LOGO.bmp" alt="">
+          </span>
+          <span class="footer-easter-copy">
+            <small>Easter Egg</small>
+            <strong>Transmission Archive</strong>
+          </span>
+        </a>
+        <a href="https://sol.system42.one">sol.system42.one</a>
+      </footer>
+    </article>
+  </main>
+
+  <script>
+    (() => {
+      const audio = document.getElementById("narration-audio");
+      const orb = document.getElementById("narrator-orb");
+      const transport = document.getElementById("transport-button");
+      const status = document.getElementById("narrator-status");
+      const note = document.getElementById("autoplay-note");
+      const versionButtons = Array.from(document.querySelectorAll(".version-button"));
+      const tracks = {
+        a: "/audio/talking-thesaurus-narration-a.mp3",
+        b: "/audio/talking-thesaurus-narration-b.mp3"
+      };
+      let activeTrack = "a";
+
+      const orbCanvas = document.createElement("canvas");
+      orbCanvas.id = "narrator-orb-canvas";
+      orbCanvas.setAttribute("aria-hidden", "true");
+      orb.appendChild(orbCanvas);
+
+      function createNarrationOrbVisualizer(canvas, mediaEl) {
+        const ctx = canvas.getContext("2d", { alpha: true });
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        let ac = null;
+        let analyser = null;
+        let srcNode = null;
+        let freq = null;
+        let timeData = null;
+        let started = false;
+        let rafId = 0;
+        let tick = 0;
+        let smoothedAmp = 0;
+        let mouseAngle = -Math.PI * 0.25;
+        let mouseAngleTarget = mouseAngle;
+
+        function trackMouse(event) {
+          const rect = canvas.getBoundingClientRect();
+          const cx = rect.left + rect.width * 0.5;
+          const cy = rect.top + rect.height * 0.5;
+          mouseAngleTarget = Math.atan2(event.clientY - cy, event.clientX - cx);
+        }
+
+        function clamp01(x) {
+          return Math.max(0, Math.min(1, x));
+        }
+
+        function ensureGraph() {
+          if (started || !AudioCtor) return;
+          ac = new AudioCtor();
+          analyser = ac.createAnalyser();
+          analyser.fftSize = 2048;
+          analyser.smoothingTimeConstant = 0.82;
+          srcNode = ac.createMediaElementSource(mediaEl);
+          srcNode.connect(analyser);
+          analyser.connect(ac.destination);
+          freq = new Uint8Array(analyser.frequencyBinCount);
+          timeData = new Uint8Array(analyser.fftSize);
+          started = true;
+        }
+
+        async function unlock() {
+          ensureGraph();
+          if (ac && ac.state === "suspended") {
+            try {
+              await ac.resume();
+            } catch {}
+          }
+        }
+
+        function resize() {
+          const rect = canvas.getBoundingClientRect();
+          const width = Math.max(1, Math.floor(rect.width || 1));
+          const height = Math.max(1, Math.floor(rect.height || 1));
+          const dpr = Math.max(1, window.devicePixelRatio || 1);
+          const pixelWidth = Math.floor(width * dpr);
+          const pixelHeight = Math.floor(height * dpr);
+          if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+            canvas.width = pixelWidth;
+            canvas.height = pixelHeight;
+          }
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function getAmplitude() {
+          if (!analyser || !timeData) return 0;
+          analyser.getByteTimeDomainData(timeData);
+          let sumSq = 0;
+          for (let i = 0; i < timeData.length; i += 1) {
+            const v = (timeData[i] - 128) / 128;
+            sumSq += v * v;
+          }
+          return Math.sqrt(sumSq / timeData.length);
+        }
+
+        function getBands() {
+          if (!analyser || !freq) return { low: 0, mid: 0, high: 0 };
+          analyser.getByteFrequencyData(freq);
+          const n = freq.length;
+          const lowEnd = Math.floor(n * 0.15);
+          const midEnd = Math.floor(n * 0.52);
+          let low = 0;
+          let mid = 0;
+          let high = 0;
+          for (let i = 0; i < lowEnd; i += 1) low += freq[i];
+          for (let i = lowEnd; i < midEnd; i += 1) mid += freq[i];
+          for (let i = midEnd; i < n; i += 1) high += freq[i];
+          return {
+            low: Math.pow(clamp01(low / Math.max(1, lowEnd * 255)), 0.9),
+            mid: Math.pow(clamp01(mid / Math.max(1, (midEnd - lowEnd) * 255)), 0.9),
+            high: Math.pow(clamp01(high / Math.max(1, (n - midEnd) * 255)), 0.9),
+          };
+        }
+
+        function draw() {
+          rafId = window.requestAnimationFrame(draw);
+          resize();
+          tick += 1;
+
+          const rect = canvas.getBoundingClientRect();
+          const w = Math.max(1, rect.width || 1);
+          const h = Math.max(1, rect.height || 1);
+          const cx = w * 0.5;
+          const cy = h * 0.5;
+          const minDim = Math.min(w, h);
+
+          ctx.clearRect(0, 0, w, h);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, minDim * 0.5, 0, Math.PI * 2);
+          ctx.clip();
+
+          const bg = ctx.createRadialGradient(cx * 0.85, cy * 0.8, minDim * 0.04, cx, cy, minDim * 0.58);
+          bg.addColorStop(0, "rgba(14,31,39,0.95)");
+          bg.addColorStop(0.45, "rgba(6,14,19,0.98)");
+          bg.addColorStop(1, "rgba(1,4,7,1)");
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, w, h);
+
+          const breath = 0.5 + 0.5 * Math.sin(tick * 0.032);
+          const amp = started ? getAmplitude() : 0;
+          const bands = started ? getBands() : { low: 0, mid: 0, high: 0 };
+          smoothedAmp = smoothedAmp * 0.84 + amp * 0.16;
+          mouseAngle += Math.atan2(Math.sin(mouseAngleTarget - mouseAngle), Math.cos(mouseAngleTarget - mouseAngle)) * 0.09;
+          const ampCurve = Math.pow(clamp01(smoothedAmp * 4.8), 0.7);
+          const quietPull = 1 - ampCurve;
+          const bandPeak = clamp01(Math.max(bands.low, bands.mid, bands.high) * 1.35);
+          const lowRed = clamp01(bands.low * 1.8);
+          const midGreen = clamp01(bands.mid * 1.7);
+          const highBlue = clamp01(bands.high * 1.85);
+
+          const angle =
+            mouseAngle +
+            Math.sin(tick * 0.014 + bands.high * 6.5) * (0.18 + bandPeak * 0.22) +
+            bands.mid * 0.45 -
+            bands.low * 0.28;
+          const orbit = minDim * (0.05 + ampCurve * 0.25 + bandPeak * 0.09);
+          const collapse = minDim * quietPull * 0.18;
+          const lensX = cx + Math.cos(angle) * (orbit - collapse);
+          const lensY = cy + Math.sin(angle) * (orbit - collapse) * 0.76;
+          const lightDistance = minDim * (0.16 + ampCurve * 0.28 + bands.high * 0.12);
+          const lightX = cx + Math.cos(angle) * lightDistance;
+          const lightY = cy + Math.sin(angle) * lightDistance * (0.74 + bands.mid * 0.26);
+
+          const eventRadius = minDim * (0.125 + quietPull * 0.09 - ampCurve * 0.018);
+          const lensRadius = minDim * (0.19 + ampCurve * 0.105 + bandPeak * 0.035);
+          const haloRadius = minDim * (0.37 + ampCurve * 0.28 + bandPeak * 0.1);
+          const ringRadius = minDim * (0.34 + ampCurve * 0.11);
+
+          const red = Math.round(54 + lowRed * 201 + bandPeak * 28);
+          const green = Math.round(74 + midGreen * 181 + bandPeak * 30);
+          const blue = Math.round(98 + highBlue * 157 + bandPeak * 34);
+
+          const lensField = ctx.createRadialGradient(lightX, lightY, minDim * 0.012, cx, cy, haloRadius);
+          lensField.addColorStop(0, `rgba(255,255,255,${0.92 + bandPeak * 0.08})`);
+          lensField.addColorStop(0.12, `rgba(${red},${green},${blue},${0.72 + bandPeak * 0.2})`);
+          lensField.addColorStop(0.34, `rgba(${red},${green},${blue},${0.22 + ampCurve * 0.24})`);
+          lensField.addColorStop(0.64, `rgba(${Math.round(red * 0.55)},${Math.round(green * 0.55)},${Math.round(blue * 0.65)},${0.07 + bands.mid * 0.12})`);
+          lensField.addColorStop(1, "rgba(5,20,28,0)");
+          ctx.globalCompositeOperation = "lighter";
+          ctx.fillStyle = lensField;
+          ctx.beginPath();
+          ctx.arc(cx, cy, haloRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          const accretionAlpha = 0.18 + quietPull * 0.34 + bandPeak * 0.12;
+          ctx.strokeStyle = `rgba(${red},${green},${blue},${accretionAlpha})`;
+          ctx.lineWidth = minDim * (0.012 + bandPeak * 0.012);
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, eventRadius * (1.85 + ampCurve * 0.45), eventRadius * (0.62 + ampCurve * 0.16), angle, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = `rgba(255,255,255,${0.05 + quietPull * 0.13})`;
+          ctx.lineWidth = minDim * 0.006;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, eventRadius * 1.42, eventRadius * 0.45, angle + Math.PI * 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+
+          const eventHorizon = ctx.createRadialGradient(cx, cy, 0, cx, cy, eventRadius * 1.7);
+          eventHorizon.addColorStop(0, "rgba(0,0,0,1)");
+          eventHorizon.addColorStop(0.58, "rgba(0,0,0,0.98)");
+          eventHorizon.addColorStop(0.74, `rgba(0,0,0,${0.82 + quietPull * 0.16})`);
+          eventHorizon.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.globalCompositeOperation = "source-over";
+          ctx.fillStyle = eventHorizon;
+          ctx.beginPath();
+          ctx.arc(cx, cy, eventRadius * 1.7, 0, Math.PI * 2);
+          ctx.fill();
+
+          const lens = ctx.createRadialGradient(lensX - lensRadius * 0.2, lensY - lensRadius * 0.22, minDim * 0.02, lensX, lensY, lensRadius);
+          lens.addColorStop(0, `rgba(${Math.round(red * 0.16)},${Math.round(green * 0.2)},${Math.round(blue * 0.25)},0.94)`);
+          lens.addColorStop(0.54, "rgba(4,11,16,0.98)");
+          lens.addColorStop(1, "rgba(0,3,6,1)");
+          ctx.fillStyle = lens;
+          ctx.beginPath();
+          ctx.arc(lensX, lensY, lensRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${0.18 + ampCurve * 0.16})`;
+          ctx.lineWidth = minDim * 0.014;
+          ctx.beginPath();
+          ctx.arc(lensX, lensY, lensRadius * 1.08, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${0.16 + bandPeak * 0.24})`;
+          ctx.lineWidth = minDim * 0.008;
+          ctx.beginPath();
+          ctx.arc(cx, cy, ringRadius, 0, Math.PI * 2);
+          ctx.stroke();
+
+          const glareAngle = angle + Math.PI;
+          const glareX = lensX + Math.cos(glareAngle) * lensRadius * 0.23;
+          const glareY = lensY + Math.sin(glareAngle) * lensRadius * 0.19;
+          const glare = ctx.createRadialGradient(glareX, glareY, 0, glareX, glareY, lensRadius * 0.52);
+          glare.addColorStop(0, `rgba(255,255,255,${0.18 + bands.high * 0.08})`);
+          glare.addColorStop(1, "rgba(255,255,255,0)");
+          ctx.fillStyle = glare;
+          ctx.beginPath();
+          ctx.arc(glareX, glareY, lensRadius * 0.52, 0, Math.PI * 2);
+          ctx.fill();
+
+          const coreRadius = minDim * (0.045 + ampCurve * 0.095 + bandPeak * 0.03);
+          const core = ctx.createRadialGradient(lightX, lightY, 0, lightX, lightY, coreRadius * 2.8);
+          core.addColorStop(0, "rgba(255,255,255,1)");
+          core.addColorStop(0.2, `rgba(${Math.min(255, red + 30)},${Math.min(255, green + 30)},${Math.min(255, blue + 30)},0.98)`);
+          core.addColorStop(0.5, `rgba(${red},${green},${blue},${0.72 + bandPeak * 0.2})`);
+          core.addColorStop(1, `rgba(${red},${green},${blue},0)`);
+          ctx.globalCompositeOperation = "lighter";
+          ctx.fillStyle = core;
+          ctx.beginPath();
+          ctx.arc(lightX, lightY, coreRadius * 2.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          const rayAlpha = 0.08 + quietPull * 0.08 + bands.low * 0.1 + ampCurve * 0.1;
+          ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${rayAlpha})`;
+          ctx.lineWidth = minDim * 0.01;
+          ctx.beginPath();
+          ctx.moveTo(lightX, lightY);
+          ctx.quadraticCurveTo(
+            lensX + Math.cos(angle + Math.PI * 0.5) * lensRadius * 0.35,
+            lensY + Math.sin(angle + Math.PI * 0.5) * lensRadius * 0.25,
+            cx,
+            cy
+          );
+          ctx.stroke();
+
+          const pulseRadius = lensRadius * (1.02 + ampCurve * 0.18);
+          ctx.strokeStyle = `rgba(${red}, ${green}, ${blue}, ${0.14 + ampCurve * 0.26 + bandPeak * 0.12})`;
+          ctx.lineWidth = minDim * 0.01;
+          ctx.beginPath();
+          ctx.arc(lensX, lensY, pulseRadius, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+
+        const resizeObserver = typeof ResizeObserver === "function"
+          ? new ResizeObserver(() => resize())
+          : null;
+        resizeObserver?.observe(canvas);
+        window.addEventListener("resize", resize);
+        window.addEventListener("pointermove", trackMouse, { passive: true });
+        rafId = window.requestAnimationFrame(draw);
+
+        return {
+          unlock,
+          destroy() {
+            if (rafId) {
+              window.cancelAnimationFrame(rafId);
+              rafId = 0;
+            }
+            resizeObserver?.disconnect();
+            window.removeEventListener("resize", resize);
+            window.removeEventListener("pointermove", trackMouse);
+            if (srcNode) {
+              try { srcNode.disconnect(); } catch {}
+            }
+            if (analyser) {
+              try { analyser.disconnect(); } catch {}
+            }
+            if (ac) {
+              try { ac.close(); } catch {}
+            }
+          }
+        };
+      }
+
+      const orbVisualizer = createNarrationOrbVisualizer(orbCanvas, audio);
+
+      function setStatus(message) {
+        status.textContent = message;
+      }
+
+      function syncTransport() {
+        const playing = !audio.paused;
+        orb.dataset.state = playing ? "playing" : "paused";
+        orb.setAttribute("aria-label", playing ? "Pause page narration" : "Play page narration");
+        transport.textContent = playing ? "Pause" : "Play";
+      }
+
+      function setTrack(trackKey, preservePlayback = true) {
+        if (!tracks[trackKey] || trackKey === activeTrack) return;
+        const shouldResume = preservePlayback && !audio.paused;
+        activeTrack = trackKey;
+        versionButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", button.dataset.track === trackKey ? "true" : "false");
+        });
+        audio.src = tracks[trackKey];
+        audio.load();
+        setStatus(`Narration ${trackKey.toUpperCase()} selected.`);
+        if (shouldResume) {
+          orbVisualizer.unlock()
+            .then(() => audio.play())
+            .then(() => {
+              document.body.classList.remove("narration-blocked");
+              note.textContent = "Narration switched while playback continued.";
+              setStatus(`Playing narration ${trackKey.toUpperCase()}.`);
+              syncTransport();
+            })
+            .catch(() => {
+              document.body.classList.add("narration-blocked");
+              note.textContent = "Browser blocked automatic resume after switching versions. Press play.";
+              syncTransport();
+            });
+        } else {
+          syncTransport();
+        }
+      }
+
+      function togglePlayback() {
+        if (audio.paused) {
+          orbVisualizer.unlock()
+            .then(() => audio.play())
+            .then(() => {
+              document.body.classList.remove("narration-blocked");
+              note.textContent = "Narration is live from local page audio.";
+              setStatus(`Playing narration ${activeTrack.toUpperCase()}.`);
+              syncTransport();
+            })
+            .catch(() => {
+              document.body.classList.add("narration-blocked");
+              note.textContent = "Autoplay is blocked until a user gesture. Press play again if needed.";
+              setStatus("Automatic playback was blocked by the browser.");
+              syncTransport();
+            });
+        } else {
+          audio.pause();
+          setStatus(`Narration ${activeTrack.toUpperCase()} paused.`);
+          syncTransport();
+        }
+      }
+
+      versionButtons.forEach((button) => {
+        button.addEventListener("click", () => setTrack(button.dataset.track));
+      });
+      orb.addEventListener("click", togglePlayback);
+      transport.addEventListener("click", togglePlayback);
+
+      audio.addEventListener("play", syncTransport);
+      audio.addEventListener("pause", syncTransport);
+      audio.addEventListener("ended", () => {
+        setStatus(`Narration ${activeTrack.toUpperCase()} finished.`);
+        syncTransport();
+      });
+
+      window.addEventListener("load", () => {
+        syncTransport();
+        orbVisualizer.unlock()
+          .then(() => audio.play())
+          .then(() => {
+            note.textContent = "Narration started automatically.";
+            setStatus(`Playing narration ${activeTrack.toUpperCase()}.`);
+            syncTransport();
+          })
+          .catch(() => {
+            document.body.classList.add("narration-blocked");
+            note.textContent = "This browser blocked sound-on-load. Use the orb or play button.";
+            setStatus("Narration ready. Manual start may be required.");
+            syncTransport();
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

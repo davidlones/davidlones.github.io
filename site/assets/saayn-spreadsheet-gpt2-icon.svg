@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="SAAYN spreadsheet GPT-2 icon">
+  <rect width="48" height="48" rx="4" fill="#07130f"/>
+  <rect x="6" y="7" width="36" height="34" rx="2" fill="#dff7da" stroke="#000" stroke-width="2"/>
+  <rect x="6" y="7" width="36" height="7" fill="#1f7a3b" stroke="#000" stroke-width="2"/>
+  <path d="M12 19h30M12 25h30M12 31h30M12 37h30M18 14v27M28 14v27" stroke="#8bb58a" stroke-width="1"/>
+  <rect x="18" y="19" width="10" height="6" fill="#fff7b0" stroke="#174a22"/>
+  <rect x="28" y="25" width="14" height="6" fill="#bfe8ff" stroke="#174a22"/>
+  <path d="M9 34c5-9 9-13 14-13 4 0 6 2 8 7 1-6 3-11 7-13" fill="none" stroke="#0a3568" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="23" cy="21" r="2" fill="#f05d23" stroke="#000"/>
+  <circle cx="31" cy="28" r="2" fill="#223dff" stroke="#000"/>
+  <path d="M14 42h20l4 3H10z" fill="#5f6b73" stroke="#000"/>
+</svg>

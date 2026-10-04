@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SOL Vision Color Bars</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #090909; color: #fff; }
+    body { display: grid; grid-template-rows: 66% 17% 17%; font-family: "DejaVu Sans Mono", monospace; }
+    .bars, .steps { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .bar { display: grid; place-items: end center; padding: 1rem .2rem; font-weight: 800; text-shadow: 0 1px 2px #000; }
+    .white { background: rgb(191,191,191); color: #111; text-shadow: none; }
+    .yellow { background: rgb(191,191,0); color: #111; text-shadow: none; }
+    .cyan { background: rgb(0,191,191); color: #111; text-shadow: none; }
+    .green { background: rgb(0,191,0); }
+    .magenta { background: rgb(191,0,191); }
+    .red { background: rgb(191,0,0); }
+    .blue { background: rgb(0,0,191); }
+    .step:nth-child(1) { background: #000; }
+    .step:nth-child(2) { background: #2b2b2b; }
+    .step:nth-child(3) { background: #555; }
+    .step:nth-child(4) { background: #808080; }
+    .step:nth-child(5) { background: #aaa; }
+    .step:nth-child(6) { background: #d5d5d5; }
+    .step:nth-child(7) { background: #fff; }
+    footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 2vw; background: #111; border-top: 2px solid #fff; }
+    footer strong { letter-spacing: .12em; text-transform: uppercase; }
+    footer span { color: #bbb; font-size: clamp(.65rem, 1.4vw, 1rem); }
+    @media (max-width: 700px) { .bar { font-size: .6rem; writing-mode: vertical-rl; } }
+  </style>
+</head>
+<body>
+  <main class="bars" aria-label="Seven reference color bars">
+    <div class="bar white">WHITE</div><div class="bar yellow">YELLOW</div><div class="bar cyan">CYAN</div>
+    <div class="bar green">GREEN</div><div class="bar magenta">MAGENTA</div><div class="bar red">RED</div><div class="bar blue">BLUE</div>
+  </main>
+  <section class="steps" aria-label="Seven grayscale steps"><i class="step"></i><i class="step"></i><i class="step"></i><i class="step"></i><i class="step"></i><i class="step"></i><i class="step"></i></section>
+  <footer><strong>SOL Vision Calibration</strong><span>Rec. 601-style 75% bars · deterministic same-origin test target</span></footer>
+</body>
+</html>

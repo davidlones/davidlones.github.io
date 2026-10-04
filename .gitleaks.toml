@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Two reviewed browser localStorage key names, not credentials"
+regexTarget = "match"
+regexes = [
+  '''STORAGE_KEY\s*=\s*"sorento_pseudo_chain_v1"''',
+  '''ingestJobStorageKey\s*=\s*'sol37-yts-ingest-job''''
+]

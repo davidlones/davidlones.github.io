@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sol Chat 98 + Clippy Seamless Mode | Sol-37</title>
+  <meta name="description" content="A working Windows 98 AI desktop: native Win32 chat, the original Microsoft Agent Clippy, host-pushed controls, diagnostics, and a seamless XFCE overlay. Download the public installers, ISO, source, and docs.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://sol.system42.one/windows98-clippy-showcase.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sol-37">
+  <meta property="og:url" content="https://sol.system42.one/windows98-clippy-showcase.html">
+  <meta property="og:title" content="Windows 98, Meet 2026: Sol Chat + Clippy">
+  <meta property="og:description" content="Native Win32 AI chat, original Microsoft Agent Clippy, remote controls, diagnostics, and a seamless XFCE overlay. Public installers and source included.">
+  <meta property="og:image" content="https://sol.system42.one/assets/sol98-showcase/sol98-xfce-seamless.png">
+  <meta property="og:image:width" content="1920">
+  <meta property="og:image:height" content="1080">
+  <meta property="og:image:alt" content="Sol Chat 98 and the original Clippy layered over an XFCE desktop in seamless mode.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Windows 98, Meet 2026: Sol Chat + Clippy">
+  <meta name="twitter:description" content="A real Windows 98 AI desktop with a standalone Clippy, host controls, and public installers.">
+  <meta name="twitter:image" content="https://sol.system42.one/assets/sol98-showcase/sol98-xfce-seamless.png">
+  <meta name="theme-color" content="#007c78">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --teal: #007c78;
+      --teal-dark: #004c4a;
+      --paper: #fffde8;
+      --chrome: #c0c0c0;
+      --chrome-hi: #fff;
+      --chrome-mid: #808080;
+      --chrome-low: #000;
+      --navy: #000080;
+      --blue: #1084d0;
+      --ink: #111;
+      --electric: #72ffdd;
+      --yellow: #fff37b;
+      --shadow: 12px 14px 0 rgba(0,0,0,.28);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        var(--teal);
+      background-size: 24px 24px;
+      font: 14px/1.5 Tahoma, Geneva, "MS Sans Serif", sans-serif;
+    }
+    a { color: inherit; }
+    button, a.button { font: inherit; }
+    .skip { position: absolute; left: -9999px; }
+    .skip:focus { left: 8px; top: 8px; z-index: 99; background: white; padding: 8px; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20;
+      min-height: 34px; padding: 4px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      color: #fff; background: #050505; border-bottom: 2px solid var(--chrome-hi);
+      box-shadow: 0 3px 0 var(--chrome-low);
+    }
+    .topbar strong { letter-spacing: .12em; }
+    .topbar nav { display: flex; flex-wrap: wrap; gap: 16px; }
+    .topbar a { color: #fff; text-underline-offset: 3px; }
+    .hero {
+      min-height: 78vh; padding: clamp(32px, 7vw, 92px) 5vw 46px;
+      display: grid; grid-template-columns: minmax(280px,.84fr) minmax(420px,1.3fr);
+      align-items: center; gap: clamp(28px,5vw,76px);
+      overflow: hidden;
+    }
+    .hero-copy { position: relative; z-index: 2; }
+    .eyebrow {
+      display: inline-block; margin: 0 0 16px; padding: 4px 8px;
+      color: #fff; background: #000; text-transform: uppercase; letter-spacing: .18em;
+      box-shadow: 5px 5px 0 var(--electric);
+    }
+    h1 {
+      margin: 0; max-width: 760px; color: #fff;
+      font: 900 clamp(48px,8vw,112px)/.82 "Arial Black", Impact, sans-serif;
+      letter-spacing: -.065em; text-transform: uppercase;
+      text-shadow: 5px 5px 0 #000, 9px 9px 0 var(--navy);
+    }
+    h1 span { display: block; color: var(--yellow); }
+    .lede { max-width: 670px; margin: 28px 0 24px; color: white; font-size: clamp(17px,2vw,24px); line-height: 1.35; text-shadow: 2px 2px #00403e; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .button {
+      display: inline-block; padding: 10px 16px; color: #000; background: var(--chrome);
+      border: 2px solid; border-color: var(--chrome-hi) var(--chrome-low) var(--chrome-low) var(--chrome-hi);
+      text-decoration: none; font-weight: 700; box-shadow: 4px 4px 0 rgba(0,0,0,.35);
+    }
+    .button:active { border-color: var(--chrome-low) var(--chrome-hi) var(--chrome-hi) var(--chrome-low); transform: translate(2px,2px); box-shadow: 2px 2px 0 rgba(0,0,0,.35); }
+    .button.primary { color: white; background: var(--navy); }
+    .window {
+      background: var(--chrome); padding: 4px;
+      border: 2px solid; border-color: var(--chrome-hi) var(--chrome-low) var(--chrome-low) var(--chrome-hi);
+      box-shadow: var(--shadow);
+    }
+    .titlebar {
+      min-height: 28px; padding: 4px 6px; display: flex; align-items: center; justify-content: space-between;
+      color: white; background: linear-gradient(90deg,var(--navy),var(--blue)); font-weight: 700;
+    }
+    .controls { display: flex; gap: 3px; }
+    .controls i { width: 18px; height: 18px; display: grid; place-items: center; color: #000; background: var(--chrome); border: 1px solid; border-color: white #000 #000 white; font-style: normal; font-size: 11px; }
+    .hero-screen { transform: rotate(1deg); animation: arrive .75s cubic-bezier(.16,.84,.33,1) both; }
+    .hero-screen img, .shot img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto !important;
+      aspect-ratio: auto !important;
+      object-fit: contain;
+      background: #111;
+      border: 2px inset #fff;
+    }
+    .status-strip { display: grid; grid-template-columns: repeat(4,1fr); background: #000; color: var(--electric); border-block: 4px solid var(--chrome); }
+    .status-strip div { padding: 18px 10px; text-align: center; border-right: 1px solid #3c5c57; }
+    .status-strip div:last-child { border: 0; }
+    .status-strip strong { display: block; color: #fff; font: 900 20px/1 "Arial Black",sans-serif; }
+    main { overflow: hidden; }
+    section.content { padding: 74px 5vw; }
+    .section-head { display: grid; grid-template-columns: minmax(240px,.8fr) minmax(300px,1.2fr); gap: 36px; margin-bottom: 36px; }
+    h2 { margin: 0; color: #fff; font: 900 clamp(36px,6vw,76px)/.9 "Arial Black",sans-serif; letter-spacing: -.045em; text-transform: uppercase; text-shadow: 4px 4px #000; }
+    .section-head p { margin: 0; color: #fff; font-size: 18px; max-width: 760px; }
+    .architecture { background: #111; }
+    .flow { display: grid; grid-template-columns: repeat(4,1fr); gap: 24px; }
+    .node { position: relative; min-height: 190px; padding: 22px; background: var(--paper); border: 3px solid #000; box-shadow: 7px 7px 0 var(--electric); }
+    .node:not(:last-child)::after { content: "\2192"; position: absolute; right: -26px; top: 66px; z-index: 2; color: var(--yellow); font: 900 30px sans-serif; text-shadow: 2px 2px #000; }
+    .node b { display: block; margin-bottom: 12px; color: var(--navy); font-size: 18px; text-transform: uppercase; }
+    .node code { font-size: 12px; }
+    .gallery { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 30px; align-items: start; }
+    .shot { min-width: 0; margin: 0; }
+    .shot figcaption { padding: 10px 8px 6px; font-weight: 700; }
+    .shot:nth-child(even) { transform: translateY(34px) rotate(-.35deg); }
+    .feature-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .feature { padding: 22px; background: rgba(255,253,232,.96); border: 3px solid #000; box-shadow: 6px 6px 0 #003c3a; }
+    .feature .num { display: block; color: var(--navy); font: 900 34px/1 "Arial Black",sans-serif; }
+    .feature h3 { margin: 12px 0 8px; text-transform: uppercase; }
+    .downloads { background: #e8e8e8; border-block: 8px ridge #fff; }
+    .downloads h2, .downloads .section-head p { color: #111; text-shadow: none; }
+    .download-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 22px; }
+    .download-card { display: flex; flex-direction: column; min-height: 265px; background: white; }
+    .download-card.recommended { outline: 6px solid var(--yellow); }
+    .download-body { padding: 20px; flex: 1; }
+    .download-body h3 { margin: 0 0 10px; font-size: 22px; }
+    .badge { display: inline-block; margin-bottom: 10px; padding: 3px 7px; color: white; background: var(--navy); font-weight: 700; }
+    .meta { color: #444; font-weight: 700; }
+    .hash { display: block; margin: 12px 0; padding: 8px; overflow-wrap: anywhere; color: #d8ffd8; background: #111; font: 11px/1.45 "Lucida Console",monospace; }
+    .download-card .button { margin: 0 20px 20px; text-align: center; }
+    .install-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+    .terminal { color: #d8ffd8; background: #050505; }
+    .terminal .titlebar { background: #353535; }
+    .terminal pre { min-height: 220px; margin: 0; padding: 22px; overflow: auto; white-space: pre-wrap; color: #d8ffd8; font: 14px/1.6 "Lucida Console", monospace; }
+    .notice { margin-top: 28px; padding: 18px 20px; background: var(--yellow); border: 3px solid #000; box-shadow: 7px 7px 0 rgba(0,0,0,.3); }
+    footer { padding: 34px 5vw 70px; color: white; background: #050505; }
+    footer .line { height: 8px; margin-bottom: 24px; background: linear-gradient(90deg,var(--electric),var(--yellow),var(--blue)); }
+    footer p { max-width: 900px; }
+    @keyframes arrive { from { opacity: 0; transform: translate(80px,20px) rotate(3deg); } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .hero-screen { animation: none; } }
+    @media (max-width: 900px) {
+      .hero, .section-head, .gallery { grid-template-columns: 1fr; }
+      .hero { padding-top: 54px; }
+      .hero-screen { transform: none; }
+      .flow, .feature-grid { grid-template-columns: repeat(2,1fr); }
+      .node:not(:last-child)::after { display: none; }
+      .shot:nth-child(even) { transform: none; }
+    }
+    @media (max-width: 620px) {
+      .topbar { align-items: flex-start; }
+      .topbar nav { gap: 8px; justify-content: flex-end; }
+      .hero { display: block; min-height: auto; padding-inline: 18px; }
+      .hero-screen { margin-top: 34px; }
+      h1 { font-size: 52px; }
+      section.content { padding: 54px 18px; }
+      .status-strip, .flow, .feature-grid, .download-grid, .install-grid { grid-template-columns: 1fr; }
+      .status-strip div { border-right: 0; border-bottom: 1px solid #3c5c57; }
+      .window { box-shadow: 7px 8px 0 rgba(0,0,0,.28); }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="topbar">
+    <strong>SOL-37 / BUILD 2222</strong>
+    <nav aria-label="Showcase navigation">
+      <a href="#system">System</a>
+      <a href="#screens">Screens</a>
+      <a href="#downloads">Downloads</a>
+      <a href="/gui?i=windows98-clippy-showcase.html&amp;maximize=true">Open in shell</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">A functioning cross-era desktop</p>
+        <h1>Windows 98,<span>meet 2026.</span></h1>
+        <p class="lede">Native Win32 chat. The original Microsoft Agent Clippy. Server-pushed balloons and animation. Live guest diagnostics. A transparent, interactive XFCE overlay. No miniature third chat window.</p>
+        <div class="actions">
+          <a class="button primary" href="/downloads/sol98/sol98-complete-installer-public-2026-07-15.zip" download>Download complete kit</a>
+          <a class="button" href="#screens">See it running</a>
+        </div>
+      </div>
+      <figure class="window hero-screen">
+        <div class="titlebar"><span>Sol Chat 98 + Clippy - Seamless Mode</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+        <img src="/assets/sol98-showcase/sol98-xfce-seamless.png" alt="Sol Chat 98, Clippy, Office toolbar and Windows taskbar layered over an XFCE desktop" width="1920" height="1080">
+      </figure>
+    </section>
+
+    <div class="status-strip" aria-label="Project facts">
+      <div><strong>WIN 98</strong>Build 2222 guest</div>
+      <div><strong>43</strong>asset-derived animations</div>
+      <div><strong>1600 × 900</strong>headless guest display</div>
+      <div><strong>LIVE</strong>host + guest control</div>
+    </div>
+
+    <section class="content architecture" id="system">
+      <div class="section-head">
+        <h2>One system.<br>Four layers.</h2>
+        <p>Clippy is neither a screenshot nor a web recreation. The Windows 98 guest runs the real Microsoft Agent character and native applications, while the Linux host handles modern networking, push control, and desktop composition.</p>
+      </div>
+      <div class="flow">
+        <article class="node"><b>Sol Chat 98</b>Native Win32 conversation UI with persisted history, context inspection, system diagnostics, menus, status text, and bridge transport.</article>
+        <article class="node"><b>Sol Clippy</b>Independent Microsoft Agent controller with direct dialog chat, click reactions, status balloons, paging, and all installed animation states.</article>
+        <article class="node"><b>Host Bridge</b>Authenticated HTTP transport for modern TLS, server-side balloon pushes, diagnostics function calls, and full-chat launch control.</article>
+        <article class="node"><b>Seamless XFCE</b>A shaped, click-through-aware X11 overlay keys out the guest desktop while retaining guest windows, taskbar, Office toolbar, and Clippy.</article>
+      </div>
+    </section>
+
+    <section class="content" id="screens">
+      <div class="section-head">
+        <h2>Two desktops.<br>One surface.</h2>
+        <p>The guest remains a maintainable Windows 98 installation, but its useful surfaces can be composed alongside ordinary host windows. Clippy stays visible when Sol Chat is minimized or sent to the tray.</p>
+      </div>
+      <div class="gallery">
+        <figure class="window shot">
+          <div class="titlebar"><span>Host composition</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+          <img src="/assets/sol98-showcase/sol98-xfce-seamless.png" alt="Seamless XFCE composition with Sol Chat and Clippy beside host applications" width="1920" height="1080">
+          <figcaption>Windows stay with windows; icons stay with icons. Guest taskbar below, Office toolbar above, Clippy wherever he pleases.</figcaption>
+        </figure>
+        <figure class="window shot">
+          <div class="titlebar"><span>Windows 98 guest</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+          <img src="/assets/sol98-showcase/sol98-guest-chat-clippy.png" alt="Windows 98 guest showing Sol Chat 98 and Clippy with a balloon" width="1600" height="900">
+          <figcaption>The native guest view: Sol Chat 98, the actual Office 2000 Clippy asset, persisted conversation, and balloon output.</figcaption>
+        </figure>
+        <figure class="window shot">
+          <div class="titlebar"><span>Direct Clippy chat</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+          <img src="/assets/sol98-showcase/sol98-direct-clippy-chat.png" alt="Standalone Clippy beside his transient direct-chat dialog on the Windows 98 desktop" width="1152" height="908">
+          <figcaption>Clippy works independently: double-click the character, ask in a transient dialog, and receive the answer in the native Agent balloon.</figcaption>
+        </figure>
+        <figure class="window shot">
+          <div class="titlebar"><span>Native conversation</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+          <img src="/assets/sol98-showcase/sol98-full-conversation.png" alt="Sol Chat 98 displaying a long native conversation and guest diagnostics" width="1152" height="908">
+          <figcaption>The full chat remains a real ANSI Win32 program, with persisted history, styled roles, diagnostics context, menus, and configuration inspection.</figcaption>
+        </figure>
+        <figure class="window shot">
+          <div class="titlebar"><span>Host control surface</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+          <img src="/assets/sol98-showcase/sol98-host-controls-diagnostics.png" alt="XFCE Sol Clippy status menu showing animation choices alongside Windows 98 diagnostics" width="1920" height="1080">
+          <figcaption>The XFCE indicator exposes every installed animation, balloon controls, queue state, VM actions, and seamless-mode controls beside live guest diagnostics.</figcaption>
+        </figure>
+        <figure class="window shot">
+          <div class="titlebar"><span>HTTPS translation verified</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div>
+          <img src="/assets/sol98-showcase/sol98-https-verified.png" alt="Internet Explorer 5.01 on Windows 98 successfully displaying the HTTPS Example Domain page" width="1600" height="900">
+          <figcaption>A literal <code>https://</code> request succeeds through the isolated legacy-TLS frontend and modern validating upstream proxy.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="content" aria-labelledby="capabilities-heading">
+      <div class="section-head">
+        <h2 id="capabilities-heading">Period correct.<br>Not period limited.</h2>
+        <p>The deliberately boring compatibility choices are the feature: ANSI Win32, WinINet, Microsoft Agent 2.0, file IPC, and a host bridge keep the guest authentic without asking 1998 TLS to survive 2026.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature"><span class="num">01</span><h3>Independent Clippy</h3><p>Chat directly through Agent input, react to mouse clicks, animate, speak in paged balloons, or accept commands from the full chat window.</p></article>
+        <article class="feature"><span class="num">02</span><h3>Server push</h3><p>Host endpoints can show, hide, move, animate, speak, set balloon content, clear only balloon text, and launch full Sol Chat.</p></article>
+        <article class="feature"><span class="num">03</span><h3>Useful context</h3><p>Optional function calls expose the guest process tree, memory, display, network state, computer identity, and other diagnostics to the model.</p></article>
+        <article class="feature"><span class="num">04</span><h3>Visible status</h3><p>Connecting, gathering context, waiting on the bridge, and thinking are shown in Clippy’s balloon before answer text replaces the status.</p></article>
+        <article class="feature"><span class="num">05</span><h3>Host controls</h3><p>An XFCE status indicator provides every animation, balloon and VM controls, plus an LLM-driven idle puppeteer using thermal data, live diagnostics, and a bounded host process tree.</p></article>
+        <article class="feature"><span class="num">06</span><h3>Recoverable install</h3><p>Separate host and guest installers, uninstallers, backup-on-replace behavior, a CD image, source, documentation, and SHA-256 manifests.</p></article>
+      </div>
+    </section>
+
+    <section class="content downloads" id="downloads">
+      <div class="section-head">
+        <h2>Choose your disk.</h2>
+        <p>Every artifact is public-safe and independently checksummed. The complete kit is the easiest route; the split archives support maintenance and inspection.</p>
+      </div>
+      <div class="download-grid">
+        <article class="window download-card recommended">
+          <div class="titlebar"><span>Recommended</span><span>195 KB</span></div>
+          <div class="download-body"><span class="badge">HOST + GUEST + DOCS</span><h3>Complete public installer</h3><p>Linux host installer, Windows 98 ISO, bridge, XFCE indicator, seamless overlay, source, docs, uninstallers, and internal manifest.</p><span class="hash">SHA-256 c4c9e074d2ad2f90e333ddd1819cc2eea788319a51a175edda27bf849319caac</span></div>
+          <a class="button primary" href="/downloads/sol98/sol98-complete-installer-public-2026-07-15.zip" download>Download complete ZIP</a>
+        </article>
+        <article class="window download-card">
+          <div class="titlebar"><span>Windows 98 media</span><span>482 KB</span></div>
+          <div class="download-body"><span class="badge">GUEST ONLY</span><h3>Guest installer ISO</h3><p>Attach directly to the VM and run <code>D:\INSTALL.BAT</code>. Installs Sol Chat, Sol Clippy, shortcuts, IPC storage, docs, and the seamless Active Desktop page.</p><span class="hash">SHA-256 4d79c8061d27fb05d023329ef204be0e1b9f3e5f500c4bcd622fab3221d1296b</span></div>
+          <a class="button" href="/downloads/sol98/sol98-guest-installer-2026-07-15.iso" download>Download guest ISO</a>
+        </article>
+        <article class="window download-card">
+          <div class="titlebar"><span>Linux integration</span><span>26 KB</span></div>
+          <div class="download-body"><span class="badge">HOST ONLY</span><h3>Host tools</h3><p>Bridge, system-aware idle daemon, Clippy controls, all-animation XFCE indicator, seamless overlay, desktop entries, icons, and installer scripts.</p><span class="hash">SHA-256 77422f770777ecaca0a9a312e098a5c446e18098f739d2271a93e3917b593e04</span></div>
+          <a class="button" href="/downloads/sol98/sol98-host-tools-2026-07-15.zip" download>Download host tools</a>
+        </article>
+        <article class="window download-card">
+          <div class="titlebar"><span>Build it yourself</span><span>64 KB</span></div>
+          <div class="download-body"><span class="badge">SOURCE</span><h3>Guest + host source</h3><p>ANSI C Win32 applications, Python bridge, idle daemon and overlay, public configuration, templates, icons, and current operating documents.</p><span class="hash">SHA-256 ba2b55e958a48e630d5fc85ad2637a8520152faa3325116c21406e309c840e27</span></div>
+          <a class="button" href="/downloads/sol98/sol98-source-2026-07-15.zip" download>Download source ZIP</a>
+        </article>
+        <article class="window download-card">
+          <div class="titlebar"><span>Field manual</span><span>21 KB</span></div>
+          <div class="download-body"><span class="badge">DOCUMENTATION</span><h3>Docs + maintenance skill</h3><p>Full path inventory, architecture, API surfaces, idle-puppeteer schedule, bridge and seamless operations, troubleshooting, and the Codex maintenance skill.</p><span class="hash">SHA-256 60b7aa8336b492f77556869e5b4b87a8f5b34ca3a8fc21eb4e0f2c3449dfe25c</span></div>
+          <a class="button" href="/downloads/sol98/sol98-documentation-2026-07-15.zip" download>Download documentation</a>
+        </article>
+        <article class="window download-card">
+          <div class="titlebar"><span>Integrity</span><span>509 bytes</span></div>
+          <div class="download-body"><span class="badge">SHA-256</span><h3>Release checksums</h3><p>One plain-text verification list covering every downloadable artifact in this release set.</p><span class="hash">sha256sum -c SHA256SUMS.txt</span></div>
+          <a class="button" href="/downloads/sol98/SHA256SUMS.txt" download>Download checksums</a>
+        </article>
+      </div>
+      <div class="notice"><strong>Licensing and security boundary:</strong> these downloads do not contain Windows 98, Office 2000, Microsoft Agent, <code>CLIPPIT.ACS</code>, VM disks, snapshots, or upstream API credentials. The public build uses the documented distribution key <code>sol98-public-package-20260715</code>; keep the bridge firewalled to the VM boundary or rebuild both sides with a unique key.</div>
+    </section>
+
+    <section class="content" aria-labelledby="install-heading">
+      <div class="section-head">
+        <h2 id="install-heading">Two sides.<br>Three commands.</h2>
+        <p>The host installer registers the bridge and XFCE surfaces. The guest installer handles native applications and shortcuts. Existing host configuration is preserved rather than silently overwritten.</p>
+      </div>
+      <div class="install-grid">
+        <div class="window terminal"><div class="titlebar"><span>Linux host</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div><pre><span style="color:#fff">$</span> unzip sol98-complete-installer-public-2026-07-15.zip
+<span style="color:#fff">$</span> cd sol98-complete-installer-public-2026-07-15
+<span style="color:#fff">$</span> ./INSTALL-HOST.sh
+<span style="color:#fff">$</span> ./INSTALL-HOST.sh check
+
+# Requires VirtualBox, Python 3, GTK 3,
+# PyQt5, Pillow, NumPy and vboxapi.</pre></div>
+        <div class="window terminal"><div class="titlebar"><span>Windows 98 guest</span><span class="controls" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span></div><pre>C:\&gt; D:
+D:\&gt; INSTALL.BAT
+
+If mounted under another letter:
+
+C:\&gt; E:\INSTALL.BAT E:
+
+Installed under C:\SOLCHAT98
+with Start Menu + desktop shortcuts.</pre></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="line"></div>
+    <p><strong>Sol Chat 98 + Clippy Seamless Mode</strong><br>A Sol-37 preservation experiment joining period-native software with a maintainable modern host. Release assembled July 15, 2026.</p>
+    <p><a href="/">Return to Sol-37</a> · <a href="/downloads/sol98/SHA256SUMS.txt">Checksums</a> · <a href="/gui?i=windows98-clippy-showcase.html&amp;maximize=true">Open inside the desktop shell</a></p>
+  </footer>
+</body>
+</html>

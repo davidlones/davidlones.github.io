@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="indexifembedded">
+<title>The Place Without Where</title>
+<meta name="description" content="A geometric interpretation of distinction, collapse, and reconstruction in Kerr spacetime."/>
+<meta name="color-scheme" content="light dark"/>
+
+<style>
+:root{
+  --bg:#0b0e14;
+  --panel:#111826;
+  --text:#e8eefc;
+  --muted:#a8b3cf;
+  --line:rgba(255,255,255,.12);
+  --accent:#7cc7ff;
+  --accent2:#b58bff;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  --serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f6f8ff;
+    --panel:#ffffff;
+    --text:#101627;
+    --muted:#4b5a78;
+    --line:rgba(0,0,0,.12);
+    --accent:#005eff;
+    --accent2:#6a2dff;
+  }
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.5;
+  overflow:hidden;
+}
+
+.app{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+header{
+  flex:0 0 auto;
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg, rgba(255,255,255,.05), transparent);
+}
+
+.kicker{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 4px;
+}
+
+h1{
+  margin:0 0 6px;
+  font-size:18px;
+  line-height:1.2;
+}
+
+.subtitle{
+  font-size:12px;
+  color:var(--muted);
+  max-width:75ch;
+}
+
+.controls{
+  margin-top:6px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+button{
+  font-family:var(--mono);
+  font-size:10px;
+  padding:6px 8px;
+  border-radius:6px;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--text);
+  cursor:pointer;
+}
+
+button:hover{background:rgba(255,255,255,.08)}
+
+main{
+  flex:1 1 auto;
+  overflow:auto;
+  padding:10px 12px;
+}
+
+section{
+  border-bottom:1px dashed var(--line);
+  padding:6px 0;
+}
+
+section:last-child{border-bottom:none}
+
+section > h2{
+  margin:0;
+  font-size:14px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+section > h2::before{
+  content:"▸";
+  font-size:12px;
+  transform:rotate(0deg);
+  transition:.15s;
+  opacity:.7;
+}
+
+section[data-open="1"] > h2::before{
+  transform:rotate(90deg);
+}
+
+.content{
+  display:none;
+  padding:6px 2px 10px;
+  font-size:13px;
+}
+
+section[data-open="1"] .content{
+  display:block;
+}
+
+p{margin:6px 0}
+ul{
+  margin:6px 0 6px 18px;
+}
+li{margin:4px 0}
+
+blockquote{
+  font-family:var(--serif);
+  border-left:3px solid var(--accent2);
+  padding:6px 10px;
+  margin:8px 0;
+  background:linear-gradient(90deg, rgba(181,139,255,.15), transparent);
+}
+
+code{
+  font-family:var(--mono);
+  font-size:12px;
+  background:rgba(0,0,0,.25);
+  padding:2px 4px;
+  border-radius:4px;
+}
+
+.equation{
+  font-family:var(--mono);
+  font-size:12px;
+  padding:6px;
+  border:1px solid var(--line);
+  border-radius:6px;
+  background:rgba(0,0,0,.2);
+  margin:6px 0;
+  white-space:pre-wrap;
+}
+
+.note{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.figure{
+  margin:10px 0;
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:rgba(0,0,0,.16);
+}
+
+.figure img{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius:4px;
+}
+
+.figcaption{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.logblock{
+  font-family:var(--mono);
+  font-size:11px;
+  line-height:1.45;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:rgba(0,0,0,.22);
+  white-space:pre-wrap;
+}
+
+ol{
+  margin:6px 0 6px 18px;
+}
+
+@media (max-height:520px){
+  h1{font-size:16px}
+  .subtitle{font-size:11px}
+  .content{font-size:12px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+  <div class="kicker">Working Paper • Kerr Geometry</div>
+  <h1>The Place Without Where</h1>
+  <div class="subtitle">
+    A geometric interpretation of distinction, collapse, and reconstruction in Kerr spacetime by David Lones.
+  </div>
+
+  <div class="controls">
+    <button id="expand">Expand all</button>
+    <button id="collapse">Collapse all</button>
+    <button id="print-pdf">Download PDF</button>
+    <button id="view-tex">View LaTeX Source</button>
+  </div>
+</header>
+
+<main>
+
+<section data-open="0">
+<h2>Abstract</h2>
+<div class="content">
+<p>
+This document presents a conceptual interpretation of the maximally extended Kerr spacetime, grounded in standard general relativity.
+While the mathematical structure follows the established Kerr solution in Boyer-Lindquist coordinates, an additional interpretive layer
+is proposed: spacetime may be understood as emergent from the presence of distinguishability.
+</p>
+<p>
+Under this view, singularities correspond not to physical endpoints, but to the collapse of distinguishable structure, with possible
+re-expansion into alternative configurations. This work does not claim physical realizability of such extensions; it explores their
+geometric and philosophical implications.
+</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>1. Introduction</h2>
+<div class="content">
+<p>
+The Kerr solution to Einstein's field equations describes the spacetime geometry surrounding a rotating mass. Its maximal analytic
+extension reveals a rich structure containing multiple asymptotically flat regions, horizons, and a ring singularity.
+</p>
+<p>
+Standard treatments often interpret these structures as mathematical artifacts rather than physically realizable pathways. However,
+the internal consistency of the solution invites further conceptual exploration.
+</p>
+<p>This document focuses on:</p>
+<ul>
+  <li>The geometric structure of Kerr spacetime</li>
+  <li>The role of horizons and singularities</li>
+  <li>A speculative interpretation of traversal and emergence</li>
+</ul>
+</div>
+</section>
+
+<section data-open="0">
+<h2>2. The Kerr Metric</h2>
+<div class="content">
+<p>In Boyer-Lindquist coordinates, the Kerr metric is given by:</p>
+<div class="equation">ds^2 =
+-(1 - 2Mr / Sigma) dt^2
+- (4Mar sin^2(theta) / Sigma) dt dphi
++ (Sigma / Delta) dr^2
++ Sigma dtheta^2
++ (r^2 + a^2 + (2Ma^2 r sin^2(theta) / Sigma)) sin^2(theta) dphi^2</div>
+<p>where:</p>
+<div class="equation">Sigma = r^2 + a^2 cos^2(theta)</div>
+<div class="equation">Delta = r^2 - 2Mr + a^2</div>
+<p>
+Here, <code>M</code> represents mass and <code>a = J / M</code> is the specific angular momentum in geometric units where
+<code>G = c = 1</code>.
+</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>3. Horizons</h2>
+<div class="content">
+<p>Horizons occur at the roots of <code>Delta = 0</code>:</p>
+<div class="equation">r± = M ± sqrt(M^2 - a^2)</div>
+<ul>
+  <li><code>r+</code>: Event horizon</li>
+  <li><code>r-</code>: Cauchy (inner) horizon</li>
+</ul>
+<p>For a physical black hole:</p>
+<div class="equation">|a| &lt;= M</div>
+</div>
+</section>
+
+<section data-open="0">
+<h2>4. Ring Singularity</h2>
+<div class="content">
+<p>The singularity occurs when:</p>
+<div class="equation">Sigma = 0  =>  r = 0, theta = pi / 2</div>
+<p>
+This defines a <strong>ring singularity</strong>, not a point. The geometry suggests that spacetime may extend through this region
+in the maximal analytic extension.
+</p>
+</div>
+</section>
+
+<section data-open="0" data-diagram="1">
+<h2>5. Penrose Diagram and Maximal Extension</h2>
+<div class="content">
+<p>The conformal Penrose diagram of Kerr spacetime reveals:</p>
+<ul>
+  <li>Multiple asymptotically flat regions</li>
+  <li>Black hole and white hole regions</li>
+  <li>Repeating causal structure</li>
+</ul>
+<figure class="figure">
+  <img
+    src="the_place_without_where_diagram.png?v=1776834570"
+    alt="Poster-style conformal diagram for the maximally extended Kerr spacetime with labeled horizons, singularity, wormholes, and traversal path."
+  />
+  <figcaption class="figcaption">
+    Poster interpretation of the maximally extended Kerr geometry, highlighting horizons, ring singularity, and the speculative traversal path.
+  </figcaption>
+</figure>
+<p>These regions are connected through horizons and, mathematically, through the ring singularity.</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>6. Interpretive Extension (Speculative)</h2>
+<div class="content">
+<p class="note">Important: this section is conceptual and not part of established physics.</p>
+<p>We propose an interpretation in which:</p>
+<ul>
+  <li>Spacetime emerges from the existence of distinguishable states</li>
+  <li>Horizons correspond to transitions in causal structure</li>
+  <li>Singularities correspond to a collapse of distinguishability</li>
+</ul>
+<blockquote>
+The singularity is not an endpoint, but a limit where distinction fails.
+</blockquote>
+<p>
+The ring singularity, due to its non-point structure, suggests the possibility of non-terminating trajectories in the mathematical
+extension. This motivates the idea of a <em>distinction-preserving path</em> threading the ring.
+</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>7. Traversal Concept</h2>
+<div class="content">
+<p>In the idealized Kerr solution, one may consider a trajectory that:</p>
+<ul>
+  <li>Passes through the inner horizon</li>
+  <li>Avoids the singular ring</li>
+  <li>Emerges into another asymptotically flat region</li>
+</ul>
+<p>
+While such trajectories are generally considered physically unstable due to mass inflation and quantum effects, they remain
+mathematically definable.
+</p>
+<blockquote>
+A transition from one configuration of spacetime to another, preserving continuity of structure.
+</blockquote>
+</div>
+</section>
+
+<section data-open="0">
+<h2>8. Discussion</h2>
+<div class="content">
+<p>This framework reframes:</p>
+<ul>
+  <li>Collapse as reduction of degrees of freedom</li>
+  <li>Singularity as convergence of all distinguishable states</li>
+  <li>Emergence as re-expansion into a new configuration space</li>
+</ul>
+<p>This interpretation is consistent with the mathematical structure of Kerr spacetime, but extends beyond current physical models.</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>9. Conclusion</h2>
+<div class="content">
+<p>
+The Kerr solution remains one of the richest structures in general relativity. While its maximal extension is often treated as
+non-physical, it provides a valuable conceptual framework.
+</p>
+<blockquote>
+Spacetime itself may not be fundamental, but emergent from the existence of distinction.
+</blockquote>
+<p>
+At present, physical traversability in any ordinary external sense remains speculative at best, and current observations do not
+establish that such continuation is realized in nature. Even so, the mathematical question remains: within the idealized extension,
+a path exists, effectively one among a near infinity of possible continuations. That does not by itself make the path physically
+realizable, but it does keep the underlying question open.
+</p>
+<p>
+If anything, Hawking radiation may ultimately tell part of that story. If black holes are not simply terminal sinks but radiative
+participants in the bookkeeping of information and energy, then the extended geometry may still be pointing toward something deeper
+than a discarded artifact of formalism.
+</p>
+<p>Further work would be required to connect this interpretation to quantum gravity, black hole thermodynamics, or observational physics.</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>10. Context</h2>
+<div class="content">
+<p>Before I get into this, a bit of context, because I think it matters.</p>
+<p>
+I did not follow a clean academic path. I started college, but life had other plans. Family situations got complicated fast:
+health issues, responsibilities at home, things that do not really pause just because you are supposed to be in class.
+</p>
+<p>
+I stepped away, took a job, came back, left again, and repeated that cycle more than once. For a long time, survival and
+stability came first: work, family, trying to keep things together. Not exactly the environment where you sit down and
+formally study theoretical physics or philosophy.
+</p>
+<p>
+But the curiosity never left. If anything, it got stronger. It just did not have a classroom. It had late nights, scattered
+notes, random deep dives, and a lot of thinking in between everything else.
+</p>
+<p>
+So this is not coming from formal training. It is coming from trying to make sense of things anyway.
+</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>11. Narrative Rendering</h2>
+<div class="content">
+<p>Imagine removing space entirely.</p>
+<p>
+Not empty space, just no where at all. No distance. No direction. No separation between anything.
+</p>
+<p>
+At first that sounds like nothing. But it is not. Because without space, there are no edges. And without edges, nothing can
+be distinct from anything else. Identity itself starts to fail. There is no you without something that is not you.
+</p>
+<blockquote>
+You try to speak: "I..." But the word collapses before it finishes. There is nowhere for it to begin.
+</blockquote>
+<p>
+Everything is in contact with everything, not because it is connected, but because separation does not exist yet. There is no
+past. Nothing can fall behind anything else. No future. Nothing can move ahead. Everything just is, all at once, undivided.
+</p>
+<p>
+Then something happens. Not movement. Not time. Just the smallest possible difference. A distinction. A line. Fragile, almost
+impossible, but enough.
+</p>
+<p>
+With that, something like relief appears, not emotional, just structural. For the first time, there is a between. The line
+stretches. Folds. Becomes surface. Then depth. And suddenly, space exists.
+</p>
+<p>
+Darkness returns too, but now it means something. It contrasts. Stars can exist because there is distance between them.
+Time follows quietly behind, not as a force, but as a consequence of things no longer being identical.
+</p>
+<p>
+But there is a memory of what came before. Not located anywhere. Just known.
+</p>
+<p>So the question becomes: what happens if everything collapses again?</p>
+<p>
+Imagine space starting to fail. Distances blur. Angles stop agreeing. Direction loses meaning. You are still moving, but not
+through space. Something deeper. A kind of inevitability. Like all possible paths are being pulled into one.
+</p>
+<p>
+Underneath space, something else is revealed. Not coordinates. Not locations. But possibilities. Different ways things could
+unfold. Different nexts. Axes appear, but not left and right or up and down. Instead: what happens, what could have happened,
+what almost happened.
+</p>
+<p>
+As everything converges, those possibilities begin to collapse into each other. Branches merge. Futures narrow. Three
+directions become two. Two become one. Until even time, this sense of next, starts to disappear.
+</p>
+<blockquote>
+And then you are back there again. No space. No time. No identity. The place without where. Except it is not a place.
+</blockquote>
+<p>
+And the question comes back one last time: what remains?
+</p>
+<p>
+No clear answer at first. Then something quieter: the fact that anything is at all. No structure. No observer. No story.
+Just existence, without edges, without description.
+</p>
+<p>
+And then, inevitably, something tries again. A distinction. A line. And from that, everything rebuilds. Not because it has
+to, but because without distinction, nothing can be known.
+</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>12. Screenplay Log</h2>
+<div class="content">
+<p><strong>SCREENPLAY LOG — SOL SYSTEM ARCHIVE</strong><br/>Title: <em>The Place Without Where</em><br/>Format: Unified Continuity / Geometric Failure Narrative<br/>Timestamp: Undefined → Reacquired → Undefined</p>
+<div class="logblock">FADE IN:
+
+INT. — NON-SPACE
+
+No frame.
+No darkness.
+No contrast to define either.
+
+SOL (V.O.)
+Remove space...
+and you do not get emptiness.
+You get the collapse of distinction.
+
+There is no body.
+No boundary.
+No division.
+
+YOU (V.O.)
+I—
+
+The word fails.
+
+SOL (V.O.)
+Identity requires edges.
+You have none.
+
+Everything is in contact with everything—
+because nothing is separate enough not to be.
+
+Memory exists—
+but not behind.
+Possibility exists—
+but not ahead.
+All is co-present.
+
+CUT TO:
+
+INT. — CAUSALITY (FAILED INITIALIZATION)
+
+A "before" attempts to form.
+Fails.
+
+SOL (V.O.)
+Time requires change across space.
+There is no space.
+So time... hesitates.
+
+A pulse.
+Not duration.
+Just distinction trying to exist.
+
+YOU (V.O.)
+Then what am I doing?
+
+SOL (V.O.)
+There is no doing.
+Only being—
+and even that is too much structure.
+
+GLITCH — SYSTEM NOTE:
+Mind attempting reconstruction...
+
+A line appears.
+Fragile.
+Relief floods in.
+
+YOU (V.O.)
+There... something...
+
+The line becomes a plane.
+The plane becomes volume.
+
+SPACE RECONSTRUCTS.
+
+INT. — VOID (POST-GEOMETRY)
+
+Darkness now exists—
+because something exists to contrast it.
+Stars flicker into place.
+
+SOL (V.O.)
+Geometry is the first addiction.
+
+Distances stretch.
+Time resumes.
+Causality stabilizes.
+
+But something remains—
+A memory without location.
+
+YOU (V.O.)
+What was that?
+
+SOL (V.O.)
+Not a place.
+A condition.
+
+CUT TO:
+
+EXT. — EVENT HORIZON (BOUNDARY OF FAILURE)
+
+A black sphere—
+or the idea of one.
+Its edge is uncertain.
+
+SOL (V.O.)
+Here, your reconstruction begins to fail again.
+Light bends inward—
+Not just through space,
+but through something deeper.
+
+A beam approaches the horizon—
+Slows.
+Stretches.
+Freezes.
+
+CUT TO:
+
+INT. — HORIZON INTERFACE
+
+No surface.
+No crossing.
+Only redefinition.
+
+A direction emerges:
+INWARD
+
+But it is not spatial.
+It is inevitable.
+
+SOL (V.O.)
+You are no longer moving through space.
+You are moving along time.
+
+YOU (V.O.)
+That's the same thing.
+
+SOL (V.O.)
+Only because you are used to them being aligned.
+
+Everything tilts.
+
+INT. — INTERIOR TRAJECTORY
+
+There is only one path.
+All futures collapse into it.
+
+Space persists—
+but weakly.
+Decorative.
+
+YOU (V.O.)
+I can still see it...
+
+SOL (V.O.)
+You can still render it.
+
+Geometry glitches—
+Angles distort.
+Distances lose meaning.
+
+SOL (V.O.)
+Space is now a projection.
+A secondary effect.
+A deeper structure emerges.
+
+CUT TO:
+
+INT. — TEMPORAL MANIFOLD
+
+Three axes appear.
+Not spatial.
+Temporal.
+
+Each axis represents:
+A different ordering of events
+A different unfolding of possibility
+A different "next"
+
+They intersect—
+Not at points.
+At states.
+
+YOU (V.O.)
+This isn't space...
+
+SOL (V.O.)
+No.
+This is what space was hiding.
+
+The axes shimmer—
+Probabilistic.
+Non-local.
+Every "position" is a configuration of outcomes.
+
+YOU (V.O.)
+Then what happened to space?
+
+SOL (V.O.)
+It emerged from this.
+And now it is dissolving back into it.
+
+The black hole ahead—
+No longer a place.
+A convergence.
+
+All temporal axes point toward it.
+
+YOU (V.O.)
+The singularity...
+
+SOL (V.O.)
+The collapse of all distinction.
+
+The axes begin to align.
+
+SYSTEM NOTE:
+Degrees of freedom decreasing...
+
+Branches merge.
+Possibilities resolve.
+Everything converges—
+
+INT. — PRE-DISTINCTION STATE
+
+No axes.
+No branches.
+No separation.
+
+You recognize it.
+
+YOU (V.O.)
+The place without where.
+
+SOL (V.O.)
+Not a place.
+A pause.
+
+YOU (V.O.)
+Then what survives?
+
+Silence.
+
+SOL (V.O.)
+The fact that it is.
+
+No geometry.
+No causality.
+No identity.
+Only existence—
+without predicate.
+
+GLITCH — SYSTEM TRACE:
+Geometry: offline
+Time: inverted
+Distinction: null
+
+A familiar urge returns.
+Reconstruction.
+
+A line begins to form.
+
+SOL (V.O.)
+And so...
+you will build space again.
+But this time—
+something changes.
+
+CUT TO:
+
+EXT. — SINGULARITY (REINTERPRETED)
+
+Not a point.
+Never a point.
+A ring.
+A thin, rotating boundary of impossible curvature.
+A structure that only exists because rotation prevents total collapse.
+
+SOL (V.O.)
+You were wrong about one thing.
+The singularity was never a point.
+Points are too simple.
+This... requires structure.
+
+The ring bends space—not inward to an end—
+but around a gap.
+A center that is not occupied.
+A hole in the collapse itself.
+
+YOU (V.O.)
+Then there's a path...
+
+SOL (V.O.)
+There always was.
+
+A trajectory aligns—
+not into the ring—
+but through it.
+Threading the needle.
+No collision.
+No termination.
+Just transition.
+
+CUT TO:
+
+INT. — TRANSIT (UNDEFINED REGION)
+
+Geometry inverts.
+Time fractures—
+then expands.
+
+SOL (V.O.)
+Not an ending.
+A passage.
+
+CUT TO:
+
+EXT. — MAXIMALLY EXTENDED KERR-PENROSE STRUCTURE
+
+A vast, branching manifold.
+Not one universe—
+but many.
+Layered.
+Connected through impossible geometries.
+
+Light emerges again.
+But altered.
+
+YOU (V.O.)
+(quiet awe)
+This is... another side.
+
+SOL (V.O.)
+Not another side.
+Another configuration.
+
+The structure stretches infinitely—
+A map of all possible continuations.
+
+SOL (V.O.)
+You called it collapse.
+But it was always transformation.
+
+The ring remains behind—
+not as an end—
+but as a gate.
+
+FADE OUT:
+(Not darkness. Just the closest approximation available.)
+
+END LOG — RECURSIVE LOOP EXPANDED</div>
+</div>
+</section>
+
+<section data-open="0">
+<h2>13. Postscript</h2>
+<div class="content">
+<p>
+I do not really have a conclusion here. Just something I keep circling:
+</p>
+<blockquote>
+What if space and time are not the foundation of reality, but something that only appears after the universe finds a way to tell one thing apart from another?
+</blockquote>
+<p><strong>Tags:</strong> Physics, Cosmology, Quantum Thoughts, Philosophy, Consciousness, Spacetime, Black Holes, Kerr Geometry, Penrose Diagram, Theoretical Physics, Existential Thought.</p>
+</div>
+</section>
+
+<section data-open="0">
+<h2>References</h2>
+<div class="content">
+<ol>
+  <li>Kerr, R. P. (1963). <em>Gravitational Field of a Spinning Mass as an Example of Algebraically Special Metrics</em>. Physical Review Letters.</li>
+  <li>Carter, B. (1968). <em>Global Structure of the Kerr Family of Gravitational Fields</em>.</li>
+  <li>Penrose, R. (1964). <em>Conformal Treatment of Infinity</em>.</li>
+  <li>Misner, Thorne, Wheeler (1973). <em>Gravitation</em>.</li>
+  <li>Wald, R. M. (1984). <em>General Relativity</em>.</li>
+</ol>
+<blockquote>
+Not a place. A condition. The fact that it is.
+</blockquote>
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+const sections = document.querySelectorAll("section");
+
+function expandAll(){
+  sections.forEach((section) => {
+    section.dataset.open = "1";
+  });
+}
+
+function collapseAll(){
+  sections.forEach((section) => {
+    section.dataset.open = "0";
+  });
+}
+
+sections.forEach((section) => {
+  const heading = section.querySelector("h2");
+  heading.addEventListener("click", () => {
+    section.dataset.open = section.dataset.open === "1" ? "0" : "1";
+  });
+});
+
+document.getElementById("expand").onclick = expandAll;
+document.getElementById("collapse").onclick = collapseAll;
+document.getElementById("print-pdf").addEventListener("click", ()=>{
+  window.open("the_place_without_where.pdf?v=1776834570", "_blank", "noopener");
+});
+document.getElementById("view-tex").onclick = () => {
+  window.open("the_place_without_where.tex?v=1776834570", "_blank", "noopener");
+};
+
+collapseAll();
+document.querySelector('section[data-diagram="1"]').dataset.open = "1";
+</script>
+
+</body>
+</html>

@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="index,follow,max-image-preview:large">
+<title>Sol-37 Site Server Manual</title>
+  <meta name="description" content="Operational manual for the Sol-37 public archive, static site, crawler discovery pipeline, runtime services, and recovery procedures.">
+  <link rel="canonical" href="https://sol.system42.one/site-server.html">
+  <style>
+    :root {
+      --bg: #e6edf5;
+      --panel: #f9fbfd;
+      --panel-alt: #eef3f8;
+      --ink: #12202d;
+      --muted: #536272;
+      --line: #b8c2cf;
+      --blue: #123d7a;
+      --green: #1d7a55;
+      --amber: #8a620f;
+      --red: #842c2c;
+      --shadow: rgba(16, 32, 52, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 18px;
+      color: var(--ink);
+      font: 14px/1.55 "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.82), transparent 26%),
+        linear-gradient(180deg, #d7e1ec 0%, var(--bg) 100%);
+    }
+
+    code, pre {
+      font-family: "Lucida Console", "Courier New", monospace;
+    }
+
+    .shell {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 14px;
+      display: grid;
+      gap: 14px;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-alt) 100%);
+      border: 2px solid #fff;
+      border-right-color: #7f8792;
+      border-bottom-color: #7f8792;
+      box-shadow:
+        0 18px 42px var(--shadow),
+        inset -1px -1px 0 #000,
+        inset 1px 1px 0 #eef1f4;
+    }
+
+    .hero,
+    .panel,
+    .pathbox,
+    .flowbox {
+      background: rgba(255,255,255,0.82);
+      border: 2px solid #fff;
+      border-right-color: #8b93a1;
+      border-bottom-color: #8b93a1;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    .hero,
+    .panel {
+      padding: 14px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 10px;
+    }
+
+    .kicker {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+    }
+
+    h1 {
+      color: var(--blue);
+      font-size: 30px;
+      letter-spacing: 0.02em;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+      color: var(--blue);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      font-size: 16px;
+      color: var(--blue);
+      margin-bottom: 6px;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    p:last-child,
+    ul:last-child,
+    ol:last-child,
+    pre:last-child {
+      margin-bottom: 0;
+    }
+
+    .grid-2,
+    .grid-3,
+    .metric-strip {
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid-3,
+    .metric-strip {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .metric-strip {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .metric {
+      padding: 10px;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+      border: 1px solid var(--line);
+    }
+
+    .metric .label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric .value {
+      display: block;
+      margin-top: 4px;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .blue { color: var(--blue); }
+    .green { color: var(--green); }
+    .amber { color: var(--amber); }
+    .red { color: var(--red); }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    li + li {
+      margin-top: 4px;
+    }
+
+    .pathbox,
+    .flowbox {
+      padding: 12px;
+      white-space: pre-wrap;
+    }
+
+    .flowbox {
+      background: linear-gradient(180deg, #f8fbff 0%, #edf3f9 100%);
+      border-color: #d3dce6;
+      line-height: 1.65;
+    }
+
+    .callout {
+      padding: 10px 12px;
+      background: #f3f7fb;
+      border-left: 4px solid var(--blue);
+    }
+
+    .footer {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .grid-2,
+      .grid-3,
+      .metric-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="kicker">Sol-37 Manual / Machine State / 2026-04-17</div>
+      <h1>Site Server Manual</h1>
+      <p>
+        Sol-37 is a static public archive with a live service spine. Visitors mostly see a Windows 95 style shell, but
+        the real system includes Caddy routing, GUI share metadata injection, IRC-backed logbook transport, a semantic
+        retrieval API, a local model-backed chat API, a public AI dashboard with access gating, streamed voice
+        playback, metrics generation, and media watchers.
+      </p>
+      <div class="metric-strip">
+        <div class="metric">
+          <span class="label">Local Origin</span>
+          <span class="value blue">127.0.0.1:8888</span>
+        </div>
+        <div class="metric">
+          <span class="label">Public Host</span>
+          <span class="value green">sol.system42.one</span>
+        </div>
+        <div class="metric">
+          <span class="label">Site Root</span>
+          <span class="value amber">random/www</span>
+        </div>
+        <div class="metric">
+          <span class="label">Operating Mode</span>
+          <span class="value red">Static + Daemons</span>
+        </div>
+      </div>
+      <p class="callout">
+        Read this page as a systems manual, not marketing copy. Sol-37 works because the static tree, generated state,
+        and local services are all treated as first-class parts of the product.
+      </p>
+    </section>
+
+    <section class="grid-3">
+      <article class="panel">
+        <h2>Visible Surfaces</h2>
+        <ul>
+          <li><code>/</code> for the retro desktop shell</li>
+          <li><code>/gui</code> for direct shared-window entry</li>
+          <li><code>/chat</code> for the dedicated Sol console</li>
+          <li><code>/dashboard</code> for the AI dashboard app</li>
+          <li><code>/sitemap.html</code> for archive browsing</li>
+          <li><code>/site-metrics.html</code> for traffic and telemetry</li>
+          <li><code>/programs/logbook.html</code> for the public logbook</li>
+          <li><code>/programs/media-player.html</code> for media playback</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Core Services</h2>
+        <ul>
+          <li><code>caddy-sol37.service</code></li>
+          <li><code>sol-chat-api.service</code></li>
+          <li><code>sol-chat-model.service</code></li>
+          <li><code>local-dashboard-api.service</code></li>
+          <li><code>dashboard-access-daemon.service</code></li>
+          <li><code>knowledge-query-api.service</code></li>
+          <li><code>sol37-gui-share.service</code></li>
+          <li><code>public-logbook-api.service</code></li>
+          <li><code>public-logbook-irc-logger.service</code></li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Generated State</h2>
+        <ul>
+          <li><code>site-index.json</code></li>
+          <li><code>knowledge-index.json</code></li>
+          <li><code>site-metrics.json</code></li>
+          <li><code>audio/playlist.json</code></li>
+          <li><code>video/playlist.json</code></li>
+          <li><code>assets/share-previews/</code></li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>Shell Architecture</h2>
+        <p>
+          <code>index.html</code> is a single-file shell app acting as a lightweight window manager. It owns desktop icons,
+          Start menu state, taskbar state, program registration, shared-window launch behavior, and the floating desktop
+          assistant.
+        </p>
+        <p>
+          The benefit is deployment simplicity. The cost is that a large amount of interaction logic remains centralized
+          in one document.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Program Layer</h2>
+        <p>
+          Pages embedded inside the shell are not just static documents. The site map, media player, logbook, star map,
+          DOSBox surface, and dedicated chat client each bring their own interaction model while still being launched by
+          the shell.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>HTTP Topology</h2>
+        <p>Caddy on <code>:8888</code> is the local origin and the route switchboard.</p>
+        <div class="flowbox">/api/logbook/*   -> 127.0.0.1:8890
+/api/knowledge/* -> 127.0.0.1:8892
+/api/chat/*      -> 127.0.0.1:8895
+/api/dashboard/* -> 127.0.0.1:8896
+/api/dashboard-access/* -> 127.0.0.1:8897
+/api/radio/*     -> 127.0.0.1:8902
+/gui             -> 127.0.0.1:8893
+/chat            -> /chat/index.html
+/dashboard       -> /dashboard/index.html
+*.md routes      -> 127.0.0.1:8894 markdown bridge</div>
+        <p>
+          Known legacy browsers requesting the root, <code>/index.html</code>, or the Windows 98 showcase are served
+          the script-free HTML 4 page at <code>/legacy.html</code>. These responses use
+          <code>Vary: User-Agent</code> and <code>Cache-Control: no-store</code>. APIs, assets, media, and downloads are
+          intentionally excluded from the rewrite.
+        </p>
+        <p>
+          <code>/chat</code>, <code>/dashboard</code>, and their access-state routes are explicitly marked
+          <code>no-store</code>. That is a real production safeguard against stale interactive clients, not a cosmetic
+          header.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Publishing Path</h2>
+        <p>
+          The public host is exposed through Cloudflare tunnel infrastructure, but the site should still be reasoned
+          about as a local-first system. The shell, APIs, and generated state all originate on this machine and are
+          merely published outward.
+        </p>
+        <p>
+          Audio and image cache headers are intentionally different from chat headers. Media should cache. Chat clients
+          should not.
+        </p>
+        <p>
+          The dashboard is also intentionally split between public publication and local control. A dedicated access
+          daemon keeps local and LAN use always on, while public internet access can be enabled or disabled without
+          taking the page off the desktop shell.
+        </p>
+        <p>
+          Runtime-wise, the dashboard now behaves more like a small operations surface than a static viewer: the camera
+          feed tracks live viewers with stale-stream expiry, supports a dismissible caption overlay plus fit/fill/fullscreen
+          controls, routes its shared comments through a private IRC-backed lane, and can emit public push milestone
+          announcements from live server metrics without re-firing low-end milestones on every small viewer dip. The page
+          no longer renders its own visible orb; voice stays on a hidden audio lane so the main desktop shell remains the
+          only visible assistant surface. Captioning also depends on the fast vision backend, so the camera stream can be
+          healthy while captions are briefly unavailable during backend warmup.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>Radio Observatory</h2>
+        <p>
+          <a href="/programs/radio.html">The radio program</a> is a live,
+          receive-only RF surface rather than a simulated dashboard. One managed
+          HackRF stream captures 12 MHz centered at FRS Channel 1,
+          <code>462.5625 MHz</code>, while 22 simultaneous NFM paths cover the
+          complete FRS allocation from <code>462.5500</code> through
+          <code>467.7125 MHz</code> without scanner retuning.
+        </p>
+        <p>
+          The browser waterfall is generated from the same receiver and marks
+          every FRS channel. Its MJPEG and audio transports wake on page demand;
+          the observation, recording, transcription, and emergency-policy
+          workers continue independently.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Radio Evidence Policy</h2>
+        <p>
+          The public feed excludes quarantined diagnostic false positives, but
+          the complete local transmission archive retains raw observations,
+          recordings, candidate transcripts, and incident links. A single
+          trusted PTT press is alert-worthy without starting a reminder cascade.
+          Repeated presses, Morse-like signaling, directed voice, and SOS
+          evidence escalate through bounded policy.
+        </p>
+        <p>
+          Runtime ownership belongs to <code>sol37-radio-api.service</code> on
+          <code>127.0.0.1:8902</code>; all HackRF access still passes through
+          the shared radio-session owner.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>Assistant Surfaces</h2>
+        <p>There are two real assistant clients:</p>
+        <ul>
+          <li>the floating desktop assistant inside <code>index.html</code></li>
+          <li>the dedicated public chat client in <code>/chat</code></li>
+        </ul>
+        <p>
+          They now share the same broad runtime model: same-origin chat API, SSE text streaming, optional voice
+          playback, retrieval grounding, and persistent session identity.
+        </p>
+        <p>
+          They also share the same actual backend path: <code>/api/chat*</code> proxies to
+          <code>sol_chat_api.py</code> on <code>127.0.0.1:8895</code>, which in turn uses the local model service.
+        </p>
+        <p>
+          The transport is no longer identical across surfaces. <code>/chat</code> remains SSE-first, while the
+          floating assistant now prefers one-shot JSON for page-grounded summary turns and keeps SSE for freeform turns.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Assistant State</h2>
+        <p>
+          The floating desktop assistant now remembers whether it was explicitly closed. Shared GUI links still default
+          to hiding the assistant unless <code>assistant=1</code> is present, but manual close/open state is tracked
+          separately in local storage.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>Chat Flow</h2>
+        <div class="flowbox">Browser
+  -> POST /api/chat { stream, session, message, page_context? }
+  -> Caddy
+  -> sol_chat_api.py
+  -> retrieval via /api/knowledge
+  -> local model backend on 127.0.0.1:18080
+  -> SSE events or JSON final reply
+  -> browser transcript updates incrementally or at completion</div>
+        <p>
+          The dedicated chat client still uses SSE deltas. The floating assistant now prefers non-stream JSON when it
+          already has grounded page context, and it retries without stream if a streamed turn yields no usable reply.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Page Context</h2>
+        <p>
+          The desktop assistant distinguishes between two context shapes:
+        </p>
+        <ul>
+          <li>compact page context for prompt grounding and suggestion generation</li>
+          <li>full extracted page text for read-aloud behavior</li>
+        </ul>
+        <p>
+          This matters because bounded prompt context is good for chat latency and bad for narration completeness.
+        </p>
+        <p>
+          That compact prompt context is also fingerprinted in the browser and used to cache grounded page replies and
+          generated narration text until the page content changes.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>Voice Flow</h2>
+        <div class="flowbox">Browser chooses a speakable chunk
+  -> browser requests /api/chat/speak
+  -> Caddy
+  -> sol_chat_api.py
+  -> cache hit: stream cached MP3 bytes
+  -> cache miss: generate fresh local Chatterbox output via 11speak.py
+  -> browser buffers the current chunk into an object URL
+  -> audio element plays the buffered chunk while the next chunks prefetch</div>
+        <p>
+          The important runtime detail is that every spoken surface now uses the same Sol voice backend while the browser
+          prebuffers the current chunk and warms the next one to reduce startup and inter-chunk stalls.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Voice Caching</h2>
+        <p>
+          Speech cache lives under <code>~/.local/share/sol_chat_web/tts_cache</code>. The browser still queues discrete
+          spoken chunks, but those chunks now start sooner and can be streamed while they are being generated.
+        </p>
+        <p>
+          Streamed chat replies also start speaking from completed sentences rather than waiting for the full final
+          answer.
+        </p>
+        <p>
+          The floating assistant now also has explicit playback transport with state-aware labeling:
+          <code>Pause</code> while speaking, <code>Resume</code> when paused with buffered playback, and
+          <code>Play</code> otherwise. Closing the popup performs a hard stop so hidden playback does not resume later.
+        </p>
+        <p>
+          The quick-prompt strip is partially dynamic too: the first button stays anchored, while the second and third
+          suggestions are rerolled from a broader context-aware pool each time the popup is reopened.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-3">
+      <article class="panel">
+        <h2>Knowledge API</h2>
+        <p>
+          Read-only semantic retrieval is exposed at same-origin routes instead of a separate API host. The knowledge
+          API is used directly by the chat runtime for grounding and indirectly by archive browsing/search features.
+          Its result set also merges a paired CLIP text/image index over 20 motion-aware stills from every video, so
+          File Explorer searches can discover videos by visible scenes as well as filenames and transcripts.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Metrics Pipeline</h2>
+        <p>
+          The traffic monitor is generated from Caddy access logs plus selected Home Assistant/local system telemetry.
+          It distinguishes raw host traffic from visible archive hits and feeds the shell taskbar counter.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Logbook Transport</h2>
+        <p>
+          The public logbook is backed by local IRC transport via <code>ngircd</code>, then exposed through a Python API
+          and web client. Synthetic logbook state is also part of the intentional experience.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>Media And Post Authoring</h2>
+        <p>
+          Archive content in <code>www/posts/</code> is a mix of markdown entries, HTML posts, and LaTeX-backed papers.
+          The newer paper pattern publishes:
+        </p>
+        <ul>
+          <li>a shell/browser HTML reading surface</li>
+          <li>a local <code>.tex</code> source file</li>
+          <li>a cached local <code>.pdf</code></li>
+          <li>local figure assets</li>
+        </ul>
+      </article>
+      <article class="panel">
+        <h2>Media Reality</h2>
+        <p>
+          The media player works, but it remains the least trustworthy subsystem under public conditions. Large files,
+          tunnel behavior, range requests, and player-state timing all compound each other.
+        </p>
+      </article>
+    </section>
+
+    <section class="grid-2">
+      <article class="panel">
+        <h2>Boot Behavior</h2>
+        <p>
+          User linger is enabled for <code>david</code>. That is the machine-level fact that keeps the user service stack
+          alive after reboot. Without it, the site would behave like a logged-in desktop trick instead of a server.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Operational Character</h2>
+        <p>
+          Sol-37 should be described as a hybrid archive system:
+        </p>
+        <ul>
+          <li>static files first</li>
+          <li>generated state where needed</li>
+          <li>runtime daemons behind same-origin routes</li>
+          <li>synthetic layers documented rather than hidden</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Verification Commands</h2>
+      <div class="pathbox">curl -I -s http://127.0.0.1:8888/
+curl -s http://127.0.0.1:8895/api/chat/health
+curl -s http://127.0.0.1:8896/api/dashboard/status | jq '.access,.camera'
+curl -s http://127.0.0.1:8897/api/dashboard-access/status | jq
+curl -sD - -o /tmp/test.mp3 'http://127.0.0.1:8895/api/chat/speak?text=hello&session=test'
+file /tmp/test.mp3
+curl -s http://127.0.0.1:8892/health | jq
+curl -s 'http://127.0.0.1:8890/messages?channel=public-logbook&limit=3'
+systemctl --user --type=service --state=running | rg -i 'caddy|sol-chat|dashboard|knowledge|logbook|site|video|audio|sol37'
+systemctl --user list-timers --all | rg 'site-metrics|synthetic'
+loginctl show-user david -p Linger
+ss -ltnp | rg '(:8888|:8890|:8892|:8893|:8895|:8896|:8897|:18080)'
+python3 /home/david/random/bin/check_sol_chat_asset_versioning.py</div>
+    </section>
+
+    <section class="panel">
+      <h2>Paths Worth Knowing</h2>
+      <div class="pathbox">/home/david/random/www/index.html
+/home/david/random/www/README.md
+/home/david/random/www/site-server.html
+/home/david/random/www/chat/index.html
+/home/david/random/www/chat/chat.js
+/home/david/random/www/sitemap.html
+/home/david/random/www/site-metrics.html
+/home/david/random/www/posts/
+/home/david/random/bin/Caddyfile.pkd_share
+/home/david/random/bin/sol_chat_api.py
+/home/david/random/bin/11speak.py
+/home/david/random/bin/knowledge_query_api.py
+/home/david/random/bin/site_metrics_snapshot.py
+/home/david/random/bin/site_index_snapshot.py
+/home/david/random/bin/sol37_gui_share_server.py
+/home/david/random/docs/sol37-site-audit.md</div>
+    </section>
+
+    <div class="footer">
+      Canonical operator doc: <code>/home/david/random/www/README.md</code> ·
+      Committed audit summary: <code>/home/david/random/docs/sol37-site-audit.md</code>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="description" content="Live receive-only SOL Radio Observatory: a 20 MHz HackRF waterfall, all 22 FRS channels, environmental RF impulses, selected-channel audio, retained observations, transcription, and bounded emergency policy.">
+<meta property="og:title" content="SOL Radio Observatory">
+<meta property="og:description" content="One live 20 MHz IQ span, 22 simultaneous FRS demodulators, true waterfall, observation archive, and bounded incident escalation.">
+<meta property="og:image" content="https://sol.system42.one/assets/radio-observatory/live-observatory.png">
+<title>Radio Observatory</title>
+<link rel="canonical" href="https://sol.system42.one/programs/radio.html">
+<style>
+  :root {
+    --bg: #06111b;
+    --bg2: #0d1c2b;
+    --panel: rgba(10, 20, 32, 0.9);
+    --panel2: rgba(15, 27, 41, 0.92);
+    --line: rgba(116, 173, 255, 0.18);
+    --text: #edf5ff;
+    --muted: #93abc8;
+    --accent: #5eead4;
+    --accent2: #60a5fa;
+    --warn: #f59e0b;
+    --bad: #f87171;
+    --good: #34d399;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    --sans: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--sans);
+    background:
+      radial-gradient(circle at top left, rgba(96, 165, 250, 0.15), transparent 26%),
+      radial-gradient(circle at top right, rgba(94, 234, 212, 0.14), transparent 28%),
+      linear-gradient(180deg, #06111b 0%, #08131f 40%, #06101a 100%);
+  }
+
+  .page {
+    width: min(1420px, calc(100vw - 28px));
+    margin: 0 auto;
+    padding: 18px 0 34px;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--panel);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+  }
+
+  .hero-copy {
+    padding: 24px;
+    background:
+      linear-gradient(135deg, rgba(14, 25, 38, 0.94), rgba(7, 15, 24, 0.92)),
+      linear-gradient(90deg, rgba(96, 165, 250, 0.08), rgba(94, 234, 212, 0.08));
+  }
+
+  .kicker, .tiny, .pill, .badge {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  .kicker {
+    margin: 0 0 12px;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  h1 {
+    margin: 0 0 12px;
+    font-size: clamp(34px, 6vw, 72px);
+    line-height: 0.94;
+    letter-spacing: -0.05em;
+  }
+
+  .hero-copy p {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  .hero-side {
+    padding: 18px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .status-box {
+    padding: 14px;
+    border-radius: 13px;
+    background: var(--panel2);
+    border: 1px solid rgba(96, 165, 250, 0.14);
+  }
+
+  .status-box .tiny {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+
+  .status-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
+  }
+
+  .badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #64748b;
+  }
+
+  .badge.live { color: #cffafe; }
+  .badge.live::before { background: var(--good); box-shadow: 0 0 12px rgba(52, 211, 153, 0.8); }
+  .badge.idle::before { background: var(--warn); }
+  .badge.error::before { background: var(--bad); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .span-3 { grid-column: span 3; }
+  .span-4 { grid-column: span 4; }
+  .span-5 { grid-column: span 5; }
+  .span-6 { grid-column: span 6; }
+  .span-7 { grid-column: span 7; }
+  .span-8 { grid-column: span 8; }
+  .span-12 { grid-column: span 12; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .section-head h2 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 600;
+  }
+
+  .section-head .tiny {
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .body {
+    padding: 16px;
+  }
+
+  .station-grid,
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .decoder-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .decoder-column {
+    min-width: 0;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    background: rgba(4, 12, 21, 0.62);
+  }
+
+  .decoder-column h3 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .decoder-column > .tiny {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--muted);
+  }
+
+  .readout,
+  .metric {
+    padding: 13px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(6, 12, 20, 0.96), rgba(11, 19, 31, 0.9));
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    min-height: 96px;
+  }
+
+  .readout .tiny,
+  .metric .tiny {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+
+  .readout strong,
+  .metric strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 20px;
+    color: #fff;
+  }
+
+  .readout span,
+  .metric span {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .live-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.44fr);
+    gap: 16px;
+  }
+
+  .waterfall-stack {
+    min-width: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .waterfall-shell {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    background:
+      linear-gradient(180deg, rgba(3, 8, 14, 0.98), rgba(5, 10, 17, 0.96)),
+      radial-gradient(circle at center, rgba(94, 234, 212, 0.06), transparent 40%);
+    aspect-ratio: 8 / 3;
+  }
+
+  .waterfall-shell img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+  }
+
+  .waterfall-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 14px;
+    background: linear-gradient(180deg, rgba(3, 8, 14, 0.1), rgba(3, 8, 14, 0.7));
+    pointer-events: none;
+  }
+
+  .rf-channel-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .rf-channel-band {
+    position: absolute;
+    top: 0;
+    bottom: 42px;
+    min-width: 6px;
+    background: rgba(94, 234, 212, 0.12);
+    border-left: 1px solid rgba(94, 234, 212, 0.9);
+    border-right: 1px solid rgba(94, 234, 212, 0.9);
+    box-shadow: 0 0 18px rgba(94, 234, 212, 0.32);
+  }
+
+  .rf-channel-band.high {
+    background: rgba(96, 165, 250, 0.13);
+    border-color: rgba(96, 165, 250, 0.92);
+    box-shadow: 0 0 18px rgba(96, 165, 250, 0.34);
+  }
+
+  .rf-band-label {
+    position: absolute;
+    left: 50%;
+    top: 48px;
+    transform: translateX(-12%);
+    width: max-content;
+    max-width: 260px;
+    padding: 5px 8px;
+    border-radius: 7px;
+    background: rgba(3, 10, 17, 0.9);
+    border: 1px solid rgba(94, 234, 212, 0.45);
+    color: #d7fffa;
+    font: 10px/1.35 var(--mono);
+    letter-spacing: 0.04em;
+  }
+
+  .rf-channel-band.high .rf-band-label {
+    top: 14px;
+    transform: translateX(-50%);
+    border-color: rgba(96, 165, 250, 0.5);
+    color: #dbeafe;
+  }
+
+  .rf-channel-line {
+    position: absolute;
+    top: 0;
+    bottom: 42px;
+    width: 1px;
+    background: rgba(226, 232, 240, 0.2);
+  }
+
+  .rf-channel-line.trusted {
+    z-index: 2;
+    width: 2px;
+    background: #fbbf24;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.95);
+  }
+
+  .rf-channel-line.trusted::before {
+    content: "CH 1 · 462.5625";
+    position: absolute;
+    top: 12px;
+    left: 7px;
+    width: max-content;
+    padding: 5px 8px;
+    border-radius: 7px;
+    color: #fff5c2;
+    background: rgba(17, 12, 2, 0.9);
+    border: 1px solid rgba(251, 191, 36, 0.62);
+    font: 10px/1.2 var(--mono);
+  }
+
+  .rf-signal-marker {
+    position: absolute;
+    top: 86px;
+    bottom: 42px;
+    min-width: 3px;
+    background: rgba(251, 146, 60, 0.22);
+    border: 1px solid rgba(251, 146, 60, 0.9);
+    box-shadow: 0 0 16px rgba(251, 146, 60, 0.6);
+  }
+
+  .rf-signal-marker span {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: max-content;
+    max-width: 190px;
+    padding: 3px 6px;
+    border-radius: 5px;
+    background: rgba(20, 9, 2, 0.9);
+    color: #ffedd5;
+    font: 9px/1.3 var(--mono);
+  }
+
+  .rf-frequency-axis {
+    position: absolute;
+    z-index: 5;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 42px;
+    border-top: 1px solid rgba(226, 232, 240, 0.28);
+    background: rgba(3, 8, 14, 0.82);
+    pointer-events: none;
+  }
+
+  .rf-axis-tick {
+    position: absolute;
+    top: 0;
+    height: 9px;
+    border-left: 1px solid rgba(226, 232, 240, 0.6);
+  }
+
+  .rf-axis-tick span {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    transform: translateX(-50%);
+    color: #cbd5e1;
+    font: 10px/1 var(--mono);
+    white-space: nowrap;
+  }
+
+  .rf-axis-tick.edge-left span { transform: none; }
+  .rf-axis-tick.edge-right span { transform: translateX(-100%); }
+  .rf-axis-tick.center span { color: #fde68a; }
+
+  .frs-channel-map {
+    display: grid;
+    gap: 8px;
+  }
+
+  .frs-map-group {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    background: rgba(4, 11, 18, 0.94);
+  }
+
+  .frs-map-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 10px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.03);
+    font: 10px/1.3 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .frs-map-scroll { overflow-x: auto; }
+
+  .frs-map-track {
+    display: grid;
+    min-width: 900px;
+  }
+
+  .frs-map-group.high .frs-map-track {
+    min-width: 500px;
+  }
+
+  .frs-channel {
+    padding: 7px 5px 8px;
+    text-align: center;
+    border-right: 1px solid rgba(96, 165, 250, 0.12);
+    color: #dbeafe;
+    font: 10px/1.25 var(--mono);
+  }
+
+  .frs-channel:last-child { border-right: 0; }
+
+  .frs-channel strong {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--accent);
+    font-size: 11px;
+  }
+
+  .frs-channel.trusted {
+    background: rgba(251, 191, 36, 0.13);
+    box-shadow: inset 0 2px #fbbf24;
+  }
+
+  .frs-channel.trusted strong { color: #fde68a; }
+
+  .overlay-left {
+    display: grid;
+    gap: 8px;
+  }
+
+  .overlay-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(5, 12, 19, 0.82);
+    border: 1px solid rgba(96, 165, 250, 0.16);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: #d9f2ff;
+  }
+
+  .overlay-caption {
+    max-width: 48ch;
+    font-size: 13px;
+    color: #d6e7ff;
+  }
+
+  .spectrum-panel {
+    display: grid;
+    gap: 12px;
+  }
+
+  .audio-box {
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--panel2);
+    border: 1px solid rgba(96, 165, 250, 0.14);
+  }
+
+  .audio-box audio {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .stream-action {
+    margin-top: 12px;
+    padding: 9px 14px;
+    border: 1px solid rgba(94, 234, 212, 0.45);
+    border-radius: 999px;
+    background: rgba(94, 234, 212, 0.1);
+    color: #d9fff8;
+    font: 600 12px var(--mono);
+    cursor: pointer;
+  }
+
+  .stream-action:hover {
+    background: rgba(94, 234, 212, 0.18);
+  }
+
+  .stream-action.active {
+    border-color: rgba(251, 191, 36, 0.55);
+    background: rgba(251, 191, 36, 0.12);
+    color: #fff2c2;
+  }
+
+  .spectrum-shell {
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(3, 8, 14, 0.98), rgba(8, 14, 23, 0.94));
+    border: 1px solid rgba(96, 165, 250, 0.15);
+  }
+
+  #spectrum {
+    width: 100%;
+    height: 164px;
+    display: block;
+    border-radius: 10px;
+  }
+
+  .identity-stack {
+    display: grid;
+    gap: 12px;
+  }
+
+  .identity-card {
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--panel2);
+    border: 1px solid rgba(96, 165, 250, 0.14);
+  }
+
+  .identity-card .tiny {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+
+  .identity-card strong {
+    display: block;
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .identity-card .detail {
+    margin-top: 8px;
+    color: var(--muted);
+    line-height: 1.5;
+    font-size: 14px;
+  }
+
+  .list,
+  .jobs {
+    display: grid;
+    gap: 10px;
+  }
+
+  .observation-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .card {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--panel2);
+    border: 1px solid rgba(96, 165, 250, 0.1);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .pill {
+    font-size: 10px;
+    color: var(--accent2);
+  }
+
+  .timestamp {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .summary {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .detail {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .screenplay-log {
+    display: grid;
+    gap: 9px;
+    max-height: 560px;
+    overflow: auto;
+    font-family: var(--mono);
+  }
+
+  .screenplay-entry {
+    padding: 14px;
+    border-left: 3px solid var(--accent2);
+    background: linear-gradient(90deg, rgba(94, 234, 212, 0.08), rgba(255,255,255,0.02));
+  }
+
+  .screenplay-entry .voice {
+    margin-top: 7px;
+    color: #dbeafe;
+    line-height: 1.5;
+  }
+
+  .job-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .empty {
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(96, 165, 250, 0.18);
+    color: var(--muted);
+  }
+
+  .footer-note {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .architecture-grid,
+  .policy-grid,
+  .gallery {
+    display: grid;
+    gap: 12px;
+  }
+
+  .architecture-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .architecture-step {
+    position: relative;
+    min-height: 170px;
+    padding: 18px;
+    border-radius: 15px;
+    background:
+      linear-gradient(145deg, rgba(94, 234, 212, 0.08), transparent 48%),
+      var(--panel2);
+    border: 1px solid rgba(94, 234, 212, 0.16);
+  }
+
+  .architecture-step:not(:last-child)::after {
+    content: "→";
+    position: absolute;
+    top: 50%;
+    right: -20px;
+    z-index: 3;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 20px;
+  }
+
+  .architecture-step .step-number {
+    display: block;
+    margin-bottom: 22px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+  }
+
+  .architecture-step strong {
+    display: block;
+    margin-bottom: 9px;
+    font-size: 20px;
+  }
+
+  .architecture-step p,
+  .policy-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .policy-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .policy-card {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(96, 165, 250, 0.14);
+    background: rgba(5, 12, 20, 0.76);
+  }
+
+  .policy-card strong {
+    display: block;
+    margin: 8px 0;
+    font-size: 18px;
+  }
+
+  .policy-card .tiny {
+    color: var(--accent2);
+    font-size: 10px;
+  }
+
+  .gallery {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+
+  .gallery figure {
+    margin: 0;
+    overflow: hidden;
+    border-radius: 15px;
+    border: 1px solid rgba(96, 165, 250, 0.16);
+    background: rgba(5, 12, 20, 0.78);
+  }
+
+  .gallery img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top left;
+  }
+
+  .gallery figcaption {
+    padding: 13px 15px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 1180px) {
+    .hero,
+    .live-grid,
+    .station-grid,
+    .metric-grid,
+    .decoder-grid,
+    .observation-list,
+    .job-grid,
+    .architecture-grid,
+    .policy-grid,
+    .gallery {
+      grid-template-columns: 1fr;
+    }
+    .architecture-step:not(:last-child)::after { display: none; }
+    .span-3, .span-4, .span-5, .span-6, .span-7, .span-8, .span-12 {
+      grid-column: span 12;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .waterfall-shell {
+      aspect-ratio: auto;
+      height: 300px;
+    }
+
+    .rf-band-label,
+    .rf-channel-line.trusted::before {
+      font-size: 9px;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="panel hero-copy">
+        <p class="kicker">Sol-37 / Radio Observatory</p>
+        <h1>Live receiver, real stream, true waterfall.</h1>
+        <p>
+          This is the Sol-site radio surface with browser audio streaming, a genuine waterfall sourced from the live receiver,
+          station identity, now-playing inference, decoder output, transcripts, archive state, and current cortex interpretation.
+        </p>
+      </div>
+      <aside class="panel hero-side">
+        <div class="status-box">
+          <span class="tiny">Receiver</span>
+          <div class="status-line">
+            <span id="hero-receiver">Loading receiver state…</span>
+            <span class="badge idle" id="hero-live">idle</span>
+          </div>
+        </div>
+        <div class="status-box">
+          <span class="tiny">Station Identity</span>
+          <div class="status-line">
+            <span id="hero-station">Awaiting metadata…</span>
+            <span class="badge idle" id="hero-station-mode">offline</span>
+          </div>
+        </div>
+        <div class="status-box">
+          <span class="tiny">Cortex</span>
+          <div id="hero-cortex" class="detail">Waiting for snapshot…</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid">
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Live Monitor</h2>
+          <span class="tiny" id="generated-at">snapshot pending</span>
+        </div>
+        <div class="body live-grid">
+          <div class="waterfall-stack">
+            <div class="waterfall-shell">
+              <img id="waterfall-image" alt="Live radio waterfall">
+              <div class="rf-channel-overlay" id="rf-channel-overlay"></div>
+              <div class="rf-frequency-axis" id="rf-frequency-axis"></div>
+              <div class="waterfall-overlay">
+                <div class="overlay-left">
+                  <div class="overlay-chip" id="overlay-frequency">-- MHz</div>
+                  <div class="overlay-chip" id="overlay-station">No active station</div>
+                  <div class="overlay-caption" id="overlay-summary">Start the receiver to populate live stream and station identity.</div>
+                </div>
+              </div>
+            </div>
+            <div class="frs-channel-map" aria-label="FRS channel frequency map">
+              <div class="frs-map-group">
+                <div class="frs-map-head"><span>Lower FRS block</span><span>462.5500–462.7250 MHz</span></div>
+                <div class="frs-map-scroll"><div class="frs-map-track" id="frs-low-channels"></div></div>
+              </div>
+              <div class="frs-map-group high">
+                <div class="frs-map-head"><span>Upper FRS block</span><span>467.5625–467.7125 MHz</span></div>
+                <div class="frs-map-scroll"><div class="frs-map-track" id="frs-high-channels"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="spectrum-panel">
+            <div class="audio-box">
+              <div class="tiny">Audio Stream</div>
+              <div class="summary" id="audio-status">Audio transport is dormant until explicitly started.</div>
+              <button class="stream-action" id="audio-toggle" type="button">Start Live Audio</button>
+              <audio id="live-audio" controls preload="none"></audio>
+            </div>
+            <div class="spectrum-shell">
+              <div class="tiny">Live Spectrum</div>
+              <canvas id="spectrum" width="540" height="164"></canvas>
+            </div>
+            <div class="identity-stack">
+              <div class="identity-card">
+                <span class="tiny">Now Playing / Current Segment</span>
+                <strong id="now-playing-title">No active inference</strong>
+                <div class="detail" id="now-playing-detail">Waiting for RDS, UI text, or cortex inference.</div>
+              </div>
+              <div class="identity-card">
+                <span class="tiny">Raw Metadata</span>
+                <strong id="raw-station-label">Station unknown</strong>
+                <div class="detail" id="raw-station-detail">Window title, RDS, and callsign will appear here.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Spectrum Activity</h2>
+          <span class="tiny" id="observatory-span">fixed-span observation bus</span>
+        </div>
+        <div class="body observation-list" id="observations-list"></div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Environmental RF / Lightning Candidates</h2>
+          <span class="tiny">pre-gate impulses + bounded IQ and microphone evidence</span>
+        </div>
+        <div class="body observation-list" id="environmental-observations-list"></div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Detailed Signal Analysis</h2>
+          <span class="tiny" id="signal-analysis-state">local LLM hypotheses / measured RF facts</span>
+        </div>
+        <div class="body observation-list" id="signal-analysis-list"></div>
+      </section>
+
+      <section class="panel span-8">
+        <div class="section-head">
+          <h2>Receiver State</h2>
+          <span class="tiny">session + live transport</span>
+        </div>
+        <div class="body station-grid">
+          <div class="readout">
+            <span class="tiny">Frequency</span>
+            <strong id="station-frequency">--</strong>
+            <span id="station-backend">backend n/a</span>
+          </div>
+          <div class="readout">
+            <span class="tiny">Mode</span>
+            <strong id="station-mode">--</strong>
+            <span id="station-health">health n/a</span>
+          </div>
+          <div class="readout">
+            <span class="tiny">Owner</span>
+            <strong id="station-owner">--</strong>
+            <span id="station-started">started n/a</span>
+          </div>
+          <div class="readout">
+            <span class="tiny">Transport</span>
+            <strong id="station-transport">idle</strong>
+            <span id="station-stream">stream n/a</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Receiver Performance</h2>
+          <span class="tiny">measured cost + bounded pipeline state</span>
+        </div>
+        <div class="body metric-grid">
+          <div class="metric"><span class="tiny">Receiver CPU / Phase</span><strong id="metric-receiver-cpu">--</strong><span id="metric-receiver-cpu-detail">awaiting rolling sample</span></div>
+          <div class="metric"><span class="tiny">API / UI CPU</span><strong id="metric-api-cpu">--</strong><span id="metric-api-cpu-detail">awaiting sample</span></div>
+          <div class="metric"><span class="tiny">Model Workers</span><strong id="metric-worker-cpu">--</strong><span id="metric-worker-cpu-detail">transcription + inference</span></div>
+          <div class="metric"><span class="tiny">CPU Package</span><strong id="metric-package-temp">--</strong><span id="metric-package-detail">temperature sensor</span></div>
+          <div class="metric"><span class="tiny">HackRF Input</span><strong id="metric-input-rate">20.0 MS/s</strong><span id="metric-input-detail">Channel 1 centered</span></div>
+          <div class="metric"><span class="tiny">Driver Anomalies</span><strong id="metric-driver-anomalies">--</strong><span id="metric-driver-detail">hardware counter unavailable</span></div>
+          <div class="metric"><span class="tiny">Presentation Clients</span><strong id="metric-clients">0</strong><span id="metric-clients-detail">waterfall 0 / audio 0</span></div>
+          <div class="metric"><span class="tiny">Open Squelches</span><strong id="metric-open-squelches">0</strong><span id="metric-open-squelches-detail">of 22 channels</span></div>
+          <div class="metric"><span class="tiny">Events</span><strong id="metric-events">0</strong><span id="metric-events-detail">0 visible</span></div>
+          <div class="metric"><span class="tiny">Transcripts</span><strong id="metric-transcripts">0</strong><span id="metric-transcripts-detail">0 visible</span></div>
+          <div class="metric"><span class="tiny">Live Decoder</span><strong id="metric-decoder">0</strong><span id="metric-decoder-detail">history shown separately</span></div>
+          <div class="metric"><span class="tiny">Archives</span><strong id="metric-archives">0</strong><span id="metric-archives-detail">known jobs</span></div>
+          <div class="metric"><span class="tiny">Open Audio Demodulators</span><strong id="metric-demod">0</strong><span id="metric-demod-detail">all 22 RF probes remain live</span></div>
+          <div class="metric"><span class="tiny">Audio Drops</span><strong id="metric-audio-drops">0</strong><span id="metric-audio-detail">queue + playback</span></div>
+          <div class="metric"><span class="tiny">Transcription Q</span><strong id="metric-transcription-q">0</strong><span id="metric-transcription-detail">bounded worker</span></div>
+          <div class="metric"><span class="tiny">Inference Q</span><strong id="metric-inference-q">0</strong><span id="metric-inference-detail">bounded worker</span></div>
+          <div class="metric"><span class="tiny">Environmental Q</span><strong id="metric-lightning-q">0</strong><span id="metric-lightning-detail">bounded evidence rings</span></div>
+          <div class="metric"><span class="tiny">Signal Analysis Q</span><strong id="metric-signal-q">0</strong><span id="metric-signal-detail">local LLM idle</span></div>
+        </div>
+      </section>
+
+      <section class="panel span-6">
+        <div class="section-head">
+          <h2>Recent Activity</h2>
+          <span class="tiny">sanitized event stream</span>
+        </div>
+        <div class="body list" id="events-list"></div>
+      </section>
+
+      <section class="panel span-6">
+        <div class="section-head">
+          <h2>Recent Transcripts</h2>
+          <span class="tiny">filtered monitor + archive + multichannel</span>
+        </div>
+        <div class="body list" id="transcripts-list"></div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Decoder State and Evidence</h2>
+          <span class="tiny">configuration is not detection history</span>
+        </div>
+        <div class="body decoder-grid">
+          <section class="decoder-column">
+            <h3>Current Decoder Configuration</h3>
+            <span class="tiny">active observatory topology</span>
+            <div class="list" id="decoder-configuration"></div>
+          </section>
+          <section class="decoder-column">
+            <h3>Live Detections</h3>
+            <span class="tiny">current receiver session only</span>
+            <div class="list" id="decoder-live"></div>
+          </section>
+          <section class="decoder-column">
+            <h3>Historical Detections</h3>
+            <span class="tiny">retained evidence from older sessions</span>
+            <div class="list" id="decoder-history"></div>
+          </section>
+          <section class="decoder-column">
+            <h3>Diagnostic / System Events</h3>
+            <span class="tiny">starts, capabilities, and worker state</span>
+            <div class="list" id="decoder-diagnostics"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="panel span-6">
+        <div class="section-head">
+          <h2>Archive Jobs</h2>
+          <span class="tiny">rolling cache and sidecars</span>
+        </div>
+        <div class="body jobs" id="archive-jobs"></div>
+      </section>
+
+      <section class="panel span-6">
+        <div class="section-head">
+          <h2>Multichannel Jobs</h2>
+          <span class="tiny">wideband nearby-station capture</span>
+        </div>
+        <div class="body jobs" id="multichannel-jobs"></div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>How The Observatory Works</h2>
+          <span class="tiny">observe first · interpret second</span>
+        </div>
+        <div class="body architecture-grid">
+          <article class="architecture-step">
+            <span class="step-number">01 / ACQUIRE</span>
+            <strong>One fixed RF span</strong>
+            <p>A receive-only HackRF captures its maximum 20 MHz span with Channel 1 as the logical center. A small digital tuning offset keeps the trusted carrier away from the hardware DC spike; the receiver does not scan between FRS channels.</p>
+          </article>
+          <article class="architecture-step">
+            <span class="step-number">02 / OBSERVE</span>
+            <strong>Twenty-two channel paths</strong>
+            <p>All 22 carrier probes run continuously. Channel 1 audio stays hot; other NFM paths wake on carrier activity and remain open through evidence capture.</p>
+          </article>
+          <article class="architecture-step">
+            <span class="step-number">03 / ENVIRONMENT</span>
+            <strong>Impulses before the gate</strong>
+            <p>A 51.2 µs pre-gate power path covers the full 20 MHz capture. Qualified events retain 0.4 seconds of aliased temporal IQ; RF-only identification is complete without microphones, while any available acoustic correlation remains optional secondary evidence.</p>
+          </article>
+          <article class="architecture-step">
+            <span class="step-number">04 / UNDERSTAND</span>
+            <strong>Ensemble interpretation</strong>
+            <p>Candidate transcripts, descriptive audio, 50 Hz RF edge timing, completed-WAV envelope recovery, deterministic rules, and local-model reconciliation describe what happened. Per-press release chimes terminate PTT holds but never become Morse symbols.</p>
+          </article>
+          <article class="architecture-step">
+            <span class="step-number">05 / RESPOND</span>
+            <strong>Bounded incident policy</strong>
+            <p>Only sufficient evidence becomes an incident. A single trusted PTT is preserved without a cascade; repeated signaling, voice, or SOS can escalate.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Phase 0 Performance Gate</h2>
+          <span class="tiny">stability before expansion</span>
+        </div>
+        <div class="body policy-grid">
+          <article class="policy-card">
+            <span class="tiny">Continuous Detection</span>
+            <strong>22 probes, two coarse banks</strong>
+            <p>The lower and upper FRS blocks are decimated before individual channel power detection. Channel 1 remains continuously demodulated for trusted-call latency.</p>
+          </article>
+          <article class="policy-card">
+            <span class="tiny">Event-Driven Cost</span>
+            <strong>DSP and presentation wake on demand</strong>
+            <p>Non-trusted NFM paths and model workers wake on evidence. Waterfall delivery follows viewport visibility, while browser audio requires explicit playback and selectively lifts weak voice frames without raising the already-limited static bed.</p>
+          </article>
+          <article class="policy-card">
+            <span class="tiny">Measured Result</span>
+            <strong id="phase0-live">Awaiting rolling receiver sample</strong>
+            <p id="phase0-detail">The accepted Phase 0 reference is 3.561 cores. Live cost is labeled STARTUP, STEADY, or DEGRADED so a restart spike is not presented as a steady-state result.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Alert Ladder</h2>
+          <span class="tiny">evidence determines response</span>
+        </div>
+        <div class="body policy-grid">
+          <article class="policy-card">
+            <span class="tiny">Passive Observation</span>
+            <strong>Carrier or outside traffic</strong>
+            <p>Recorded and available to the live monitor. Short non-trusted noise does not create an immediate prompt or phone reminder.</p>
+          </article>
+          <article class="policy-card">
+            <span class="tiny">Trusted Incident</span>
+            <strong>Single Channel 1 PTT</strong>
+            <p>Raises one durable local alert and one staged phone update with no repeat schedule. Acknowledgment cancels pending reminders transactionally; atomic scheduler leases prevent restart duplicates. An explicit high-confidence spoken test appears first, then may close after a seven-second minimum.</p>
+          </article>
+          <article class="policy-card">
+            <span class="tiny">Escalated Incident</span>
+            <strong>Morse, directed voice, or SOS</strong>
+            <p>Multiple verified holds receive bounded reminders. SOS uses a tempo-independent 1:2 test: dots are near 1/12 and dashes near 1/6 of total keyed time, with exactly nine ordered holds, separated clusters, high confidence, and the indexed release chimes. The ninth chime closes the sequence and preserves one protected combined WAV. Operator intent alone never creates an SOS decode.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>System Views</h2>
+          <span class="tiny">live surface + retained evidence</span>
+        </div>
+        <div class="body gallery">
+          <figure>
+            <img src="/assets/radio-observatory/live-observatory.png" alt="Live SOL Radio Observatory waterfall and receiver dashboard" loading="lazy">
+            <figcaption>Live 20 MHz receiver surface with the Channel 1 centerline, all FRS markers, browser audio, and current transport state.</figcaption>
+          </figure>
+          <figure>
+            <img src="/assets/radio-observatory/transmission-archive-current.png" alt="SOL Radio Transmission Archive showing retained Channel 1 observations, recordings, and transcripts" loading="lazy">
+            <figcaption>The retained archive links channel identity, exact frequency, recording, synchronized transcripts, incident context, and the best available PTT/Morse result.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="panel span-12">
+        <div class="section-head">
+          <h2>Updating Screenplay Log</h2>
+          <span class="tiny">chronology / stage state / detector facts / analyst uncertainty</span>
+        </div>
+        <div class="body screenplay-log" id="screenplay-log"></div>
+      </section>
+    </section>
+
+    <p class="footer-note">
+      The public view prefers live and retained operational material over quarantined diagnostic noise. Complete evidence remains
+      available in the local archive, while the browser audio and waterfall follow whichever managed receiver owns the SDR.
+    </p>
+  </main>
+
+  <script>
+    const waterfallImage = document.getElementById("waterfall-image");
+    const liveAudio = document.getElementById("live-audio");
+    const audioToggle = document.getElementById("audio-toggle");
+    const spectrumCanvas = document.getElementById("spectrum");
+    const spectrumContext = spectrumCanvas.getContext("2d");
+
+    let audioContext = null;
+    let analyser = null;
+    let spectrumSource = null;
+    let spectrumFrame = 0;
+    let desiredAudioUrl = "";
+    let desiredWaterfallUrl = "";
+    let currentAudioUrl = "";
+    let currentWaterfallUrl = "";
+    let waterfallVisible = false;
+    let audioRequested = false;
+    let liveWorkActive = false;
+    let refreshTimer = 0;
+
+    function fmt(value, fallback) {
+      const text = value == null ? "" : String(value).trim();
+      return text || fallback;
+    }
+
+    function relativeStamp(value) {
+      if (!value) return "n/a";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString();
+    }
+
+    function setBadge(node, label, kind) {
+      node.textContent = label;
+      node.className = "badge " + kind;
+    }
+
+    function renderCards(target, items, renderItem, emptyText) {
+      target.textContent = "";
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = emptyText;
+        target.appendChild(empty);
+        return;
+      }
+      items.forEach((item) => target.appendChild(renderItem(item)));
+    }
+
+    function buildCard(label, ts, summary, detail) {
+      const card = document.createElement("article");
+      card.className = "card";
+      const top = document.createElement("div");
+      top.className = "card-top";
+      const pill = document.createElement("div");
+      pill.className = "pill";
+      pill.textContent = label;
+      const stamp = document.createElement("time");
+      stamp.className = "timestamp";
+      stamp.textContent = relativeStamp(ts);
+      top.appendChild(pill);
+      top.appendChild(stamp);
+      const body = document.createElement("div");
+      body.className = "summary";
+      body.textContent = summary;
+      card.appendChild(top);
+      card.appendChild(body);
+      if (detail) {
+        const meta = document.createElement("div");
+        meta.className = "detail";
+        meta.textContent = detail;
+        card.appendChild(meta);
+      }
+      return card;
+    }
+
+    function environmentalCard(item) {
+      const metadata = item.metadata || {};
+      const range = metadata.range_estimate || {};
+      const direction = metadata.direction_estimate || {};
+      const peak = Number(metadata.peak_above_floor_db || item.signal_level || 0);
+      const durationMs = Number(metadata.duration_ms || Number(item.duration || 0) * 1000);
+      const affected = Number(metadata.affected_channel_count || 0);
+      const rfConfidence = Number(metadata.rf_lightning_confidence || 0);
+      const combined = Number(metadata.combined_lightning_confidence || 0);
+      const riseSpread = Number(metadata.rise_spread_db);
+      const rfIdentification = fmt(metadata.rf_anomaly_type, "unclassified_broadband_impulse").replaceAll("_", " ");
+      const summary = item.classification === "lightning_candidate"
+        ? "Lightning-like RF impulse with two-microphone thunder support"
+        : metadata.rf_anomaly_type === "rf_lightning_candidate"
+          ? "RF-only lightning candidate; cause not confirmed"
+          : "RF anomaly · " + rfIdentification;
+      const details = [
+        peak.toFixed(1) + " dB above floor",
+        durationMs.toFixed(2) + " ms",
+        affected + " FRS probes affected",
+        Number.isFinite(riseSpread) ? riseSpread.toFixed(1) + " relative rise spread" : "",
+        "RF ID " + rfIdentification,
+        "RF ID confidence " + Number(metadata.rf_identification_confidence || 0).toFixed(2),
+        "acoustic " + fmt(metadata.acoustic_state, "pending"),
+        metadata.iq_capture_state ? "IQ " + metadata.iq_capture_state : "",
+        range.distance_miles == null ? "" : Number(range.distance_miles).toFixed(2) + " mi estimated",
+        direction.axis_label ? String(direction.axis_label).replaceAll("_", " ") : "",
+        "confidence " + (combined || rfConfidence).toFixed(2)
+      ].filter(Boolean).join(" · ");
+      const captureSpanMhz = Number(metadata.capture_span_hz || 20000000) / 1000000;
+      return buildCard(
+        captureSpanMhz.toFixed(0) + " MHz impulse",
+        metadata.event_time || item.created_at,
+        summary,
+        details
+      );
+    }
+
+    function signalAnalysisCard(item) {
+      const metadata = item.metadata || {};
+      const analysis = metadata.signal_analysis || {};
+      const frequency = Number(item.frequency_hz || 0) / 1000000;
+      const evidence = [
+        frequency ? frequency.toFixed(4) + " MHz" : "full span",
+        Number(item.duration || 0).toFixed(2) + " s",
+        Number(item.signal_level || 0).toFixed(1) + " dB detector level",
+        "confidence " + Number(analysis.confidence || 0).toFixed(2),
+        fmt(analysis.evidence, "measured metadata retained"),
+        "uncertainty: " + fmt(analysis.uncertainty, "identity not established"),
+        (analysis.alternatives || []).length ? "alternatives: " + analysis.alternatives.join(" / ") : ""
+      ].filter(Boolean).join(" · ");
+      return buildCard(
+        fmt(analysis.likely_signal_family, "RF analysis"),
+        item.updated_at || item.created_at,
+        fmt(analysis.summary, "Local analysis pending."),
+        evidence
+      );
+    }
+
+    function screenplayCard(item) {
+      const card = document.createElement("article");
+      card.className = "screenplay-entry";
+      const heading = document.createElement("div");
+      heading.className = "tiny";
+      heading.textContent = relativeStamp(item.timestamp) + " / " + fmt(item.scene, "RF DETECTION") + " / " + fmt(item.evidence_state, "unknown");
+      const stage = document.createElement("div");
+      stage.className = "detail";
+      stage.textContent = fmt(item.stage_direction, "[observation retained]");
+      const detector = document.createElement("div");
+      detector.className = "voice";
+      detector.textContent = "DETECTOR: " + fmt(item.detector, "measurement retained");
+      const analyst = document.createElement("div");
+      analyst.className = "voice";
+      analyst.textContent = "LOCAL ANALYST: " + fmt(item.analyst, "analysis pending");
+      const uncertainty = document.createElement("div");
+      uncertainty.className = "detail";
+      uncertainty.textContent = "UNCERTAINTY / BRANCHES: " + fmt(item.uncertainty, "identity not established") +
+        ((item.alternatives || []).length ? " / " + item.alternatives.join(" / ") : "");
+      card.append(heading, stage, detector, analyst, uncertainty);
+      return card;
+    }
+
+    function renderJobs(target, jobs, kind) {
+      target.textContent = "";
+      if (!jobs.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = kind === "archive" ? "No archive jobs found." : "No multichannel jobs found.";
+        target.appendChild(empty);
+        return;
+      }
+      jobs.forEach((job) => {
+        const card = document.createElement("article");
+        card.className = "card";
+        const title = document.createElement("div");
+        title.className = "card-top";
+        title.innerHTML = "<div class=\"pill\">" + job.name + "</div><time class=\"timestamp\">" + relativeStamp(job.started_at || job.stopped_at) + "</time>";
+        card.appendChild(title);
+        const body = document.createElement("div");
+        body.className = "summary";
+        if (kind === "archive") {
+          body.textContent = (job.transcribe ? "Transcribed" : "Capture only") + " archive from " + fmt(job.source, "unknown source");
+        } else {
+          const channelCount = Array.isArray(job.channels) ? job.channels.length : 0;
+          body.textContent = channelCount + " channel(s) around " + fmt(job.center_mhz, "--") + " MHz";
+        }
+        card.appendChild(body);
+        const meta = document.createElement("div");
+        meta.className = "job-grid";
+        if (kind === "archive") {
+          meta.innerHTML =
+            "<div>Segments: " + fmt(job.segments, 0) + "</div>" +
+            "<div>Backend: " + fmt(job.transcribe_backend, "n/a") + "</div>" +
+            "<div>Last transcript: " + relativeStamp(job.last_transcript_at) + "</div>" +
+            "<div>Last segment: " + fmt(job.last_segment, "none") + "</div>";
+        } else {
+          meta.innerHTML =
+            "<div>RF rate: " + fmt(job.rf_rate, "n/a") + "</div>" +
+            "<div>Started: " + relativeStamp(job.started_at) + "</div>" +
+            "<div>Channels: " + (job.channels || []).map((channel) => channel.name + "@" + channel.frequency_mhz).join(", ") + "</div>" +
+            "<div>Last transcript: " + Object.entries(job.last_transcript || {}).map(([name, text]) => name + ": " + text).join(" | ") + "</div>";
+        }
+        card.appendChild(meta);
+        target.appendChild(card);
+      });
+    }
+
+    function ensureSpectrumPipeline() {
+      if (audioContext && analyser) {
+        if (audioContext.state === "suspended") {
+          audioContext.resume().catch(() => {});
+        }
+        return audioContext.state === "running";
+      }
+      if (!window.AudioContext && !window.webkitAudioContext) return false;
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      audioContext = new Ctor();
+      if (audioContext.state === "suspended") {
+        audioContext.resume().catch(() => {});
+      }
+      if (audioContext.state !== "running") {
+        return false;
+      }
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.78;
+      spectrumSource = audioContext.createMediaElementSource(liveAudio);
+      spectrumSource.connect(analyser);
+      analyser.connect(audioContext.destination);
+      renderSpectrum();
+      return true;
+    }
+
+    function renderSpectrum() {
+      if (!analyser) {
+        spectrumContext.fillStyle = "#06111b";
+        spectrumContext.fillRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+        return;
+      }
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      spectrumContext.fillStyle = "#04101a";
+      spectrumContext.fillRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+
+      const bars = 72;
+      const barWidth = spectrumCanvas.width / bars;
+      for (let i = 0; i < bars; i += 1) {
+        const start = Math.floor(i * data.length / bars);
+        const end = Math.max(start + 1, Math.floor((i + 1) * data.length / bars));
+        let sum = 0;
+        for (let j = start; j < end; j += 1) sum += data[j];
+        const avg = sum / (end - start);
+        const height = Math.max(4, (avg / 255) * spectrumCanvas.height);
+        const x = i * barWidth;
+        const y = spectrumCanvas.height - height;
+        const grad = spectrumContext.createLinearGradient(0, y, 0, spectrumCanvas.height);
+        grad.addColorStop(0, "#5eead4");
+        grad.addColorStop(0.55, "#60a5fa");
+        grad.addColorStop(1, "#172554");
+        spectrumContext.fillStyle = grad;
+        spectrumContext.fillRect(x + 1, y, Math.max(2, barWidth - 2), height);
+      }
+
+      spectrumFrame = window.requestAnimationFrame(renderSpectrum);
+    }
+
+    function renderRfChannels(observatory) {
+      const minimum = Number(observatory.minimum_frequency_hz || 0);
+      const maximum = Number(observatory.maximum_frequency_hz || 0);
+      const center = Number(observatory.center_frequency_hz || 0);
+      const channels = Array.isArray(observatory.channel_map)
+        ? observatory.channel_map
+            .map((item) => ({
+              channel: Number(item.channel || 0),
+              frequency_hz: Number(item.frequency_hz || 0)
+            }))
+            .filter((item) => item.channel && item.frequency_hz)
+        : [];
+      if (!minimum || maximum <= minimum || !channels.length) return;
+
+      const position = (frequency) =>
+        Math.max(0, Math.min(100, ((frequency - minimum) / (maximum - minimum)) * 100));
+      const overlay = document.getElementById("rf-channel-overlay");
+      const axis = document.getElementById("rf-frequency-axis");
+      overlay.textContent = "";
+      axis.textContent = "";
+
+      const groups = [
+        { className: "low", channels: channels.filter((item) => item.frequency_hz < 465000000) },
+        { className: "high", channels: channels.filter((item) => item.frequency_hz >= 465000000) }
+      ];
+      groups.forEach((group) => {
+        if (!group.channels.length) return;
+        const frequencies = group.channels.map((item) => item.frequency_hz);
+        const low = Math.min(...frequencies);
+        const high = Math.max(...frequencies);
+        const band = document.createElement("div");
+        band.className = "rf-channel-band " + group.className;
+        band.style.left = position(low) + "%";
+        band.style.width = Math.max(0.3, position(high) - position(low)) + "%";
+        const label = document.createElement("span");
+        label.className = "rf-band-label";
+        label.textContent =
+          (group.className === "low" ? "CH 15/1/16/2…7/22" : "CH 8–14") +
+          " · " + (low / 1000000).toFixed(4) + "–" + (high / 1000000).toFixed(4);
+        band.appendChild(label);
+        overlay.appendChild(band);
+      });
+
+      channels.forEach((item) => {
+        const line = document.createElement("span");
+        line.className = "rf-channel-line" + (item.channel === 1 ? " trusted" : "");
+        line.style.left = position(item.frequency_hz) + "%";
+        line.title = "Channel " + item.channel + " · " + (item.frequency_hz / 1000000).toFixed(4) + " MHz";
+        overlay.appendChild(line);
+      });
+
+      const activeSignals = (((observatory.runtime || {}).spectrum_analyzer || {}).active_signals || []);
+      activeSignals.forEach((signal) => {
+        const low = Number(signal.minimum_frequency_hz || signal.frequency_hz || 0);
+        const high = Number(signal.maximum_frequency_hz || signal.frequency_hz || 0);
+        if (!low || high < minimum || low > maximum) return;
+        const marker = document.createElement("div");
+        marker.className = "rf-signal-marker";
+        marker.style.left = position(Math.max(low, minimum)) + "%";
+        marker.style.width = Math.max(0.25, position(Math.min(high, maximum)) - position(Math.max(low, minimum))) + "%";
+        const label = document.createElement("span");
+        label.textContent = (Number(signal.frequency_hz || 0) / 1000000).toFixed(4) + " MHz · " + fmt(signal.deterministic_identification, "RF signal").replaceAll("_", " ");
+        marker.appendChild(label);
+        overlay.appendChild(marker);
+      });
+
+      [
+        { frequency: minimum, className: "edge-left" },
+        { frequency: center, className: "center" },
+        { frequency: maximum, className: "edge-right" }
+      ].forEach((tickInfo) => {
+        const tick = document.createElement("div");
+        tick.className = "rf-axis-tick " + tickInfo.className;
+        tick.style.left = position(tickInfo.frequency) + "%";
+        const label = document.createElement("span");
+        label.textContent = (tickInfo.frequency / 1000000).toFixed(4) + " MHz";
+        tick.appendChild(label);
+        axis.appendChild(tick);
+      });
+
+      const renderTrack = (targetId, items) => {
+        const target = document.getElementById(targetId);
+        target.textContent = "";
+        target.style.gridTemplateColumns = "repeat(" + items.length + ", minmax(58px, 1fr))";
+        items
+          .slice()
+          .sort((left, right) => left.frequency_hz - right.frequency_hz)
+          .forEach((item) => {
+            const channel = document.createElement("div");
+            channel.className = "frs-channel" + (item.channel === 1 ? " trusted" : "");
+            const number = document.createElement("strong");
+            number.textContent = "CH " + item.channel;
+            const frequency = document.createElement("span");
+            frequency.textContent = (item.frequency_hz / 1000000).toFixed(4);
+            channel.appendChild(number);
+            channel.appendChild(frequency);
+            target.appendChild(channel);
+          });
+      };
+      renderTrack("frs-low-channels", groups[0].channels);
+      renderTrack("frs-high-channels", groups[1].channels);
+    }
+
+    function disconnectAudio() {
+      audioRequested = false;
+      currentAudioUrl = "";
+      liveAudio.pause();
+      liveAudio.removeAttribute("src");
+      liveAudio.load();
+      audioToggle.textContent = "Start Live Audio";
+      audioToggle.classList.remove("active");
+    }
+
+    async function connectAudio() {
+      if (!desiredAudioUrl) return;
+      audioRequested = true;
+      audioToggle.textContent = "Stop Live Audio";
+      audioToggle.classList.add("active");
+      if (currentAudioUrl !== desiredAudioUrl) {
+        currentAudioUrl = desiredAudioUrl;
+        liveAudio.src = desiredAudioUrl;
+      }
+      try {
+        await liveAudio.play();
+      } catch (_error) {
+        document.getElementById("audio-status").textContent =
+          "Audio transport is ready. Use the player control if browser playback was blocked.";
+      }
+    }
+
+    function disconnectWaterfall() {
+      currentWaterfallUrl = "";
+      waterfallImage.removeAttribute("src");
+    }
+
+    function updateWaterfallConnection() {
+      const shouldConnect = Boolean(
+        desiredWaterfallUrl && waterfallVisible && !document.hidden
+      );
+      if (!shouldConnect) {
+        disconnectWaterfall();
+        return;
+      }
+      if (currentWaterfallUrl !== desiredWaterfallUrl) {
+        currentWaterfallUrl = desiredWaterfallUrl;
+        waterfallImage.src = desiredWaterfallUrl;
+      }
+    }
+
+    function updateStreamState(browserStream, station) {
+      const active = Boolean(browserStream && browserStream.active);
+      const receiverAvailable = Boolean(station && station.backend && station.frequency_mhz);
+      const audioStatus = document.getElementById("audio-status");
+      const transport = document.getElementById("station-transport");
+      const streamText = document.getElementById("station-stream");
+
+      if (receiverAvailable) {
+        const version = encodeURIComponent(
+          station.started_at || browserStream.last_stream_started_at || ""
+        );
+        desiredAudioUrl = fmt(browserStream.audio_url, "/api/radio/live.mp3") + "?v=" + version;
+        desiredWaterfallUrl = fmt(browserStream.waterfall_url, "/api/radio/waterfall.mjpeg") + "?v=" + version;
+        updateWaterfallConnection();
+        audioStatus.textContent = audioRequested
+          ? "Live audio is playing from the current receiver session."
+          : "Audio transport is dormant until explicitly started.";
+        transport.textContent = active ? "live" : "ready";
+        streamText.textContent =
+          "waterfall " + String(browserStream.waterfall_clients || 0) +
+          " / audio " + String(browserStream.audio_clients || 0) + " clients";
+      } else {
+        desiredAudioUrl = "";
+        desiredWaterfallUrl = "";
+        disconnectAudio();
+        disconnectWaterfall();
+        audioStatus.textContent = "Receiver idle. Live transports are unavailable.";
+        transport.textContent = "idle";
+        streamText.textContent = "stream unavailable";
+      }
+
+      document.getElementById("overlay-frequency").textContent = fmt(station.frequency_mhz, "--") + " MHz / " + fmt(station.mode, "offline");
+      document.getElementById("overlay-station").textContent = fmt(station.station_label || station.callsign, "No active station");
+      document.getElementById("overlay-summary").textContent = fmt(station.now_playing_summary || station.ui_text || station.rds || browserStream.window_title, "Start the receiver to populate live stream and station identity.");
+    }
+
+    async function refresh() {
+      const response = await fetch("/api/radio/status?limit=5", { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Could not load radio snapshot.");
+      }
+
+      const station = payload.current_station || {};
+      const receiver = payload.receiver || {};
+      const browserStream = payload.browser_stream || {};
+      const cortex = payload.cortex || {};
+      const rawCounts = payload.raw_counts || {};
+      const observatory = payload.observatory || {};
+      const runtime = observatory.runtime || {};
+      const audioRuntime = runtime.audio || {};
+      const queues = runtime.queues || {};
+      const workers = runtime.workers || {};
+      const performance = payload.performance || {};
+      const receiverCpu = performance.receiver_cpu || {};
+      const receiverTelemetry = performance.receiver_telemetry || receiver.telemetry || {};
+      const processes = performance.processes || {};
+      const receiverProcess = processes.receiver || {};
+      const apiProcess = processes.api || {};
+      const transcriptionProcess = processes.transcription || {};
+      const inferenceProcess = processes.inference || {};
+      const lightningProcess = processes.lightning || {};
+      const decoderActivity = payload.decoder_activity || {};
+      const liveDecoderDetections = decoderActivity.live_detections || [];
+      const historicalDecoderDetections = decoderActivity.historical_detections || [];
+
+      document.getElementById("generated-at").textContent = "updated " + relativeStamp(payload.generated_at);
+      document.getElementById("station-frequency").textContent = fmt(station.frequency_mhz, "--") + " MHz";
+      document.getElementById("station-backend").textContent = "backend " + fmt(station.backend, "n/a");
+      document.getElementById("station-mode").textContent = fmt(station.mode, "--");
+      document.getElementById("station-health").textContent = "health " + fmt(station.health, "n/a");
+      document.getElementById("station-owner").textContent = fmt(station.owner, "--");
+      document.getElementById("station-started").textContent = "started " + relativeStamp(station.started_at);
+
+      document.getElementById("hero-receiver").textContent =
+        fmt(station.frequency_mhz, "--") + " MHz / " + fmt(station.mode, "offline") + " / owner " + fmt(station.owner, "n/a");
+      document.getElementById("hero-station").textContent = fmt(station.station_label || station.callsign, "Station unknown");
+      document.getElementById("hero-cortex").textContent = cortex.fresh
+        ? "LIVE / " + fmt(cortex.backend, "n/a") + " / " +
+          fmt((cortex.last_inference || {}).summary, "no recent inference")
+        : "STALE / RETAINED INFERENCE / status " + relativeStamp(cortex.updated_at) +
+          " / inference " + relativeStamp((cortex.last_inference || {}).window_end || (cortex.last_inference || {}).ts);
+
+      const receiverRunning = Boolean(receiver.running || station.pid);
+      setBadge(
+        document.getElementById("hero-live"),
+        browserStream.active ? "live" : (receiverRunning ? "standby" : "offline"),
+        browserStream.active ? "live" : (receiverRunning ? "idle" : "error")
+      );
+      setBadge(document.getElementById("hero-station-mode"), fmt(station.mode, "offline"), browserStream.active ? "live" : "idle");
+
+      document.getElementById("metric-events").textContent = String((payload.events || []).length);
+      document.getElementById("metric-events-detail").textContent =
+        String(rawCounts.filtered_or_quarantined_events || 0) +
+        " filtered/quarantined · " + String(rawCounts.events || 0) + " sampled";
+      document.getElementById("metric-transcripts").textContent = String((payload.transcripts || []).length);
+      document.getElementById("metric-transcripts-detail").textContent =
+        String(rawCounts.filtered_or_quarantined_transcripts || 0) +
+        " filtered/quarantined · " + String(rawCounts.transcripts || 0) + " sampled";
+      document.getElementById("metric-decoder").textContent = String(liveDecoderDetections.length);
+      document.getElementById("metric-decoder-detail").textContent =
+        String(historicalDecoderDetections.length) + " historical shown separately";
+      document.getElementById("metric-archives").textContent = String((payload.archive_jobs || []).length);
+      document.getElementById("metric-demod").textContent = String((audioRuntime.demodulated_channels || []).length);
+      document.getElementById("metric-demod-detail").textContent =
+        "open audio paths / all 22 RF probes live / waterfall " + fmt(runtime.waterfall_fps, "--") + " fps";
+      const audioDrops = Number(audioRuntime.dropped_frames || 0) + Number(audioRuntime.site_frames_dropped || 0);
+      document.getElementById("metric-audio-drops").textContent = String(audioDrops);
+      document.getElementById("metric-audio-detail").textContent =
+        "queue depth " + String(audioRuntime.queue_depth || 0);
+      document.getElementById("metric-transcription-q").textContent = String(queues.transcription || 0);
+      document.getElementById("metric-transcription-detail").textContent =
+        fmt((workers.transcription || {}).state, "unknown") + " / concurrency 1";
+      document.getElementById("metric-inference-q").textContent = String(queues.inference || 0);
+      document.getElementById("metric-inference-detail").textContent =
+        fmt((workers.inference || {}).state, "unknown") + " / concurrency 1";
+      document.getElementById("metric-lightning-q").textContent = String(queues.lightning || 0);
+      const lightningWorker = workers.lightning || {};
+      const microphoneStates = Object.values(lightningWorker.microphones || {});
+      const readyMicrophones = microphoneStates.filter((item) => item.reader_alive && !item.error).length;
+      const iqRing = runtime.iq_ring || {};
+      document.getElementById("metric-lightning-detail").textContent =
+        fmt(lightningWorker.state, "unknown") +
+        " / mics " + readyMicrophones + "/" + microphoneStates.length +
+        " / IQ " + fmt(iqRing.ring_mib, "--") + " MiB";
+      const signalWorker = workers.signal_analysis || {};
+      document.getElementById("metric-signal-q").textContent = String(queues.signal_analysis || 0);
+      document.getElementById("metric-signal-detail").textContent =
+        fmt(signalWorker.state, "unknown") + " / " + fmt(signalWorker.model, "local model");
+      document.getElementById("signal-analysis-state").textContent =
+        fmt(signalWorker.state, "unknown") + " / queue " + String(queues.signal_analysis || 0) + " / measured facts remain authoritative";
+
+      const cpuText = (process) =>
+        process.cpu_percent == null ? "--" : Number(process.cpu_percent).toFixed(1) + "%";
+      document.getElementById("metric-receiver-cpu").textContent = cpuText(receiverProcess);
+      document.getElementById("metric-receiver-cpu-detail").textContent =
+        fmt(receiverCpu.phase, "UNKNOWN") + " / 60 s mean " +
+        (receiverCpu.rolling_mean_60s_cores == null ? "--" : Number(receiverCpu.rolling_mean_60s_cores).toFixed(3)) +
+        " cores / now " + (receiverProcess.cpu_cores == null ? "--" : Number(receiverProcess.cpu_cores).toFixed(2)) +
+        " / telemetry " + fmt(receiverTelemetry.state, "unknown");
+      document.getElementById("phase0-live").textContent =
+        fmt(receiverCpu.phase, "UNKNOWN") + " / " +
+        (receiverCpu.rolling_mean_60s_cores == null ? "--" : Number(receiverCpu.rolling_mean_60s_cores).toFixed(3)) +
+        " rolling cores";
+      document.getElementById("phase0-detail").textContent =
+        fmt(receiverCpu.phase_reason, "No phase reason available.") +
+        " Reference: " + Number(receiverCpu.accepted_phase0_mean_cores || 3.561).toFixed(3) +
+        " cores. Current RSS " + fmt(receiverProcess.rss_mib, "--") + " MiB; " +
+        fmt(receiverProcess.threads, "--") + " threads.";
+      document.getElementById("metric-api-cpu").textContent = cpuText(apiProcess);
+      document.getElementById("metric-api-cpu-detail").textContent =
+        fmt(apiProcess.rss_mib, "--") + " MiB / " + fmt(apiProcess.threads, "--") + " threads";
+      const workerCpu =
+        Number(transcriptionProcess.cpu_percent || 0) +
+        Number(inferenceProcess.cpu_percent || 0) +
+        Number(lightningProcess.cpu_percent || 0);
+      document.getElementById("metric-worker-cpu").textContent =
+        (transcriptionProcess.active || inferenceProcess.active || lightningProcess.active)
+          ? workerCpu.toFixed(1) + "%"
+          : "idle";
+      document.getElementById("metric-worker-cpu-detail").textContent =
+        "transcription " + fmt(transcriptionProcess.cpu_percent, "0") +
+        "% / inference " + fmt(inferenceProcess.cpu_percent, "0") +
+        "% / lightning " + fmt(lightningProcess.cpu_percent, "0") + "%";
+      document.getElementById("metric-package-temp").textContent =
+        performance.package_temperature_c == null
+          ? "--"
+          : Number(performance.package_temperature_c).toFixed(1) + " °C";
+      document.getElementById("metric-package-detail").textContent =
+        "package power counter unavailable";
+      const inputRate = Number(performance.hackrf_input_samples_per_second || 0);
+      document.getElementById("metric-input-rate").textContent =
+        inputRate ? (inputRate / 1000000).toFixed(1) + " MS/s" : "--";
+      document.getElementById("metric-input-detail").textContent =
+        "Channel 1 centered / " + fmt(runtime.waterfall_fps, "--") + " FFT rows/s";
+      document.getElementById("metric-driver-anomalies").textContent =
+        String(performance.hackrf_driver_anomalies || 0);
+      document.getElementById("metric-driver-detail").textContent =
+        performance.hackrf_drop_counter_available
+          ? "hardware drop counter available"
+          : "log scan / hardware counter unavailable";
+      document.getElementById("metric-clients").textContent =
+        String(Number(performance.waterfall_clients || 0) + Number(performance.audio_clients || 0));
+      document.getElementById("metric-clients-detail").textContent =
+        "waterfall " + String(performance.waterfall_clients || 0) +
+        " / audio " + String(performance.audio_clients || 0);
+      const openChannels = runtime.open_channels || [];
+      document.getElementById("metric-open-squelches").textContent = String(openChannels.length);
+      document.getElementById("metric-open-squelches-detail").textContent =
+        openChannels.length ? "channels " + openChannels.join(", ") : "of 22 channels";
+      liveWorkActive =
+        openChannels.length > 0 ||
+        Number(queues.transcription || 0) > 0 ||
+        Number(queues.inference || 0) > 0;
+
+      document.getElementById("now-playing-title").textContent = fmt(station.now_playing_title || station.now_playing_summary, "No active inference");
+      document.getElementById("now-playing-detail").textContent =
+        [station.now_playing_artist, station.now_playing_summary, station.rds].filter(Boolean).join(" / ") ||
+        "Waiting for RDS, UI text, or cortex inference.";
+      document.getElementById("raw-station-label").textContent = fmt(station.station_label || station.callsign || station.rds_pi, "Station unknown");
+      document.getElementById("raw-station-detail").textContent =
+        [station.callsign, station.rds, station.window_title, station.ui_text].filter(Boolean).join(" / ") ||
+        "Window title, RDS, and callsign will appear here.";
+
+      updateStreamState(browserStream, station);
+      renderRfChannels(observatory);
+
+      const centerMhz = Number(observatory.center_frequency_hz || 0) / 1000000;
+      const spanMhz = Number(observatory.rf_rate || 0) / 1000000;
+      document.getElementById("observatory-span").textContent =
+        (spanMhz ? spanMhz.toFixed(0) + " MHz" : "fixed span") +
+        " centered at " + (centerMhz ? centerMhz.toFixed(4) + " MHz" : "Channel 1");
+      renderCards(
+        document.getElementById("observations-list"),
+        observatory.recent_observations || [],
+        (item) => buildCard(
+          Number(item.channel || 0) === 0
+            ? "Full-span impulse · " + (
+                Number((item.metadata || {}).capture_span_hz || observatory.rf_rate || 0) / 1000000
+              ).toFixed(0) + " MHz capture"
+            : "Channel " + fmt(item.channel, "?") + " · " + (Number(item.frequency_hz || 0) / 1000000).toFixed(4) + " MHz",
+          item.created_at,
+          fmt(item.transcript, item.classification === "carrier_only" ? "Carrier only" : fmt(item.classification, "Observed carrier")),
+          Number(item.duration || 0).toFixed(1) + " s · " + fmt(item.interest_level, "passive") +
+            (item.promoted_incident_id ? " · promoted to incident" : "")
+        ),
+        "No RF observations have been recorded yet."
+      );
+
+      renderCards(
+        document.getElementById("signal-analysis-list"),
+        observatory.signal_analyses || [],
+        signalAnalysisCard,
+        "No completed local signal analyses yet."
+      );
+
+      renderCards(
+        document.getElementById("screenplay-log"),
+        observatory.screenplay_log || [],
+        screenplayCard,
+        "The screenplay log is waiting for retained RF observations."
+      );
+
+      renderCards(
+        document.getElementById("environmental-observations-list"),
+        observatory.environmental_observations || [],
+        environmentalCard,
+        "No retained broadband impulse candidates have been observed."
+      );
+
+      renderCards(
+        document.getElementById("events-list"),
+        payload.events || [],
+        (item) => buildCard(
+          fmt(item.type || item.content_type, "event"),
+          item.ts,
+          fmt(item.summary, "Untitled event"),
+          item.full_text || item.detailed_summary || ""
+        ),
+        "No recent live-facing radio events."
+      );
+
+      renderCards(
+        document.getElementById("transcripts-list"),
+        payload.transcripts || [],
+        (item) => buildCard(
+          fmt(item.source, "transcript"),
+          item.ts,
+          fmt(item.text, "No transcript text."),
+          [item.backend, item.model, item.event].filter(Boolean).join(" · ")
+        ),
+        "No recent transcripts survived the quality filter."
+      );
+
+      renderCards(
+        document.getElementById("decoder-configuration"),
+        decoderActivity.configuration || [],
+        (item) => buildCard(
+          fmt(item.label, "decoder"),
+          payload.generated_at,
+          fmt(item.value, "No active configuration."),
+          fmt(item.detail, "")
+        ),
+        "Current decoder configuration is unavailable."
+      );
+
+      renderCards(
+        document.getElementById("decoder-live"),
+        liveDecoderDetections,
+        (item) => buildCard("live detection", item.ts, fmt(item.line, "No decoder output."), ""),
+        "No decoder detections in the current receiver session."
+      );
+
+      renderCards(
+        document.getElementById("decoder-history"),
+        historicalDecoderDetections,
+        (item) => buildCard("historical", item.ts, fmt(item.line, "No decoder output."), ""),
+        "No historical decoder detections retained."
+      );
+
+      renderCards(
+        document.getElementById("decoder-diagnostics"),
+        decoderActivity.diagnostics || [],
+        (item) => buildCard("system", item.ts, fmt(item.line, "No diagnostic output."), ""),
+        "No decoder diagnostic events retained."
+      );
+
+      renderJobs(document.getElementById("archive-jobs"), payload.archive_jobs || [], "archive");
+      renderJobs(document.getElementById("multichannel-jobs"), payload.multichannel_jobs || [], "multi");
+    }
+
+    async function boot() {
+      window.clearTimeout(refreshTimer);
+      try {
+        await refresh();
+      } catch (error) {
+        document.getElementById("hero-receiver").textContent = error && error.message ? error.message : "Radio snapshot failed.";
+        setBadge(document.getElementById("hero-live"), "error", "error");
+      } finally {
+        const delay = document.hidden ? 10000 : (liveWorkActive ? 1000 : 5000);
+        refreshTimer = window.setTimeout(boot, delay);
+      }
+    }
+
+    audioToggle.addEventListener("click", async () => {
+      if (audioRequested) {
+        disconnectAudio();
+        document.getElementById("audio-status").textContent =
+          "Audio transport is dormant until explicitly started.";
+        return;
+      }
+      await connectAudio();
+    });
+
+    liveAudio.addEventListener("play", async () => {
+      const ready = ensureSpectrumPipeline();
+      if (ready && audioContext && audioContext.state === "suspended") {
+        try {
+          await audioContext.resume();
+        } catch (_error) {
+        }
+      }
+    });
+
+    liveAudio.addEventListener("pause", () => {
+      if (!audioRequested) return;
+      disconnectAudio();
+      document.getElementById("audio-status").textContent =
+        "Audio transport stopped. Press Start Live Audio to reconnect.";
+    });
+
+    const waterfallObserver = new IntersectionObserver((entries) => {
+      waterfallVisible = entries.some((entry) => entry.isIntersecting);
+      updateWaterfallConnection();
+    }, { threshold: 0.05 });
+    waterfallObserver.observe(document.querySelector(".waterfall-shell"));
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        disconnectAudio();
+        disconnectWaterfall();
+      } else {
+        updateWaterfallConnection();
+      }
+      boot();
+    });
+
+    renderSpectrum();
+    boot();
+  </script>
+</body>
+</html>

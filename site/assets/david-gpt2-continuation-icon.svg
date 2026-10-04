@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="David GPT-2 text continuation icon">
+  <rect width="48" height="48" rx="4" fill="#15120d"/>
+  <rect x="6" y="6" width="36" height="35" rx="2" fill="#f4f1e8" stroke="#000" stroke-width="2"/>
+  <rect x="6" y="6" width="36" height="7" fill="#3f6250" stroke="#000" stroke-width="2"/>
+  <circle cx="11" cy="9.5" r="1.5" fill="#f2c66d"/>
+  <path d="M11 19h20M11 24h25M11 29h15" stroke="#34443d" stroke-width="2" stroke-linecap="square"/>
+  <path d="M27 29h9v5" fill="none" stroke="#b5402f" stroke-width="2" stroke-linecap="square"/>
+  <path d="M11 35h20" stroke="#23708a" stroke-width="2" stroke-linecap="square" stroke-dasharray="3 2"/>
+  <rect x="31" y="32" width="7" height="7" fill="#f2c66d" stroke="#000"/>
+  <path d="M33 35h3M34.5 33.5v3" stroke="#16130e" stroke-width="1.2"/>
+  <path d="M14 42h20l4 3H10z" fill="#5f6b73" stroke="#000"/>
+</svg>

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Sol-37 ZIP Drive</title>
+  <style>
+    :root { --chrome:#c0c0c0; --light:#fff; --dark:#808080; --deep:#404040; --blue:#000080; --ink:#111; }
+    * { box-sizing:border-box; }
+    html,body { height:100%; margin:0; }
+    body { overflow:hidden; background:var(--chrome); color:var(--ink); font:12px "MS Sans Serif","Segoe UI",Tahoma,sans-serif; }
+    button,input { font:inherit; }
+    .app { height:100%; display:grid; grid-template-rows:auto auto auto 1fr auto; }
+    .menubar,.toolbar,.address,.status { display:flex; align-items:center; gap:6px; padding:5px 8px; border-bottom:1px solid var(--dark); box-shadow:inset 0 1px var(--light); }
+    .menubar { box-shadow:none; padding-block:3px; }
+    .menubar span { padding:2px 8px; }
+    button { min-height:25px; padding:3px 10px; color:#111; background:var(--chrome); border:2px solid; border-color:var(--light) var(--deep) var(--deep) var(--light); cursor:pointer; }
+    button:active { border-color:var(--deep) var(--light) var(--light) var(--deep); padding:4px 9px 2px 11px; }
+    button:disabled { color:#777; cursor:default; text-shadow:1px 1px #fff; }
+    .address label { white-space:nowrap; }
+    .address-box,.search { min-width:0; height:25px; padding:4px 6px; background:#fff; border:2px solid; border-color:var(--dark) var(--light) var(--light) var(--dark); }
+    .address-box { flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-family:"Courier New",monospace; }
+    .search { width:min(32vw,280px); }
+    .main { min-height:0; display:grid; grid-template-columns:210px 1fr; }
+    .sidebar { overflow:auto; padding:12px; border-right:1px solid var(--dark); background:#e7e7e7; }
+    .drive { display:grid; place-items:center; width:72px; margin:4px auto 16px; }
+    .drive-icon { position:relative; width:58px; height:44px; border:2px solid #111; background:linear-gradient(#f4f4f4,#8d8d8d); box-shadow:inset 4px 4px #d8d8d8; }
+    .drive-icon::before { content:"ZIP"; position:absolute; inset:8px 7px 14px; display:grid; place-items:center; color:#fff; background:#1a4c9a; font:bold 12px monospace; }
+    .drive-icon::after { content:""; position:absolute; right:7px; bottom:5px; width:7px; height:7px; border-radius:50%; background:#55d96b; box-shadow:0 0 5px #55d96b; }
+    .archive-name { text-align:center; overflow-wrap:anywhere; font-weight:bold; }
+    .facts { margin:0; display:grid; gap:8px; }
+    .facts div { padding-top:7px; border-top:1px solid #aaa; }
+    .facts dt { color:#555; }
+    .facts dd { margin:2px 0 0; font-weight:bold; overflow-wrap:anywhere; }
+    .content { min-width:0; min-height:0; display:grid; grid-template-rows:auto 1fr; background:#fff; }
+    .crumbs { display:flex; gap:2px; min-height:31px; padding:4px 8px; align-items:center; overflow:auto; border-bottom:1px solid #aaa; background:#efefef; }
+    .crumb { min-height:20px; padding:1px 6px; border-width:1px; white-space:nowrap; }
+    .list-wrap { min-height:0; overflow:auto; }
+    table { width:100%; border-collapse:collapse; table-layout:fixed; }
+    th { position:sticky; top:0; z-index:1; padding:5px 7px; text-align:left; background:var(--chrome); border:1px solid; border-color:var(--light) var(--dark) var(--dark) var(--light); }
+    th:nth-child(1){width:52%} th:nth-child(2){width:18%} th:nth-child(3){width:16%} th:nth-child(4){width:14%}
+    td { padding:5px 8px; border-bottom:1px solid #eee; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    tbody tr { cursor:default; }
+    tbody tr:hover { background:#e5edff; }
+    tbody tr.selected { color:#fff; background:var(--blue); }
+    .file-name { display:flex; align-items:center; gap:7px; }
+    .glyph { width:17px; flex:0 0 17px; text-align:center; color:#7a5510; }
+    .status { justify-content:space-between; min-height:28px; border-top:1px solid var(--light); border-bottom:0; }
+    .error { padding:20px; color:#7c0000; font-weight:bold; }
+    @media (max-width:700px) { .main{grid-template-columns:1fr}.sidebar{display:none}.toolbar{overflow:auto}.search{width:150px}th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4){display:none}th:nth-child(1){width:70%}th:nth-child(2){width:30%} }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="menubar"><span><u>F</u>ile</span><span><u>V</u>iew</span><span><u>H</u>elp</span></div>
+    <div class="toolbar">
+      <button id="up" type="button">Up</button>
+      <button id="open" type="button">Open</button>
+      <button id="download" type="button">Download File</button>
+      <button id="whole" type="button">Download Entire ZIP</button>
+      <input class="search" id="search" type="search" placeholder="Search this ZIP" aria-label="Search archive">
+    </div>
+    <div class="address"><label>Address</label><div class="address-box" id="address">ZIP Drive</div></div>
+    <div class="main">
+      <aside class="sidebar">
+        <div class="drive"><div class="drive-icon" aria-hidden="true"></div></div>
+        <div class="archive-name" id="archive-name">Loading archive...</div>
+        <dl class="facts">
+          <div><dt>Archive size</dt><dd id="archive-size">...</dd></div>
+          <div><dt>Contained items</dt><dd id="archive-count">...</dd></div>
+          <div><dt>Mode</dt><dd>Read-only virtual drive</dd></div>
+        </dl>
+      </aside>
+      <section class="content">
+        <nav class="crumbs" id="crumbs" aria-label="Archive path"></nav>
+        <div class="list-wrap"><table><thead><tr><th>Name</th><th>Size</th><th>Type</th><th>Modified</th></tr></thead><tbody id="rows"></tbody></table></div>
+      </section>
+    </div>
+    <footer class="status"><span id="status">Reading central directory...</span><span id="selection"></span></footer>
+  </main>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const archive = params.get("archive") || "";
+    const els = Object.fromEntries(["up","open","download","whole","search","address","archive-name","archive-size","archive-count","crumbs","rows","status","selection"].map(id => [id, document.getElementById(id)]));
+    const playable = /\.(?:mp4|webm|ogv|mov|mp3|wav|ogg|flac|m4a|aac|oga|opus|weba)$/i;
+    let members = [], currentDir = "", selected = null;
+
+    function formatBytes(value) {
+      if (!Number.isFinite(value)) return "";
+      const units = ["bytes","KB","MB","GB","TB"]; let n=value, i=0;
+      while (n >= 1024 && i < units.length-1) { n/=1024; i++; }
+      return `${i ? n.toFixed(n >= 10 ? 1 : 2) : n} ${units[i]}`;
+    }
+    function apiFile(name) {
+      const q = new URLSearchParams({ archive, entry:name });
+      return `/api/zip-drive/file?${q}`;
+    }
+    function parentDir(path) { const p=path.split("/").filter(Boolean); p.pop(); return p.length ? `${p.join("/")}/` : ""; }
+    function childRows() {
+      const map = new Map();
+      const query = els.search.value.trim().toLowerCase();
+      if (query) return members.filter(m => !m.directory && m.name.toLowerCase().includes(query)).map(m => ({...m,label:m.name,kind:"file"}));
+      for (const member of members) {
+        if (!member.name.startsWith(currentDir) || member.name === currentDir) continue;
+        const rest = member.name.slice(currentDir.length); if (!rest) continue;
+        const slash = rest.indexOf("/");
+        if (slash >= 0) { const label=rest.slice(0,slash); const name=`${currentDir}${label}/`; if (!map.has(name)) map.set(name,{name,label,kind:"directory",directory:true,size:0,media_type:"Folder",modified:""}); }
+        else if (!member.directory) map.set(member.name,{...member,label:rest,kind:"file"});
+      }
+      return [...map.values()].sort((a,b) => (b.directory-a.directory) || a.label.localeCompare(b.label,undefined,{numeric:true}));
+    }
+    function renderCrumbs() {
+      els.crumbs.innerHTML="";
+      const parts=currentDir.split("/").filter(Boolean); const points=[{label:"ZIP Drive",dir:""}]; let dir="";
+      for (const part of parts) { dir+=`${part}/`; points.push({label:part,dir}); }
+      points.forEach((point,i) => { const b=document.createElement("button"); b.className="crumb"; b.textContent=point.label; b.disabled=i===points.length-1; b.onclick=()=>navigate(point.dir); els.crumbs.append(b); });
+    }
+    function render() {
+      selected=null; els.rows.innerHTML=""; renderCrumbs();
+      const rows=childRows();
+      for (const item of rows) {
+        const tr=document.createElement("tr");
+        const kind=item.directory ? "Folder" : (item.media_type || "File").replace(/^.*\//,"").toUpperCase();
+        tr.innerHTML=`<td><span class="file-name"><span class="glyph">${item.directory?"▣":playable.test(item.name)?"▶":"▤"}</span><span></span></span></td><td>${item.directory?"":formatBytes(item.size)}</td><td>${kind}</td><td>${item.modified?item.modified.slice(0,10):""}</td>`;
+        tr.querySelector(".file-name span:last-child").textContent=item.label;
+        tr.onclick=()=>{ document.querySelectorAll("tbody tr.selected").forEach(n=>n.classList.remove("selected")); tr.classList.add("selected"); selected=item; els.selection.textContent=item.directory?"Folder":formatBytes(item.size); };
+        tr.ondblclick=()=>openItem(item); els.rows.append(tr);
+      }
+      els.address.textContent=`ZIP Drive:\\${currentDir.replaceAll("/","\\")}`;
+      els.status.textContent=`${rows.length} item${rows.length===1?"":"s"}`;
+      els.up.disabled=!currentDir && !els.search.value;
+    }
+    function navigate(dir) { currentDir=dir; els.search.value=""; render(); }
+    function openInShell(href,title) {
+      if (parent !== window) parent.postMessage({type:"sol-open-page",href,title},location.origin); else location.href=href;
+    }
+    function openItem(item=selected) {
+      if (!item) return;
+      if (item.directory) { navigate(item.name); return; }
+      const src=apiFile(item.name);
+      if (playable.test(item.name)) { const q=new URLSearchParams({src,title:item.label}); openInShell(`/programs/media-player.html?${q}`,`${item.label} — Media Player`); }
+      else window.open(src,"_blank","noopener");
+    }
+    function downloadItem() {
+      if (!selected || selected.directory) return;
+      const a=document.createElement("a"); a.href=apiFile(selected.name); a.download=selected.label; document.body.append(a); a.click(); a.remove();
+    }
+    async function load() {
+      if (!archive.toLowerCase().endsWith(".zip")) throw new Error("No public ZIP archive was specified.");
+      const response=await fetch(`/api/zip-drive/list?${new URLSearchParams({archive})}`,{cache:"no-store"});
+      const data=await response.json(); if (!response.ok) throw new Error(data.error || `Archive API returned ${response.status}`);
+      members=data.members; els["archive-name"].textContent=data.name; els["archive-size"].textContent=formatBytes(data.size); els["archive-count"].textContent=data.member_count; document.title=`${data.name} — ZIP Drive`; render();
+    }
+    els.up.onclick=()=>els.search.value ? (els.search.value="",render()) : navigate(parentDir(currentDir));
+    els.open.onclick=()=>openItem(); els.download.onclick=downloadItem; els.whole.onclick=()=>{ location.href=archive; }; els.search.oninput=render;
+    addEventListener("keydown",e=>{ if(e.key==="Enter")openItem(); if(e.key==="Backspace"&&e.target!==els.search){e.preventDefault();els.up.click();} });
+    load().catch(error=>{ els.rows.innerHTML=`<tr><td colspan="4" class="error"></td></tr>`; els.rows.querySelector("td").textContent=error.message; els.status.textContent="ZIP drive unavailable"; });
+  </script>
+</body>
+</html>

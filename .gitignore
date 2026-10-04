@@ -1,0 +1,6 @@
+_site/
+build-report.json
+__pycache__/
+.playwright-cli/
+output/
+*.pyc

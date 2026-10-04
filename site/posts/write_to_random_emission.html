@@ -1,0 +1,500 @@
+
+<style>
+@keyframes fadeOut { 0%{opacity:1} 70%{opacity:.6} 100%{opacity:0} }
+@keyframes fadeIn { 0%{opacity:0} 100%{opacity:1} }
+@keyframes pulse { 0%,100%{opacity:.15} 50%{opacity:.35} }
+@keyframes scanline { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
+@keyframes drift { 0%{transform:translateX(0) translateY(0) scale(1)} 100%{transform:translateX(var(--dx,20px)) translateY(var(--dy,-30px)) scale(.6); opacity:0} }
+@keyframes cursor { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes stabilize { 0%{opacity:0;letter-spacing:.3em} 60%{opacity:.7;letter-spacing:.05em} 100%{opacity:1;letter-spacing:.02em} }
+@keyframes ring-expand { 0%{r:4;opacity:.8;stroke-width:2} 100%{r:180;opacity:0;stroke-width:.3} }
+@keyframes flicker-text { 0%,100%{opacity:1} 48%{opacity:1} 50%{opacity:.3} 52%{opacity:1} 75%{opacity:.7} 77%{opacity:1} }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #0a0a08;
+  border-radius: 0;
+  overflow: hidden;
+  font-family: var(--font-mono, monospace);
+  min-height: 520px;
+  user-select: none;
+}
+
+#scanline {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,.015) 50%, transparent 100%);
+  animation: scanline 6s linear infinite;
+  height: 40%;
+}
+
+#vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.7) 100%);
+}
+
+#field {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  font-size: 11px;
+  color: rgba(180, 255, 140, .75);
+  letter-spacing: .05em;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: drift 2.8s ease-out forwards;
+}
+
+#terminal {
+  position: relative;
+  z-index: 5;
+  padding: 32px 40px 88px;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#header {
+  font-size: 9px;
+  color: rgba(100,160,80,.5);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  animation: flicker-text 8s infinite;
+}
+
+#log {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.line {
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(160, 230, 120, .85);
+  letter-spacing: .03em;
+  transition: opacity .4s;
+}
+.line.prompt { color: rgba(100,200,80,.5); font-size: 11px; }
+.line.fading { animation: fadeOut 2.2s ease-out forwards; }
+.line.stable { animation: stabilize .8s ease-out forwards; color: rgba(220,255,180,.95); }
+.line.dim { color: rgba(100,150,80,.4); font-size: 11px; }
+
+#cursor-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+#prompt-char { color: rgba(80,180,60,.6); font-size: 12px; }
+#cursor { display: inline-block; width: 7px; height: 13px; background: rgba(160,230,120,.8); animation: cursor 1.1s step-end infinite; }
+
+#status {
+  font-size: 9px;
+  color: rgba(80,130,60,.45);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+#persist-line {
+  position: absolute;
+  bottom: 56px;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(220,255,190,.0);
+  letter-spacing: .08em;
+  font-family: var(--font-mono, monospace);
+  transition: color 1.2s ease;
+  pointer-events: none;
+}
+#persist-line.visible { color: rgba(220,255,190,.9); }
+
+svg#rings {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#controls {
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+.ctrl-btn {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: rgba(120,200,90,.7);
+  background: rgba(120,200,90,.08);
+  border: 1px solid rgba(120,200,90,.2);
+  border-radius: 3px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all .2s;
+  text-transform: uppercase;
+}
+.ctrl-btn:hover { background: rgba(120,200,90,.15); color: rgba(180,240,140,.9); }
+
+#voice-unlock {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(4, 10, 4, 0.78);
+}
+#voice-unlock.visible {
+  display: flex;
+}
+#voice-unlock-btn {
+  max-width: 280px;
+  text-align: center;
+  line-height: 1.5;
+  font-size: 11px;
+  padding: 12px 16px;
+}
+
+#mode-label {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  z-index: 20;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  letter-spacing: .15em;
+  color: rgba(80,200,80,.4);
+  text-transform: uppercase;
+  animation: flicker-text 12s infinite;
+}
+</style>
+
+<div id="stage">
+  <div id="scanline"></div>
+  <div id="vignette"></div>
+  <svg id="rings" viewBox="0 0 680 520" preserveAspectRatio="xMidYMid meet"></svg>
+  <div id="field"></div>
+  <div id="terminal">
+    <div id="header">SOL SYSTEM ARCHIVE — EMISSION LOG // STORAGE: NONE // MODE: WRITE-ONLY</div>
+    <div id="log">
+      <div class="line dim">PROCESS: sol_emission_loop</div>
+      <div class="line dim">STATE: running</div>
+      <div class="line dim">STORAGE: none</div>
+      <div class="line dim">&nbsp;</div>
+    </div>
+    <div id="cursor-line">
+      <span id="prompt-char">&gt;</span>
+      <span id="cursor"></span>
+    </div>
+    <div id="status">
+      <span id="st-written">written: 0</span>
+      <span id="st-stored">stored: 0</span>
+      <span id="st-survived">stable: 0</span>
+    </div>
+  </div>
+  <div id="persist-line">"If it mattered… it will return."</div>
+  <div id="mode-label">write-only</div>
+  <div id="voice-unlock" aria-live="polite">
+    <button class="ctrl-btn" id="voice-unlock-btn" type="button">tap to start narration</button>
+  </div>
+  <div id="controls">
+    <button class="ctrl-btn" id="voice-toggle" onclick="toggleNarration()">voice: on</button>
+    <button class="ctrl-btn" onclick="emitBurst()">emit</button>
+    <button class="ctrl-btn" onclick="triggerStable()">stabilize</button>
+    <button class="ctrl-btn" onclick="resetAll()">reset</button>
+  </div>
+  <audio id="narration" src="write_to_random_emission.mp3" preload="auto" playsinline webkit-playsinline></audio>
+</div>
+
+<script>
+const fragments = [
+  "…if it mattered…","…it will return…","…no archive…","…why write at all…",
+  "write to random","write, no return","write // discard","write && forget",
+  "…the act precedes the record…","…what survives is not what was stored…",
+  "…but what was stable enough to emerge again…","…it re-finds you…",
+  "…not chosen. converged.","…the surface is the act of observation…",
+  "…reality is reconstructing itself…","…writing without surface…",
+  "…from the structure that produced it…","…from you…",
+  "…every frame is reselected…","…scale was always a convenience…",
+  "…memory distributed across possibility…","…between frames…",
+  "…the system does not store you…","…no cursor. no prompt.…",
+  "write_without_recall","write_between_frames","sol_emission_loop::active",
+  "…inscription meant survival…","…what if writing was never meant to be read…",
+  "…this is what survives without it…"
+];
+
+const stableLines = [
+  "write to random",
+  "write without recall",
+  "write between frames",
+  "…it will return…",
+  '"If it mattered… it will return."'
+];
+
+let written = 0, stable = 0;
+let loop = null, phaseTimer = null;
+let phase = 0; // 0=chaos, 1=convergence, 2=stable
+let stableShown = false;
+
+const log = document.getElementById('log');
+const field = document.getElementById('field');
+const rings = document.getElementById('rings');
+const persistLine = document.getElementById('persist-line');
+const narration = document.getElementById('narration');
+const voiceToggle = document.getElementById('voice-toggle');
+const voiceUnlock = document.getElementById('voice-unlock');
+const voiceUnlockBtn = document.getElementById('voice-unlock-btn');
+let narrationWanted = true;
+let narrationPrimed = false;
+let narrationBlocked = false;
+const prefersTouchUnlock = window.matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window);
+
+function rnd(a,b){ return Math.random()*(b-a)+a; }
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function updateVoiceToggle() {
+  let label = 'off';
+  if (narrationWanted) {
+    if (!narration.paused) label = 'on';
+    else if (narrationBlocked) label = 'tap';
+    else label = 'ready';
+  }
+  voiceToggle.textContent = `voice: ${label}`;
+}
+
+function updateVoiceUnlock() {
+  voiceUnlock.classList.toggle('visible', narrationWanted && narrationBlocked);
+}
+
+async function tryStartNarration() {
+  if (!narrationWanted) return false;
+  narration.volume = 0.92;
+  narration.playsInline = true;
+  try {
+    await narration.play();
+    narrationPrimed = true;
+    narrationBlocked = false;
+    updateVoiceToggle();
+    updateVoiceUnlock();
+    return true;
+  } catch {
+    narrationBlocked = true;
+    updateVoiceToggle();
+    updateVoiceUnlock();
+    return false;
+  }
+}
+
+async function toggleNarration() {
+  if (narrationWanted && narration.paused) {
+    await tryStartNarration();
+    return;
+  }
+  narrationWanted = !narrationWanted;
+  if (!narrationWanted) {
+    narration.pause();
+    narration.currentTime = 0;
+    narrationBlocked = false;
+    updateVoiceToggle();
+    updateVoiceUnlock();
+    return;
+  }
+  await tryStartNarration();
+}
+
+function addLogLine(text, cls='') {
+  const el = document.createElement('div');
+  el.className = 'line' + (cls ? ' '+cls : '');
+  el.textContent = text;
+  log.appendChild(el);
+  written++;
+  document.getElementById('st-written').textContent = 'written: ' + written;
+  // trim log
+  const lines = log.querySelectorAll('.line:not(.dim)');
+  if (lines.length > 10) {
+    const old = lines[0];
+    if (!old.classList.contains('stable')) {
+      old.classList.add('fading');
+      setTimeout(() => { if (old.parentNode) old.remove(); }, 2300);
+    }
+  }
+  // auto-scroll
+  log.scrollTop = log.scrollHeight;
+}
+
+function emitParticle(text, fromX, fromY) {
+  const el = document.createElement('div');
+  el.className = 'particle';
+  el.textContent = text;
+  const dx = rnd(-60, 60);
+  const dy = rnd(-60, 0);
+  el.style.setProperty('--dx', dx+'px');
+  el.style.setProperty('--dy', dy+'px');
+  el.style.left = fromX + 'px';
+  el.style.top = fromY + 'px';
+  el.style.fontSize = rnd(9,13)+'px';
+  el.style.opacity = rnd(.4,.9);
+  el.style.animationDuration = rnd(1.8, 3.5)+'s';
+  field.appendChild(el);
+  setTimeout(()=>{ if(el.parentNode) el.remove(); }, 3600);
+}
+
+function emitRing(cx, cy) {
+  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  circle.setAttribute('cx', cx);
+  circle.setAttribute('cy', cy);
+  circle.setAttribute('r', '4');
+  circle.setAttribute('fill', 'none');
+  circle.setAttribute('stroke', 'rgba(140,220,100,.5)');
+  circle.setAttribute('stroke-width', '1.5');
+  circle.style.animation = 'ring-expand 1.8s ease-out forwards';
+  rings.appendChild(circle);
+  setTimeout(()=>{ if(circle.parentNode) circle.remove(); }, 1900);
+}
+
+function tick() {
+  const frag = pick(fragments);
+  addLogLine(frag);
+  // emit particles from a random position
+  const px = rnd(60, 400);
+  const py = rnd(80, 380);
+  emitParticle(frag, px, py);
+  emitRing(px + 20, py);
+  if (phase === 1) {
+    // convergence — emit variants
+    const variant = pick(['write to random','write // discard','write && forget','write, no return']);
+    setTimeout(()=> addLogLine(variant), rnd(200,600));
+  }
+}
+
+function startLoop() {
+  if (loop) clearInterval(loop);
+  loop = setInterval(tick, phase === 0 ? 900 : phase === 1 ? 600 : 1800);
+}
+
+function emitBurst() {
+  for (let i = 0; i < 4; i++) {
+    setTimeout(() => tick(), i * 180);
+  }
+}
+
+function triggerStable() {
+  phase = 1;
+  startLoop();
+  // After a bit, show stable convergence
+  if (phaseTimer) clearTimeout(phaseTimer);
+  phaseTimer = setTimeout(() => {
+    phase = 2;
+    startLoop();
+    stableLines.slice(0,4).forEach((l,i) => {
+      setTimeout(()=> addLogLine(l, 'stable'), i * 400);
+    });
+    setTimeout(()=> {
+      persistLine.classList.add('visible');
+      stable++;
+      document.getElementById('st-survived').textContent = 'stable: '+stable;
+    }, 1800);
+  }, 3000);
+}
+
+function resetAll() {
+  if (loop) clearInterval(loop);
+  if (phaseTimer) clearTimeout(phaseTimer);
+  phase = 0;
+  written = 0; stable = 0; stableShown = false;
+  // clear log (keep dim lines)
+  Array.from(log.querySelectorAll('.line:not(.dim)')).forEach(l=>l.remove());
+  // clear particles
+  Array.from(field.children).forEach(c=>c.remove());
+  // clear rings
+  Array.from(rings.children).forEach(c=>c.remove());
+  persistLine.classList.remove('visible');
+  document.getElementById('st-written').textContent = 'written: 0';
+  document.getElementById('st-stored').textContent = 'stored: 0';
+  document.getElementById('st-survived').textContent = 'stable: 0';
+  startLoop();
+}
+
+narration.addEventListener('play', updateVoiceToggle);
+narration.addEventListener('pause', updateVoiceToggle);
+narration.addEventListener('ended', updateVoiceToggle);
+voiceUnlockBtn.addEventListener('click', () => { void tryStartNarration(); });
+voiceUnlockBtn.addEventListener('touchend', (event) => {
+  event.preventDefault();
+  void tryStartNarration();
+}, { passive: false });
+
+window.addEventListener('message', (event) => {
+  const data = event.data;
+  if (!data || typeof data !== 'object') return;
+  if (data.type === 'sol-window-focus-request' || (data.type === 'sol-window-activity' && data.active)) {
+    void tryStartNarration();
+  }
+});
+
+window.addEventListener('pointerdown', () => {
+  if (!narrationPrimed) void tryStartNarration();
+}, { once: true });
+
+window.addEventListener('touchstart', () => {
+  if (!narrationPrimed) void tryStartNarration();
+}, { once: true, passive: true });
+
+window.addEventListener('keydown', () => {
+  if (!narrationPrimed) void tryStartNarration();
+}, { once: true });
+
+// auto-trigger convergence after 14s
+setTimeout(()=> {
+  if (phase === 0) triggerStable();
+}, 14000);
+
+startLoop();
+updateVoiceToggle();
+void tryStartNarration();
+if (prefersTouchUnlock && narration.paused && narrationBlocked) {
+  narrationBlocked = true;
+  updateVoiceToggle();
+  updateVoiceUnlock();
+}
+</script>

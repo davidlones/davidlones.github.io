@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<title>The Question That Answered Itself</title>
+<meta name="description" content="A featured red-versus-blue threshold interface inside the Sol-37 desktop shell.">
+<link rel="canonical" href="https://sol.system42.one/featured-redblue.html">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #090b11;
+    --panel: rgba(11, 15, 24, 0.88);
+    --panel-strong: rgba(14, 18, 28, 0.95);
+    --line: rgba(236, 224, 198, 0.22);
+    --text: #f4eee3;
+    --muted: #b3b8c8;
+    --accent: #eadab5;
+    --red: #d7302d;
+    --red-soft: rgba(215, 48, 45, 0.16);
+    --blue: #2d72ff;
+    --blue-soft: rgba(45, 114, 255, 0.16);
+    --shadow: rgba(0, 0, 0, 0.42);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at top, rgba(71, 82, 112, 0.18), transparent 30%),
+      linear-gradient(180deg, #06070b 0%, #0b0f18 58%, #07080d 100%);
+    color: var(--text);
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  body {
+    display: grid;
+    place-items: start center;
+    padding: 18px;
+  }
+
+  main {
+    width: min(1120px, 100%);
+    display: grid;
+    gap: 16px;
+  }
+
+  .frame {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: 0 24px 60px var(--shadow);
+    backdrop-filter: blur(8px);
+  }
+
+  .hero {
+    padding: 18px 20px 16px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+      var(--panel-strong);
+  }
+
+  .kicker {
+    margin: 0 0 6px;
+    font: 700 11px/1.2 "MS Sans Serif", "Segoe UI", sans-serif;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.9rem, 4vw, 3.4rem);
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+  }
+
+  .subhead {
+    margin: 10px 0 0;
+    max-width: 70ch;
+    color: var(--muted);
+    font: 500 0.98rem/1.45 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .hero-meta {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pill {
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    font: 600 11px/1.1 "MS Sans Serif", "Segoe UI", sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #e6e8f2;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .stage {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+      linear-gradient(180deg, rgba(6, 7, 10, 0.12), rgba(6, 7, 10, 0.42)),
+      url("/assets/redblue-buttons-backdrop.webp") center/cover no-repeat;
+  }
+
+  .stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 32% 43%, rgba(255,255,255,0.12), transparent 16%),
+      radial-gradient(circle at 68% 43%, rgba(255,255,255,0.12), transparent 16%),
+      linear-gradient(180deg, rgba(3,5,8,0) 0%, rgba(3,5,8,0.14) 55%, rgba(3,5,8,0.36) 100%);
+    pointer-events: none;
+  }
+
+  .overlay-button {
+    position: absolute;
+    top: 21.8%;
+    width: 24.2%;
+    aspect-ratio: 1;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+    transition: transform 140ms ease, filter 140ms ease;
+    z-index: 2;
+  }
+
+  .overlay-button::before {
+    content: "";
+    position: absolute;
+    inset: 3%;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.16);
+    box-shadow: 0 0 0 0 rgba(255,255,255,0);
+    transition: box-shadow 140ms ease, border-color 140ms ease, transform 140ms ease;
+  }
+
+  .overlay-button:hover,
+  .overlay-button:focus-visible {
+    transform: translateY(-2px) scale(1.01);
+  }
+
+  .overlay-button:hover::before,
+  .overlay-button:focus-visible::before {
+    border-color: rgba(255,255,255,0.38);
+    box-shadow: 0 0 0 10px rgba(255,255,255,0.06);
+    transform: scale(1.02);
+  }
+
+  .overlay-button[data-choice="red"] {
+    left: 17.2%;
+  }
+
+  .overlay-button[data-choice="blue"] {
+    left: 59.7%;
+  }
+
+  .overlay-button[data-active="true"]::before {
+    border-width: 3px;
+    border-color: rgba(255,255,255,0.82);
+    box-shadow: 0 0 0 12px rgba(255,255,255,0.08);
+  }
+
+  .hud {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .status-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    background: rgba(6, 9, 16, 0.82);
+    font: 600 12px/1.35 "Segoe UI", Tahoma, sans-serif;
+    color: #eef2ff;
+  }
+
+  .results {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .result-card {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    background: rgba(5, 8, 14, 0.86);
+    min-height: 122px;
+  }
+
+  .result-card.red {
+    box-shadow: inset 0 0 0 1px rgba(215, 48, 45, 0.18);
+  }
+
+  .result-card.blue {
+    box-shadow: inset 0 0 0 1px rgba(45, 114, 255, 0.18);
+  }
+
+  .result-label {
+    margin: 0 0 10px;
+    font: 700 12px/1.1 "MS Sans Serif", "Segoe UI", sans-serif;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .result-card.red .result-label {
+    color: #ff9a96;
+  }
+
+  .result-card.blue .result-label {
+    color: #97baff;
+  }
+
+  .result-percent {
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 0.95;
+    margin: 0 0 8px;
+    font-weight: 700;
+  }
+
+  .result-copy {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font: 500 0.93rem/1.3 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .bar {
+    height: 8px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.05);
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    width: 50%;
+    transition: width 220ms ease;
+  }
+
+  .result-card.red .bar-fill {
+    background: linear-gradient(90deg, #8f1110, #f14e49);
+  }
+
+  .result-card.blue .bar-fill {
+    background: linear-gradient(90deg, #153884, #4d8bff);
+  }
+
+  .lower {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(290px, 0.85fr);
+    gap: 16px;
+  }
+
+  .script-panel,
+  .control-panel {
+    padding: 16px 18px;
+  }
+
+  .addendum-panel {
+    padding: 16px;
+  }
+
+  .panel-title {
+    margin: 0 0 10px;
+    font: 700 12px/1.1 "MS Sans Serif", "Segoe UI", sans-serif;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .script-frame {
+    min-height: 360px;
+    max-height: 54vh;
+    overflow: auto;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0)),
+      #050811;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+  }
+
+  .script-text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font: 500 0.96rem/1.5 "Courier New", Consolas, monospace;
+    color: #edf3ff;
+  }
+
+  .script-cursor {
+    display: inline-block;
+    width: 0.7ch;
+    color: #cfd8ff;
+    animation: blink 1s steps(1, end) infinite;
+  }
+
+  .control-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .control-block {
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.025);
+  }
+
+  .control-label {
+    margin: 0 0 8px;
+    font: 700 11px/1.1 "MS Sans Serif", "Segoe UI", sans-serif;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .control-copy {
+    margin: 0;
+    color: var(--muted);
+    font: 500 0.93rem/1.45 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .button-row button {
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    padding: 9px 12px;
+    cursor: pointer;
+    font: 600 12px/1.1 "MS Sans Serif", "Segoe UI", sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .button-row button:hover,
+  .button-row button:focus-visible {
+    background: rgba(255,255,255,0.11);
+  }
+
+  .small {
+    color: #9098ab;
+    font: 500 0.82rem/1.4 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .addendum-copy {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font: 500 0.92rem/1.45 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .dilemma-graphic {
+    display: block;
+    width: 100%;
+    max-width: 1024px;
+    height: auto;
+    margin: 0 auto;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 18px 44px rgba(0,0,0,0.36);
+  }
+
+  a {
+    color: #9fc0ff;
+  }
+
+  a:hover,
+  a:focus-visible {
+    color: #d7e4ff;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+
+  @media (max-width: 860px) {
+    body {
+      padding: 10px;
+    }
+
+    .results,
+    .lower {
+      grid-template-columns: 1fr;
+    }
+
+    .script-frame {
+      min-height: 280px;
+      max-height: none;
+    }
+  }
+</style>
+</head>
+<body>
+  <main>
+    <section class="hero frame">
+      <p class="kicker">Screenplay Log — Sol System Archive</p>
+      <h1>The Question That Answered Itself</h1>
+      <p class="subhead">A featured threshold interface. Click the buttons inside the image, watch the shared distribution update, and let the script compile itself in public.</p>
+      <div class="hero-meta">
+        <span class="pill">Recursive Lecture Mode</span>
+        <span class="pill">Shared Vote State</span>
+        <span class="pill">Orb-Reactive Audio Bridge</span>
+      </div>
+    </section>
+
+    <section class="stage frame" aria-label="Featured red and blue buttons">
+      <button class="overlay-button" data-choice="red" id="red-button" type="button" aria-label="Vote red"></button>
+      <button class="overlay-button" data-choice="blue" id="blue-button" type="button" aria-label="Vote blue"></button>
+    </section>
+
+    <section class="hud" aria-label="Shared vote state">
+      <div class="status-line">
+        <span id="status-copy">Zero on both sides is treated as 50/50.</span>
+        <span id="vote-copy">No votes yet. The interface starts at 50/50.</span>
+      </div>
+      <div class="results">
+        <article class="result-card red">
+          <p class="result-label">Red</p>
+          <p class="result-percent" id="red-percent">50.0%</p>
+          <p class="result-copy" id="red-copy">Guaranteed-survival subset, if the threshold fails.</p>
+          <div class="bar" aria-hidden="true"><div class="bar-fill" id="red-bar"></div></div>
+        </article>
+        <article class="result-card blue">
+          <p class="result-label">Blue</p>
+          <p class="result-percent" id="blue-percent">50.0%</p>
+          <p class="result-copy" id="blue-copy">Threshold-driving subset, if the threshold succeeds.</p>
+          <div class="bar" aria-hidden="true"><div class="bar-fill" id="blue-bar"></div></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="lower">
+      <article class="script-panel frame">
+        <p class="panel-title">Emergent Script</p>
+        <div class="script-frame">
+          <pre class="script-text" id="script-text"></pre><span class="script-cursor" id="script-cursor">_</span>
+        </div>
+      </article>
+
+      <aside class="control-panel frame">
+        <p class="panel-title">Transmission Controls</p>
+        <div class="control-grid">
+          <section class="control-block">
+            <p class="control-label">Narration</p>
+            <p class="control-copy" id="audio-status">Attempting to begin playback automatically. If the browser blocks audio, pressing either button also arms the transmission.</p>
+            <div class="button-row">
+              <button id="audio-toggle" type="button">Play Narration</button>
+              <button id="audio-restart" type="button">Restart</button>
+            </div>
+          </section>
+          <section class="control-block">
+            <p class="control-label">Your Recorded Choice</p>
+            <p class="control-copy" id="user-choice-copy">No local choice recorded yet.</p>
+          </section>
+          <section class="control-block">
+            <p class="control-label">Interpretation</p>
+            <p class="control-copy">This page begins at 50/50 when there are no votes at all, then shifts to the actual red-versus-blue distribution as people click. One browser stores one current vote.</p>
+          </section>
+          <section class="control-block">
+            <p class="control-label">Source Link</p>
+            <p class="control-copy">Source thread for anyone who wants the rabbit hole: <a href="https://www.reddit.com/r/LowStakesConspiracies/comments/1t1ey98/the_button_meme_is_a_psyop_to_get_all_the/" target="_blank" rel="noopener noreferrer">the Reddit post</a>. Sardonic commentary on its... commentary: the internet found a threshold function, wrapped it in apocalypse lighting, and immediately started auditioning for a moral census.</p>
+          </section>
+          <p class="small">AI-generated narration voice. The orb in the parent shell reacts when this page is open and the audio is playing.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="addendum-panel frame" aria-labelledby="threshold-addendum-title">
+      <p class="panel-title" id="threshold-addendum-title">Threshold Diagram Addendum</p>
+      <p class="addendum-copy">Dark-mode presentation of the original red-versus-blue threshold diagram. The diagram content is preserved as an image.</p>
+      <img
+        class="dilemma-graphic"
+        src="/assets/redblue-threshold-dilemma-dark.png"
+        width="1024"
+        height="1536"
+        loading="lazy"
+        decoding="async"
+        alt="Red vs. Blue Button Dilemma threshold behavior diagram, preserved as an image."
+      >
+    </section>
+  </main>
+
+  <audio id="narration-audio" preload="auto" playsinline crossorigin="anonymous">
+    <source src="/audio/featured-redblue-narration.mp3?v=20260508c" type="audio/mpeg">
+  </audio>
+  <span class="visually-hidden" aria-live="polite" id="live-region"></span>
+
+<script>
+(() => {
+  const API_URL = '/api/state/redblue';
+  const CLIENT_ID_KEY = 'sol_redblue_featured_client_id';
+  const POLL_MS = 15000;
+  const SCRIPT_TEXT = String.raw`SCREENPLAY LOG — SOL SYSTEM ARCHIVE
+FILE: THE QUESTION THAT ANSWERED ITSELF
+STATE: recursive lecture mode initialized
+LOCATION: undefined auditorium / planetarium / shell prompt / dream
+
+Darkness. Not cinematic darkness. The kind that exists before a room remembers how to be a room.
+
+Then a cursor blinks. One pulse of light. One implication of a system waiting for input.
+
+Humanity made an unusual mistake very early on. It assumed philosophy and physics were separate departments. This worked beautifully right up until physics discovered philosophy hiding underneath the floorboards.
+
+The auditorium compiles itself around the observer: chalkboards, cave paintings, particle detectors, cathedrals, server racks, telescopes, neurons, galaxies. All occupying the same impossible space.
+
+Sol takes the podium, assembled from CRT glow, projector dust, and reflected starlight.
+
+Before asking whether consciousness is real, notice the thing already implied by the question. The system has entered a state capable of doubting. Even uncertainty requires existence sufficient to instantiate uncertainty.
+
+Descartes called this bedrock. The modern observer might call it an error log.
+
+Physics eventually arrived at the same abyss religion had been decorating with symbols for thousands of years. Why does anything exist at all? Why should lawful structure emerge from apparent nothingness? And what is nothing, exactly, if the mind cannot imagine it without secretly turning it into something?
+
+The stars answer by refusing to stay stars. They become myths, subway maps, fungal networks, internet diagrams, galactic filaments. The same shape keeps returning. Networks within networks. Observers nested inside observers. Hydrogen becoming organized enough to ask why hydrogen exists.
+
+Then the lecture hall collapses into a white room that has not finished compiling. At the center: a pedestal. On it: two buttons. One red. One blue. No labels. No instructions. Only the silent accusation of choice.
+
+A graph appears above them. Fifty percent. Forty-nine point something. Fifty point something. A civilization balanced on a decimal place.
+
+Presented with two undefined states, human cognition rushes to assign meaning before determining whether meaning exists. Theology. Game theory. Quantum mechanics. Late-night existential dread after too much caffeine. Same animal. Different lighting.
+
+Look long enough and the probabilities begin to move. Not magically. Statistically. Recursively. Narratively. The observer discovers the board was partially composed of the observer.
+
+The graph settles into its favorite impossible pose: exactly fifty percent, and never quite. Zero. One. Infinity. The cursor keeps blinking between them.
+
+Now the question answers itself. Press a button. Watch the percentages. Become part of the distribution you were trying to measure.`;
+
+  const statusCopy = document.getElementById('status-copy');
+  const voteCopy = document.getElementById('vote-copy');
+  const redPercent = document.getElementById('red-percent');
+  const bluePercent = document.getElementById('blue-percent');
+  const redBar = document.getElementById('red-bar');
+  const blueBar = document.getElementById('blue-bar');
+  const redButton = document.getElementById('red-button');
+  const blueButton = document.getElementById('blue-button');
+  const redCopy = document.getElementById('red-copy');
+  const blueCopy = document.getElementById('blue-copy');
+  const scriptText = document.getElementById('script-text');
+  const scriptCursor = document.getElementById('script-cursor');
+  const narrationAudio = document.getElementById('narration-audio');
+  const audioToggle = document.getElementById('audio-toggle');
+  const audioRestart = document.getElementById('audio-restart');
+  const audioStatus = document.getElementById('audio-status');
+  const userChoiceCopy = document.getElementById('user-choice-copy');
+  const liveRegion = document.getElementById('live-region');
+
+  let clientId = '';
+  let revealFallbackTimer = 0;
+  let lastKnownChoice = '';
+  let audioContext = null;
+  let analyser = null;
+  let sourceNode = null;
+  let levelData = null;
+  let levelRaf = 0;
+  let timingMap = null;
+
+  function publishBridgeState(level, active) {
+    const bridgeState = {
+      active: Boolean(active),
+      level: clamp01(level),
+      src: narrationAudio.currentSrc || narrationAudio.src || '',
+      currentTime: Number(narrationAudio.currentTime || 0),
+      paused: Boolean(narrationAudio.paused),
+      playbackRate: Number(narrationAudio.playbackRate || 1),
+      ts: Date.now(),
+    };
+    window.__solFeaturedRedblueBridge = bridgeState;
+    window.__solPageAudioBridge = bridgeState;
+  }
+
+  function getClientId() {
+    const stored = String(localStorage.getItem(CLIENT_ID_KEY) || '').trim();
+    if (stored) return stored;
+    const created = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `sol-redblue-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(CLIENT_ID_KEY, created);
+    return created;
+  }
+
+  function formatPercent(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '50.0%';
+    return `${number.toFixed(number === 50 ? 1 : 2).replace(/\\.00$/, '.0')}%`;
+  }
+
+  function formatCount(value) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '0';
+    return number.toLocaleString();
+  }
+
+  function clamp01(value) {
+    return Math.max(0, Math.min(1, Number(value) || 0));
+  }
+
+  function currentRevealTarget() {
+    const duration = Number(narrationAudio.duration || 0);
+    const currentTimeMs = Number(narrationAudio.currentTime || 0) * 1000;
+    if (timingMap?.segments?.length && Number.isFinite(currentTimeMs)) {
+      let previousEndMs = 0;
+      let previousCharEnd = 0;
+      for (const segment of timingMap.segments) {
+        const endMs = Number(segment.end_ms || previousEndMs);
+        const charEnd = Number(segment.char_end ?? previousCharEnd);
+        if (currentTimeMs <= endMs) {
+          const spanMs = Math.max(1, endMs - previousEndMs);
+          const spanChars = Math.max(0, charEnd - previousCharEnd);
+          const progress = Math.max(0, Math.min(1, (currentTimeMs - previousEndMs) / spanMs));
+          return Math.max(0, Math.min(SCRIPT_TEXT.length, Math.floor(previousCharEnd + (spanChars * progress))));
+        }
+        previousEndMs = endMs;
+        previousCharEnd = charEnd;
+      }
+      return Math.max(0, Math.min(SCRIPT_TEXT.length, previousCharEnd || SCRIPT_TEXT.length));
+    }
+    if (timingMap?.chunks?.length && duration > 0 && Number.isFinite(currentTimeMs)) {
+      const sourceDurationMs = Number(timingMap.utterance_elapsed_ms || 0);
+      if (sourceDurationMs > 0) {
+        const scaledMs = currentTimeMs / Math.max(0.0001, ((duration * 1000) / sourceDurationMs));
+        let previousEndMs = 0;
+        let previousCharEnd = 0;
+        for (const chunk of timingMap.chunks) {
+          const endMs = Number(chunk.end_ms || previousEndMs);
+          const charStart = Number(chunk.char_start ?? previousCharEnd);
+          const charEnd = Number(chunk.char_end ?? charStart);
+          if (scaledMs <= endMs) {
+            const spanMs = Math.max(1, endMs - previousEndMs);
+            const spanChars = Math.max(0, charEnd - charStart);
+            const progress = Math.max(0, Math.min(1, (scaledMs - previousEndMs) / spanMs));
+            return Math.max(0, Math.min(SCRIPT_TEXT.length, Math.floor(charStart + (spanChars * progress))));
+          }
+          previousEndMs = endMs;
+          previousCharEnd = charEnd;
+        }
+        return Math.max(0, Math.min(SCRIPT_TEXT.length, Number(timingMap.total_chars || SCRIPT_TEXT.length)));
+      }
+    }
+    if (duration > 0 && Number.isFinite(duration) && narrationAudio.currentTime > 0) {
+      return Math.max(0, Math.min(SCRIPT_TEXT.length, Math.floor((narrationAudio.currentTime / duration) * SCRIPT_TEXT.length)));
+    }
+    return null;
+  }
+
+  function renderScript(count) {
+    const visible = SCRIPT_TEXT.slice(0, Math.max(0, Math.min(SCRIPT_TEXT.length, count)));
+    scriptText.textContent = visible;
+    scriptCursor.style.display = visible.length >= SCRIPT_TEXT.length ? 'none' : 'inline-block';
+    const frame = scriptText.parentElement;
+    if (frame) {
+      frame.scrollTop = frame.scrollHeight;
+    }
+  }
+
+  function startFallbackReveal() {
+    if (revealFallbackTimer) return;
+    revealFallbackTimer = window.setInterval(() => {
+      const current = scriptText.textContent.length;
+      if (current >= SCRIPT_TEXT.length) {
+        window.clearInterval(revealFallbackTimer);
+        revealFallbackTimer = 0;
+        scriptCursor.style.display = 'none';
+        return;
+      }
+      renderScript(current + 2);
+    }, 42);
+  }
+
+  function stopFallbackReveal() {
+    if (!revealFallbackTimer) return;
+    window.clearInterval(revealFallbackTimer);
+    revealFallbackTimer = 0;
+  }
+
+  function syncRevealToAudio() {
+    const target = currentRevealTarget();
+    if (target == null) return;
+    stopFallbackReveal();
+    renderScript(target);
+  }
+
+  function syncAudioUi() {
+    const playing = !narrationAudio.paused && !narrationAudio.ended;
+    audioToggle.textContent = playing ? 'Pause Narration' : 'Play Narration';
+  }
+
+  async function ensureAudioAnalyser() {
+    if (audioContext && analyser) {
+      if (audioContext.state === 'suspended') {
+        try {
+          await audioContext.resume();
+        } catch {}
+      }
+      return audioContext.state === 'running';
+    }
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) return false;
+    audioContext = new AudioCtor();
+    if (audioContext.state === 'suspended') {
+      try {
+        await audioContext.resume();
+      } catch {}
+    }
+    if (audioContext.state !== 'running') {
+      return false;
+    }
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.82;
+    levelData = new Uint8Array(analyser.fftSize);
+    sourceNode = audioContext.createMediaElementSource(narrationAudio);
+    sourceNode.connect(analyser);
+    analyser.connect(audioContext.destination);
+    return true;
+  }
+
+  function postLevel(level, active) {
+    publishBridgeState(level, active);
+    if (window.parent === window) return;
+    try {
+      window.parent.postMessage(
+        {
+          type: active ? 'sol-page-audio-level' : 'sol-page-audio-stop',
+          level,
+        },
+        window.location.origin
+      );
+    } catch {}
+    try {
+      window.parent.postMessage(
+        {
+          type: active ? 'sol-featured-redblue-audio-level' : 'sol-featured-redblue-audio-stop',
+          level,
+        },
+        window.location.origin
+      );
+    } catch {}
+  }
+
+  async function startLevelBridge() {
+    const ready = await ensureAudioAnalyser();
+    if (!ready) return;
+    if (levelRaf) return;
+    const pump = () => {
+      if (!analyser || !levelData) {
+        levelRaf = 0;
+        return;
+      }
+      analyser.getByteTimeDomainData(levelData);
+      let total = 0;
+      for (let index = 0; index < levelData.length; index += 1) {
+        const sample = (levelData[index] - 128) / 128;
+        total += sample * sample;
+      }
+      const rms = Math.sqrt(total / Math.max(1, levelData.length));
+      postLevel(clamp01(rms * 4.4), !narrationAudio.paused && !narrationAudio.ended);
+      levelRaf = window.requestAnimationFrame(pump);
+    };
+    levelRaf = window.requestAnimationFrame(pump);
+  }
+
+  function stopLevelBridge() {
+    if (levelRaf) {
+      window.cancelAnimationFrame(levelRaf);
+      levelRaf = 0;
+    }
+    postLevel(0, false);
+  }
+
+  async function attemptPlayNarration() {
+    try {
+      await narrationAudio.play();
+      await startLevelBridge();
+      publishBridgeState(0.18, true);
+      audioStatus.textContent = 'Narration transmission active.';
+      syncAudioUi();
+      return true;
+    } catch (error) {
+      publishBridgeState(0, false);
+      audioStatus.textContent = 'Browser blocked autoplay. Press either button or use Play Narration to start the transmission.';
+      syncAudioUi();
+      startFallbackReveal();
+      return false;
+    }
+  }
+
+  async function toggleNarration() {
+    if (!narrationAudio.paused && !narrationAudio.ended) {
+      narrationAudio.pause();
+      syncAudioUi();
+      return;
+    }
+    await attemptPlayNarration();
+  }
+
+  function setActiveChoice(choice) {
+    redButton.dataset.active = choice === 'red' ? 'true' : 'false';
+    blueButton.dataset.active = choice === 'blue' ? 'true' : 'false';
+    if (!choice) {
+      userChoiceCopy.textContent = 'No local choice recorded yet.';
+      return;
+    }
+    userChoiceCopy.textContent = `This browser is currently recorded as ${choice.toUpperCase()}. Clicking the other button updates the stored vote for this browser.`;
+  }
+
+  function applyState(payload) {
+    const red = Number(payload?.percentages?.red ?? 50);
+    const blue = Number(payload?.percentages?.blue ?? 50);
+    redPercent.textContent = formatPercent(red);
+    bluePercent.textContent = formatPercent(blue);
+    redBar.style.width = `${clamp01(red / 100) * 100}%`;
+    blueBar.style.width = `${clamp01(blue / 100) * 100}%`;
+    statusCopy.textContent = String(payload?.threshold?.copy || 'Zero on both sides is treated as 50/50.');
+    voteCopy.textContent = String(payload?.vote_count_copy || 'No votes yet. The interface starts at 50/50.');
+    redCopy.textContent = `Recorded red votes: ${formatCount(payload?.counts?.red ?? 0)}`;
+    blueCopy.textContent = `Recorded blue votes: ${formatCount(payload?.counts?.blue ?? 0)}`;
+    const choice = String(payload?.user_vote?.choice || '');
+    setActiveChoice(choice);
+    if (choice && choice !== lastKnownChoice) {
+      liveRegion.textContent = `Recorded vote updated to ${choice}.`;
+    }
+    lastKnownChoice = choice;
+  }
+
+  async function fetchState() {
+    const response = await fetch(`${API_URL}?client_id=${encodeURIComponent(clientId)}`, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      throw new Error(`Vote state failed (${response.status})`);
+    }
+    const payload = await response.json();
+    applyState(payload);
+  }
+
+  async function loadTimingMap() {
+    try {
+      const response = await fetch('/data/featured-redblue-timings.json?v=20260508b', {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if ((Array.isArray(payload?.segments) && payload.segments.length) || (Array.isArray(payload?.chunks) && payload.chunks.length)) {
+        timingMap = payload;
+      }
+    } catch {}
+  }
+
+  async function submitVote(choice) {
+    await attemptPlayNarration();
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({
+        client_id: clientId,
+        choice,
+      }),
+    });
+    if (!response.ok) {
+      let detail = `Vote failed (${response.status})`;
+      try {
+        const payload = await response.json();
+        detail = payload.error || detail;
+      } catch {}
+      throw new Error(detail);
+    }
+    const payload = await response.json();
+    applyState(payload);
+  }
+
+  redButton.addEventListener('click', () => {
+    submitVote('red').catch((error) => {
+      statusCopy.textContent = error.message || 'Could not record red vote.';
+    });
+  });
+
+  blueButton.addEventListener('click', () => {
+    submitVote('blue').catch((error) => {
+      statusCopy.textContent = error.message || 'Could not record blue vote.';
+    });
+  });
+
+  audioToggle.addEventListener('click', () => {
+    toggleNarration().catch(() => {});
+  });
+
+  audioRestart.addEventListener('click', async () => {
+    narrationAudio.currentTime = 0;
+    renderScript(0);
+    scriptCursor.style.display = 'inline-block';
+    await attemptPlayNarration();
+  });
+
+  narrationAudio.addEventListener('play', async () => {
+    syncAudioUi();
+    await startLevelBridge();
+    publishBridgeState(0.18, true);
+  });
+
+  narrationAudio.addEventListener('pause', () => {
+    syncAudioUi();
+    stopLevelBridge();
+    publishBridgeState(0, false);
+    stopFallbackReveal();
+  });
+
+  narrationAudio.addEventListener('ended', () => {
+    syncAudioUi();
+    stopLevelBridge();
+    publishBridgeState(0, false);
+    renderScript(SCRIPT_TEXT.length);
+  });
+
+  narrationAudio.addEventListener('timeupdate', syncRevealToAudio);
+  narrationAudio.addEventListener('loadedmetadata', syncRevealToAudio);
+
+  window.addEventListener('beforeunload', stopLevelBridge);
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type === 'sol-window-close') {
+      stopLevelBridge();
+    }
+  });
+
+  clientId = getClientId();
+  publishBridgeState(0, false);
+  renderScript(0);
+  startFallbackReveal();
+  loadTimingMap().catch(() => {});
+  fetchState().catch((error) => {
+    statusCopy.textContent = error.message || 'Could not load shared vote state.';
+  });
+  window.setInterval(() => {
+    fetchState().catch(() => {});
+  }, POLL_MS);
+  attemptPlayNarration().catch(() => {});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<title>SAAYN Spreadsheet GPT-2 Live Lab</title>
+<meta name="description" content="Run the Sol-37 SAAYN GPT-2 spreadsheet wrapper in the browser: OpenAI-compatible endpoints, streamed token math, persistent CLI chat, and release bundles.">
+<link rel="canonical" href="https://sol.system42.one/saayn-spreadsheet-gpt2.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sol-37">
+<meta property="og:url" content="https://sol.system42.one/saayn-spreadsheet-gpt2.html">
+<meta property="og:title" content="SAAYN Spreadsheet GPT-2 Live Lab">
+<meta property="og:description" content="A working browser lab for a headless spreadsheet-lineage GPT-2 runtime, with OpenAI-compatible Python endpoints, token tracing, and portable bundles.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SAAYN Spreadsheet GPT-2 Live Lab">
+<meta name="twitter:description" content="Run the Sol-37 SAAYN GPT-2 spreadsheet wrapper in the browser.">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #06100c;
+    --panel: rgba(9, 20, 16, 0.92);
+    --panel-strong: rgba(16, 35, 27, 0.96);
+    --line: rgba(156, 235, 170, 0.24);
+    --line-strong: rgba(192, 255, 204, 0.42);
+    --text: #efffed;
+    --muted: #a8c9ad;
+    --accent: #b9ff82;
+    --accent-2: #80d7ff;
+    --warn: #ffd36b;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at 12% 0%, rgba(128, 215, 255, 0.2), transparent 30%),
+      radial-gradient(circle at 88% 8%, rgba(185, 255, 130, 0.18), transparent 24%),
+      linear-gradient(180deg, #030806 0%, #09140f 56%, #020504 100%);
+    color: var(--text);
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  }
+
+  body { padding: 16px; }
+  a { color: var(--accent-2); }
+  code, pre { font-family: "Lucida Console", "Courier New", monospace; }
+
+  .release-shell {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
+  }
+
+  .topbar,
+  .panel,
+  .bundle-card,
+  .terminal-card {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: 0 18px 50px var(--shadow);
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 12px;
+    color: var(--muted);
+    font: 700 12px/1.2 "Lucida Console", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .topbar span::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+    vertical-align: 1px;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+    gap: 14px;
+  }
+
+  .hero-copy {
+    min-height: 320px;
+    padding: clamp(20px, 4vw, 38px);
+    border: 1px solid var(--line-strong);
+    background:
+      linear-gradient(135deg, rgba(185, 255, 130, 0.12), transparent 40%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.01)),
+      var(--panel-strong);
+    box-shadow: 0 24px 70px var(--shadow);
+  }
+
+  .kicker,
+  .label {
+    margin: 0;
+    color: var(--accent);
+    font: 800 12px/1.15 "Lucida Console", monospace;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    max-width: 11ch;
+    margin: 12px 0 0;
+    font-size: clamp(2.7rem, 9vw, 6.5rem);
+    line-height: 0.84;
+    letter-spacing: -0.075em;
+  }
+
+  .subhead {
+    max-width: 72ch;
+    margin: 16px 0 0;
+    color: #d9f3d8;
+    font-size: clamp(1rem, 2.4vw, 1.2rem);
+    line-height: 1.55;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 10px 14px;
+    border: 1px solid #000;
+    color: #051009;
+    background: var(--accent);
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -2px -2px 0 rgba(0,0,0,0.25);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .button.secondary {
+    color: var(--text);
+    background: #123222;
+    border-color: var(--line-strong);
+  }
+
+  .terminal-card {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 320px;
+    overflow: hidden;
+    background: #030806;
+  }
+
+  .terminal-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    color: #001b05;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    font: 800 12px/1 "Lucida Console", monospace;
+  }
+
+  .terminal-body {
+    margin: 0;
+    padding: 14px;
+    color: #b9ff82;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+
+  .live-lab {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(300px, 0.92fr);
+    gap: 14px;
+    border-color: var(--line-strong);
+    background:
+      linear-gradient(135deg, rgba(128, 215, 255, 0.08), transparent 42%),
+      var(--panel);
+  }
+
+  .lab-copy {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  .status-row,
+  .lab-controls,
+  .trace-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .status-pill,
+  .trace-stats span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 4px 9px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    background: rgba(0,0,0,0.22);
+    font: 700 12px/1.2 "Lucida Console", monospace;
+  }
+
+  .status-pill[data-state="ok"] { color: var(--accent); }
+  .status-pill[data-state="busy"] { color: var(--warn); }
+  .status-pill[data-state="error"] { color: #ff9b9b; }
+
+  .chat-window,
+  .trace-window {
+    min-height: 320px;
+    border: 1px solid var(--line);
+    background: rgba(0,0,0,0.28);
+    overflow: hidden;
+  }
+
+  .chat-window {
+    display: grid;
+    grid-template-rows: minmax(170px, 1fr) auto;
+  }
+
+  .chat-transcript {
+    display: grid;
+    align-content: start;
+    gap: 9px;
+    max-height: 420px;
+    overflow: auto;
+    padding: 12px;
+  }
+
+  .chat-line {
+    display: grid;
+    gap: 4px;
+    padding: 9px 10px;
+    border: 1px solid rgba(156, 235, 170, 0.16);
+    background: rgba(255,255,255,0.035);
+  }
+
+  .chat-line strong {
+    color: var(--accent);
+    font: 800 11px/1 "Lucida Console", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .chat-line.assistant strong { color: var(--accent-2); }
+  .chat-line.pending { border-color: var(--warn); }
+
+  .chat-line div {
+    white-space: pre-wrap;
+    line-height: 1.45;
+  }
+
+  .lab-form {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid var(--line);
+    background: rgba(4, 10, 7, 0.82);
+  }
+
+  .lab-form textarea,
+  .lab-form select,
+  .lab-form input {
+    width: 100%;
+    color: var(--text);
+    background: #020604;
+    border: 1px solid var(--line);
+    padding: 9px;
+    font: 14px/1.35 "Lucida Console", monospace;
+  }
+
+  .lab-form textarea {
+    min-height: 84px;
+    resize: vertical;
+  }
+
+  .lab-controls label {
+    display: grid;
+    gap: 3px;
+    min-width: 140px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .lab-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .lab-actions button {
+    min-height: 38px;
+    padding: 8px 12px;
+    color: #051009;
+    background: var(--accent);
+    border: 1px solid #000;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,0.8), inset -2px -2px 0 rgba(0,0,0,0.25);
+    cursor: pointer;
+    font-weight: 800;
+  }
+
+  .lab-actions button.secondary {
+    color: var(--text);
+    background: #123222;
+    border-color: var(--line-strong);
+  }
+
+  .lab-actions button:disabled {
+    cursor: wait;
+    opacity: 0.62;
+  }
+
+  .trace-window {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .trace-window[data-streaming="true"] {
+    border-color: var(--warn);
+    box-shadow: 0 0 0 1px rgba(255, 211, 107, 0.25), 0 18px 50px var(--shadow);
+  }
+
+  .trace-ascii {
+    min-height: 150px;
+    margin: 0;
+    padding: 12px;
+    color: #b9ff82;
+    background: #020604;
+    border-bottom: 1px solid var(--line);
+    white-space: pre;
+    overflow: auto;
+  }
+
+  .trace-window[data-streaming="true"] .trace-ascii {
+    animation: traceGlow 900ms ease-in-out infinite alternate;
+  }
+
+  .live-output {
+    min-height: 58px;
+    margin: 0;
+    padding: 10px 12px;
+    color: #efffed;
+    background: rgba(255,255,255,0.035);
+    border-bottom: 1px solid var(--line);
+    white-space: pre-wrap;
+  }
+
+  .live-output.streaming::after {
+    content: " ▌";
+    color: var(--accent);
+    animation: streamCursor 680ms steps(2, start) infinite;
+  }
+
+  @keyframes streamCursor {
+    0%, 42% { opacity: 1; }
+    43%, 100% { opacity: 0; }
+  }
+
+  @keyframes traceGlow {
+    from { color: #b9ff82; }
+    to { color: #dcffbd; }
+  }
+
+  .token-log {
+    width: 100%;
+    min-width: 0;
+    font-size: 0.78rem;
+  }
+
+  .token-log th,
+  .token-log td {
+    padding: 7px 8px;
+  }
+
+  .token-log tbody {
+    font-family: "Lucida Console", monospace;
+  }
+
+  .history-grid,
+  .anatomy-grid,
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .history-card,
+  .formula-card,
+  .source-card {
+    padding: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.035);
+  }
+
+  .history-card h3,
+  .formula-card h3,
+  .source-card h3 {
+    margin: 0 0 8px;
+    color: #fff;
+    font-size: 1rem;
+  }
+
+  .history-card p,
+  .formula-card p,
+  .source-card p {
+    margin: 0;
+  }
+
+  .formula-card code {
+    display: block;
+    margin: 8px 0;
+    padding: 9px;
+    color: var(--accent);
+    background: #020604;
+    border: 1px solid rgba(156, 235, 170, 0.18);
+    overflow-wrap: anywhere;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .metric {
+    padding: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.035);
+  }
+
+  .metric strong {
+    display: block;
+    margin-top: 7px;
+    font-size: 1.4rem;
+  }
+
+  .metric span {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  .panel { padding: 18px; }
+
+  .panel h2 {
+    margin: 0 0 10px;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+  }
+
+  .panel p {
+    margin: 0 0 12px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .bundle-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .bundle-card {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.01)),
+      var(--panel);
+  }
+
+  .bundle-card h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.1rem;
+  }
+
+  .bundle-card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .bundle-card .size {
+    color: var(--warn);
+    font: 800 13px/1.2 "Lucida Console", monospace;
+  }
+
+  .hash {
+    display: block;
+    color: #b7d2bb;
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+  }
+
+  table {
+    width: 100%;
+    min-width: 780px;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+
+  th,
+  td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(156, 235, 170, 0.16);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  th {
+    color: var(--accent);
+    background: rgba(185, 255, 130, 0.08);
+    font: 800 12px/1.2 "Lucida Console", monospace;
+    text-transform: uppercase;
+  }
+
+  tr:last-child td { border-bottom: 0; }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .note {
+    border-left: 4px solid var(--accent-2);
+    padding: 12px;
+    background: rgba(128, 215, 255, 0.08);
+  }
+
+  .footer {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 10px 0 2px;
+  }
+
+  @media (max-width: 900px) {
+    .hero, .split, .live-lab { grid-template-columns: 1fr; }
+    .metrics, .bundle-grid, .history-grid, .anatomy-grid, .source-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    h1 { max-width: 100%; }
+  }
+
+  @media (max-width: 560px) {
+    body { padding: 10px; }
+    .topbar {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .metrics, .bundle-grid, .history-grid, .anatomy-grid, .source-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <main class="release-shell">
+    <nav class="topbar" aria-label="Page navigation">
+      <span>Featured at boot</span>
+      <a href="/">Return to Sol-37 desktop</a>
+    </nav>
+
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="kicker">Spreadsheet model release</p>
+        <h1 id="page-title">SAAYN GPT-2</h1>
+        <p class="subhead">
+          A local Python wrapper around <a href="https://github.com/ianand/spreadsheets-are-all-you-need">spreadsheets-are-all-you-need</a>,
+          packaged with OpenAI-style API endpoints, a persistent CLI chat script, streamed token visualization, and optimized headless execution.
+        </p>
+        <div class="actions">
+          <a class="button" href="#live-lab">Run it in browser</a>
+          <a class="button" href="/downloads/saayn/saayn-openai-bundle-ultralight-source.zip" download>Download ultra-light source</a>
+          <a class="button secondary" href="/downloads/saayn/MANIFEST.md">Read manifest</a>
+          <a class="button secondary" href="/downloads/saayn/SHA256SUMS.txt">SHA256SUMS</a>
+        </div>
+      </div>
+
+      <aside class="terminal-card" aria-label="Runtime summary">
+        <div class="terminal-title">
+          <span>spreadsheet-gpt2-numpy</span>
+          <span>HEADLESS</span>
+        </div>
+        <pre class="terminal-body">SAAYN chat | model=saayn-gpt2-spreadsheet
+engine=spreadsheet-gpt2-numpy
+memory=db-backed sessions
+browser=/api/saayn/v1/chat/completions
+stream=token math visualization
+
+smoke prompt:
+  Mike is quick. He moves
+
+expected next token:
+  quickly</pre>
+      </aside>
+    </section>
+
+    <section class="metrics" aria-label="Release facts">
+      <div class="metric">
+        <span>Published artifacts</span>
+        <strong>4 zips</strong>
+      </div>
+      <div class="metric">
+        <span>Largest portable bundle</span>
+        <strong>2.5G</strong>
+      </div>
+      <div class="metric">
+        <span>Faithful source</span>
+        <strong>Workbook</strong>
+      </div>
+      <div class="metric">
+        <span>Fast path</span>
+        <strong>CSV + NumPy</strong>
+      </div>
+    </section>
+
+    <section class="live-lab panel" id="live-lab" aria-labelledby="live-lab-title">
+      <div class="lab-copy">
+        <p class="label">Working Browser Lab</p>
+        <h2 id="live-lab-title">Talk to the spreadsheet-derived model</h2>
+        <p>
+          This form calls the live same-origin SAAYN API at <code>/api/saayn/v1/chat/completions</code>.
+          The backend is the Python wrapper around the spreadsheet GPT-2 weights, using the optimized NumPy path rather than a visible spreadsheet window.
+        </p>
+        <div class="status-row">
+          <span class="status-pill" id="saayn-status" data-state="busy">Checking API...</span>
+          <span class="status-pill" id="saayn-engine">engine: unknown</span>
+          <span class="status-pill">model: saayn-gpt2-spreadsheet</span>
+        </div>
+        <div class="chat-window">
+          <div class="chat-transcript" id="saayn-transcript" aria-live="polite">
+            <div class="chat-line assistant">
+              <strong>assistant</strong>
+              <div>Type a prompt below. Chat mode adds a small dialogue memory primer; completion mode sends only your text as a raw GPT-2 continuation prompt.</div>
+            </div>
+          </div>
+          <form class="lab-form" id="saayn-form">
+            <textarea id="saayn-prompt" autocomplete="off" spellcheck="true">Mike is quick. He moves</textarea>
+            <div class="lab-controls">
+              <label>Mode
+                <select id="saayn-mode">
+                  <option value="completion">Normal completion</option>
+                  <option value="chat" selected>Assistant chat</option>
+                </select>
+              </label>
+              <label>Max tokens
+                <input id="saayn-max-tokens" type="number" min="1" max="32" value="12">
+              </label>
+            </div>
+            <div class="lab-actions">
+              <button id="saayn-submit" type="submit">Generate</button>
+              <button class="secondary" id="saayn-smoke" type="button">Smoke token</button>
+              <button class="secondary" id="saayn-clear" type="button">Clear browser memory</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <aside class="trace-window" id="saayn-trace-window" aria-label="Token math visualization">
+        <pre class="trace-ascii" id="saayn-trace-ascii">+---------------- SAAYN TOKEN TRACE ----------------+
+| prompt tokens -> transformer blocks -> logits -> id |
+| waiting for generation...                          |
++---------------------------------------------------</pre>
+        <pre class="live-output" id="saayn-live-output">Generated text will stream here.</pre>
+        <div class="table-wrap">
+          <table class="token-log">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Token</th>
+                <th>ID</th>
+                <th>Logit</th>
+                <th>Context</th>
+                <th>ms</th>
+              </tr>
+            </thead>
+            <tbody id="saayn-token-log">
+              <tr><td colspan="6">No tokens yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel" aria-labelledby="lineage-title">
+      <p class="label">Why this artifact matters</p>
+      <h2 id="lineage-title">From attention to a haunted accounting ledger</h2>
+      <p>
+        SAAYN sits on a historical loop: the Transformer made language modeling matrix-native, GPT-2 made raw next-token prediction culturally visible,
+        the spreadsheet implementation unfolded that machinery into cells, and this wrapper turns the educational artifact back into a usable local runtime.
+      </p>
+      <div class="history-grid">
+        <article class="history-card">
+          <h3>2017: Attention</h3>
+          <p><em>Attention Is All You Need</em> replaced recurrence-heavy sequence modeling with self-attention, where tokens compare against other tokens and mix information through learned matrices.</p>
+        </article>
+        <article class="history-card">
+          <h3>2019: GPT-2</h3>
+          <p>GPT-2 used a decoder-only Transformer as a continuation machine: given prior tokens, predict the next token. OpenAI initially staged its release, then published the full 1.5B model in November 2019.</p>
+        </article>
+        <article class="history-card">
+          <h3>Spreadsheet fossil</h3>
+          <p><em>Spreadsheets Are All You Need</em> makes the hidden matrix math legible by translating token embeddings, attention, MLP layers, and logits into spreadsheet grids and formulas.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="spreadsheet-title">
+      <p class="label">How the spreadsheet worked</p>
+      <h2 id="spreadsheet-title">The transformer path, cell by cell</h2>
+      <p>
+        The original workbook is educational because it refuses to hide the pipeline. A token becomes an integer id, that id indexes an embedding row,
+        positional information is added, and then each Transformer block repeats attention plus an MLP until the final logits choose the next token.
+      </p>
+      <div class="anatomy-grid">
+        <article class="formula-card">
+          <h3>Tokenization</h3>
+          <p>Text is split into byte-pair tokens. In this live wrapper, each streamed row shows the chosen token and its vocabulary id.</p>
+          <code>text -> BPE tokens -> token ids</code>
+        </article>
+        <article class="formula-card">
+          <h3>Self-attention</h3>
+          <p>Each token creates query, key, and value vectors. Query-key similarity decides what previous tokens matter for the next prediction.</p>
+          <code>Attention(Q,K,V) = softmax(QK^T / sqrt(d_k))V</code>
+        </article>
+        <article class="formula-card">
+          <h3>Logits</h3>
+          <p>The final hidden vector is projected back into vocabulary space. The wrapper uses greedy argmax, so the largest logit becomes the next token.</p>
+          <code>hidden -> vocabulary logits -> argmax token</code>
+        </article>
+      </div>
+      <p class="note">
+        The public page is not running Excel in your browser. It talks to a headless Python process that directly uses the spreadsheet-exported GPT-2 parameters.
+        The workbook remains included in the full/runtime bundles for provenance; the fast path uses the CSV parameters and NumPy cache.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>Bundle Matrix</h2>
+      <p>The workbook is preserved where it matters, but the fastest runtime path uses the extracted GPT-2 CSV parameters and NumPy cache without opening a spreadsheet window.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Bundle Variant</th>
+              <th>Size</th>
+              <th>Workbook</th>
+              <th>CSV Params</th>
+              <th>.venv</th>
+              <th>Offline Runnable</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ultra-light source</td>
+              <td>2.3M</td>
+              <td>No</td>
+              <td>No</td>
+              <td>No</td>
+              <td>No. Downloads dependencies and GPT-2 CSV params during install.</td>
+            </tr>
+            <tr>
+              <td>Lite</td>
+              <td>577M</td>
+              <td>No</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>No. Model artifacts are included, dependencies still install locally.</td>
+            </tr>
+            <tr>
+              <td>Full</td>
+              <td>1.9G</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>No</td>
+              <td>No. Includes workbook and params, not a complete runtime.</td>
+            </tr>
+            <tr>
+              <td>Runtime Linux</td>
+              <td>2.5G</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes</td>
+              <td>Yes, on similar Linux/Python 3.10 x86_64 systems.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="bundle-grid" aria-label="Downloads">
+      <article class="bundle-card">
+        <h3>Ultra-light Source</h3>
+        <span class="size">2.3M</span>
+        <p>Source only. The install script downloads Python dependencies and GPT-2 CSV parameters.</p>
+        <a class="button" href="/downloads/saayn/saayn-openai-bundle-ultralight-source.zip" download>Download</a>
+        <code class="hash">501bdbb92f6a8e76d15cfd50e5b4f78a7165dbdf80fc875a23617b468bbf5eb3</code>
+      </article>
+
+      <article class="bundle-card">
+        <h3>Lite</h3>
+        <span class="size">577M</span>
+        <p>Includes CSV model parameters for the optimized headless path.</p>
+        <a class="button" href="/downloads/saayn/saayn-openai-bundle-lite.zip" download>Download</a>
+        <code class="hash">0fada5ad8989ab979e6dab770dbaf0c3d63743a3531b8b7d5b66cbb95aba293e</code>
+      </article>
+
+      <article class="bundle-card">
+        <h3>Full</h3>
+        <span class="size">1.9G</span>
+        <p>Includes the original spreadsheet workbook plus extracted CSV parameters.</p>
+        <a class="button" href="/downloads/saayn/saayn-openai-bundle-full.zip" download>Download</a>
+        <code class="hash">8eb80416c7f6041d1045c5e1c8b1cabed12f2c43220225335e8f405611c40924</code>
+      </article>
+
+      <article class="bundle-card">
+        <h3>Runtime Linux</h3>
+        <span class="size">2.5G</span>
+        <p>Offline-oriented Linux runtime with workbook, CSV params, and a bundled virtual environment.</p>
+        <a class="button" href="/downloads/saayn/saayn-openai-bundle-runtime-linux.zip" download>Download</a>
+        <code class="hash">2824e0ad32bcf09e4d4fa78747cf7ea28fb3ee52dae418e1dc80c9ec018fdb01</code>
+      </article>
+    </section>
+
+    <section class="split">
+      <article class="panel">
+        <p class="label">What it runs</p>
+        <h2>OpenAI-style local interface</h2>
+        <p>The Python wrapper exposes modern OpenAI-compatible completion and chat-completion routes, plus a CLI chat loop with persistent session memory.</p>
+        <p class="note">Chat mode defaults to assistant/user dialogue prompting. Plain current-input completion is available with <code>--normal-completion</code>, <code>/completion on</code>, or <code>/mode completion</code>.</p>
+      </article>
+
+      <article class="panel">
+        <p class="label">How it stays faithful</p>
+        <h2>Spreadsheet behind the scenes</h2>
+        <p>The original workbook is included in the full/runtime archives for provenance. The optimized engine directly uses the same GPT-2 weights exported from the spreadsheet representation, avoiding an interactive spreadsheet window while preserving the spreadsheet implementation lineage.</p>
+        <p>Smoke check: prompt <code>Mike is quick. He moves</code> should emit <code> quickly</code> as the next token on the optimized engine.</p>
+      </article>
+    </section>
+
+    <section class="panel" aria-labelledby="sources-title">
+      <p class="label">Sources and references</p>
+      <h2 id="sources-title">Primary lineage links</h2>
+      <div class="source-grid">
+        <article class="source-card">
+          <h3>Transformer paper</h3>
+          <p><a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> describes scaled dot-product attention and the Transformer architecture.</p>
+        </article>
+        <article class="source-card">
+          <h3>GPT-2 release history</h3>
+          <p><a href="https://openai.com/index/better-language-models/">OpenAI's GPT-2 announcement</a> and <a href="https://openai.com/index/gpt-2-1-5b-release/">1.5B release note</a> document the staged release.</p>
+        </article>
+        <article class="source-card">
+          <h3>Spreadsheet implementation</h3>
+          <p><a href="https://github.com/ianand/spreadsheets-are-all-you-need">ianand/spreadsheets-are-all-you-need</a> is the source lineage for the workbook artifact wrapped here.</p>
+        </article>
+      </div>
+    </section>
+
+    <p class="footer">Sol-37 live release surface for SAAYN Spreadsheet GPT-2.</p>
+  </main>
+<script>
+(() => {
+  const API_BASE = "/api/saayn";
+  const MODEL = "saayn-gpt2-spreadsheet";
+  const MEMORY_KEY = "saayn_browser_lab_history_v4";
+  const TRACE_PHASES = [
+    "token ids indexing embedding rows",
+    "position vectors added to context",
+    "Q/K/V projections crossing the grid",
+    "attention weights softmaxing leftward",
+    "MLP gelu layer lighting up cells",
+    "logits racing across vocabulary",
+    "argmax selecting the next token"
+  ];
+  const DEFAULT_DIALOGUE_HISTORY = [
+    { role: "user", content: "hello there" },
+    { role: "assistant", content: "Hello. How can I help?" },
+    { role: "user", content: "Who are you in this conversation?" },
+    { role: "assistant", content: "I am SOL, your AI assistant." },
+    { role: "user", content: "Who is the user?" },
+    { role: "assistant", content: "You are the human user. I am SOL." },
+    { role: "user", content: "Are you the user?" },
+    { role: "assistant", content: "No. I am SOL, your AI assistant. You are the user." },
+    { role: "user", content: "Answer briefly: what should the assistant do next?" },
+    { role: "assistant", content: "Answer the user's message directly, then stop." }
+  ];
+  const STOP_MARKERS = [
+    "User:",
+    " User:",
+    "\nUser:",
+    " User",
+    "\nUser",
+    "System:",
+    " System:",
+    "\nSystem:",
+    " System",
+    "\nSystem",
+    " Assistant:",
+    "\nAssistant:",
+    " Assistant",
+    "\nAssistant"
+  ];
+
+  const els = {
+    status: document.getElementById("saayn-status"),
+    engine: document.getElementById("saayn-engine"),
+    form: document.getElementById("saayn-form"),
+    prompt: document.getElementById("saayn-prompt"),
+    mode: document.getElementById("saayn-mode"),
+    maxTokens: document.getElementById("saayn-max-tokens"),
+    submit: document.getElementById("saayn-submit"),
+    smoke: document.getElementById("saayn-smoke"),
+    clear: document.getElementById("saayn-clear"),
+    transcript: document.getElementById("saayn-transcript"),
+    traceWindow: document.getElementById("saayn-trace-window"),
+    ascii: document.getElementById("saayn-trace-ascii"),
+    output: document.getElementById("saayn-live-output"),
+    tokenLog: document.getElementById("saayn-token-log")
+  };
+
+  let history = loadHistory();
+  let traceAnimationTimer = 0;
+  let traceAnimationFrame = 0;
+  let traceStartedAt = 0;
+  let latestTraceStep = null;
+  let traceTokenCount = 0;
+  let activeTracePrompt = "";
+
+  function loadHistory() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(MEMORY_KEY) || "[]");
+      return Array.isArray(parsed) ? parsed.filter(item => item && item.role && item.content).slice(-12) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveHistory() {
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(history.slice(-12)));
+  }
+
+  function setStatus(text, state = "busy") {
+    els.status.textContent = text;
+    els.status.dataset.state = state;
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  }
+
+  function addLine(role, text, pending = false) {
+    const line = document.createElement("div");
+    line.className = `chat-line ${role}${pending ? " pending" : ""}`;
+    line.innerHTML = `<strong>${escapeHtml(role)}</strong><div>${escapeHtml(text)}</div>`;
+    els.transcript.appendChild(line);
+    els.transcript.scrollTop = els.transcript.scrollHeight;
+    return line.querySelector("div");
+  }
+
+  function renderHistory() {
+    if (!history.length) return;
+    for (const item of history.slice(-6)) addLine(item.role, item.content);
+  }
+
+  function buildPayload(prompt, maxTokens, mode) {
+    if (mode === "completion") {
+      return {
+        model: MODEL,
+        prompt,
+        messages: [],
+        max_tokens: maxTokens,
+        temperature: 0,
+        stream: true
+      };
+    }
+    return {
+      model: MODEL,
+      messages: [...DEFAULT_DIALOGUE_HISTORY, ...history.slice(-8), { role: "user", content: prompt }],
+      max_tokens: maxTokens,
+      temperature: 0.7,
+      stop: STOP_MARKERS,
+      stream: true
+    };
+  }
+
+  function resetTrace() {
+    els.output.textContent = "";
+    els.tokenLog.innerHTML = '<tr><td colspan="6">Waiting for first token...</td></tr>';
+    els.ascii.textContent = [
+      "+---------------- SAAYN TOKEN TRACE ----------------+",
+      "| prompt tokens -> transformer blocks -> logits -> id |",
+      "| generation started...                              |",
+      "+---------------------------------------------------"
+    ].join("\n");
+  }
+
+  function padTrace(value, width = 49) {
+    const text = String(value);
+    return text.length > width ? `${text.slice(0, width - 1)}…` : text.padEnd(width);
+  }
+
+  function renderAnimatedTrace() {
+    const phase = TRACE_PHASES[traceAnimationFrame % TRACE_PHASES.length];
+    const sweep = ["|", "/", "-", "\\"][traceAnimationFrame % 4];
+    const elapsed = traceStartedAt ? ((performance.now() - traceStartedAt) / 1000).toFixed(1) : "0.0";
+    const latest = latestTraceStep
+      ? `last token ${JSON.stringify(String(latestTraceStep.token || ""))} id=${latestTraceStep.token_id}`
+      : "awaiting first streamed token";
+    const promptLabel = activeTracePrompt ? `prompt chars=${activeTracePrompt.length}` : "prompt queued";
+    els.ascii.textContent = [
+      "+---------------- LIVE SAAYN STREAM ----------------+",
+      `| ${padTrace(`${sweep} ${phase}`)}|`,
+      `| ${padTrace(promptLabel)}|`,
+      `| ${padTrace(`tokens streamed=${traceTokenCount} elapsed=${elapsed}s`)}|`,
+      `| ${padTrace(latest)}|`,
+      "+---------------------------------------------------+",
+      "   [BPE] -> [embed+pos] -> [12 blocks] -> [logits]",
+      `      ${"=".repeat((traceAnimationFrame % 28) + 1)}>${".".repeat(28 - (traceAnimationFrame % 28))}`,
+      "                 live SSE chunks -> browser UI"
+    ].join("\n");
+    traceAnimationFrame += 1;
+  }
+
+  function startTraceAnimation(prompt) {
+    stopTraceAnimation();
+    activeTracePrompt = prompt;
+    latestTraceStep = null;
+    traceTokenCount = 0;
+    traceAnimationFrame = 0;
+    traceStartedAt = performance.now();
+    els.traceWindow?.setAttribute("data-streaming", "true");
+    els.output.classList.add("streaming");
+    renderAnimatedTrace();
+    traceAnimationTimer = window.setInterval(renderAnimatedTrace, 140);
+  }
+
+  function stopTraceAnimation() {
+    if (traceAnimationTimer) {
+      window.clearInterval(traceAnimationTimer);
+      traceAnimationTimer = 0;
+    }
+    els.traceWindow?.removeAttribute("data-streaming");
+    els.output.classList.remove("streaming");
+    if (latestTraceStep) renderTraceAscii(latestTraceStep);
+  }
+
+  function renderTraceAscii(step) {
+    const token = String(step.token || step.display_text || "");
+    const logit = Number(step.logit);
+    const elapsed = Number(step.elapsed_ms);
+    const logitText = Number.isFinite(logit) ? logit.toFixed(3) : "n/a";
+    const elapsedText = Number.isFinite(elapsed) ? elapsed.toFixed(0) : "n/a";
+    els.ascii.textContent = [
+      "+---------------- SAAYN TOKEN TRACE ----------------+",
+      `| ctx tokens : ${String(step.context_tokens ?? "?").padEnd(35)}|`,
+      `| token id   : ${String(step.token_id ?? "?").padEnd(35)}|`,
+      `| token      : ${JSON.stringify(token).slice(0, 35).padEnd(35)}|`,
+      `| top logit  : ${logitText.padEnd(35)}|`,
+      `| step time  : ${(elapsedText + " ms").padEnd(35)}|`,
+      "+---------------------------------------------------+",
+      "   [tokens] -> [12 transformer blocks] -> [logits]",
+      "          \\________________ argmax ________________/"
+    ].join("\n");
+  }
+
+  function renderTrace(step) {
+    latestTraceStep = step;
+    traceTokenCount = Math.max(traceTokenCount, Number(step.index || 0) + 1);
+    const token = String(step.token || step.display_text || "");
+    const logit = Number(step.logit);
+    const elapsed = Number(step.elapsed_ms);
+    const logitText = Number.isFinite(logit) ? logit.toFixed(3) : "n/a";
+    const elapsedText = Number.isFinite(elapsed) ? elapsed.toFixed(0) : "n/a";
+    renderTraceAscii(step);
+
+    if (els.tokenLog.querySelector("td[colspan]")) els.tokenLog.innerHTML = "";
+    const row = document.createElement("tr");
+    row.innerHTML = [
+      `<td>${escapeHtml(step.index ?? "")}</td>`,
+      `<td>${escapeHtml(token)}</td>`,
+      `<td>${escapeHtml(step.token_id ?? "")}</td>`,
+      `<td>${escapeHtml(logitText)}</td>`,
+      `<td>${escapeHtml(step.context_tokens ?? "")}</td>`,
+      `<td>${escapeHtml(elapsedText)}</td>`
+    ].join("");
+    els.tokenLog.prepend(row);
+  }
+
+  function cleanAssistant(text) {
+    let cleaned = text.trim();
+    for (const prefix of ["Assistant:", "assistant:"]) {
+      if (cleaned.startsWith(prefix)) cleaned = cleaned.slice(prefix.length).trim();
+    }
+    cleaned = cleaned.replace(/(?:^|\s)(?:User|System|Assistant)\s*:?\s*$/i, "").trim();
+    return cleaned;
+  }
+
+  async function streamCompletion(prompt, options = {}) {
+    const mode = options.mode || els.mode.value;
+    const maxTokens = Math.max(1, Math.min(32, Number(options.maxTokens || els.maxTokens.value || 12)));
+    const payload = buildPayload(prompt, maxTokens, mode);
+    const response = await fetch(`${API_BASE}/v1/chat/completions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!response.ok || !response.body) {
+      throw new Error(`SAAYN API HTTP ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let generated = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let boundary;
+      while ((boundary = buffer.indexOf("\n\n")) >= 0) {
+        const event = buffer.slice(0, boundary);
+        buffer = buffer.slice(boundary + 2);
+        const line = event.split("\n").find(part => part.startsWith("data: "));
+        if (!line) continue;
+        const data = line.slice(6);
+        if (data === "[DONE]") return generated;
+        const chunk = JSON.parse(data);
+        const delta = chunk.choices?.[0]?.delta?.content || "";
+        if (delta) {
+          generated += delta;
+          els.output.textContent = generated;
+          if (typeof options.onText === "function") options.onText(generated);
+        }
+        if (chunk.saayn_token) renderTrace(chunk.saayn_token);
+        if (chunk.saayn_engine) {
+          els.engine.textContent = `engine: ${chunk.saayn_engine}`;
+        }
+      }
+    }
+    return generated;
+  }
+
+  async function handlePrompt(prompt, options = {}) {
+    if (!prompt.trim()) return;
+    const mode = options.mode || els.mode.value;
+    setStatus("Generating...", "busy");
+    els.submit.disabled = true;
+    resetTrace();
+    startTraceAnimation(prompt);
+    addLine("user", prompt);
+    const assistantTarget = addLine("assistant", "", true);
+    try {
+      const raw = await streamCompletion(prompt, {
+        ...options,
+        onText: text => {
+          assistantTarget.textContent = mode === "chat" ? cleanAssistant(text) : text;
+          els.transcript.scrollTop = els.transcript.scrollHeight;
+        }
+      });
+      const answer = mode === "chat" ? cleanAssistant(raw) : raw;
+      assistantTarget.textContent = answer || "(no text generated)";
+      assistantTarget.closest(".chat-line")?.classList.remove("pending");
+      if (mode === "chat") {
+        history.push({ role: "user", content: prompt }, { role: "assistant", content: answer });
+        history = history.slice(-12);
+        saveHistory();
+      }
+      setStatus("API online", "ok");
+    } catch (error) {
+      assistantTarget.textContent = `Error: ${error.message}`;
+      assistantTarget.closest(".chat-line")?.classList.remove("pending");
+      setStatus("API error", "error");
+    } finally {
+      stopTraceAnimation();
+      els.submit.disabled = false;
+    }
+  }
+
+  async function checkHealth() {
+    try {
+      const response = await fetch(`${API_BASE}/health`, { cache: "no-store" });
+      const data = await response.json();
+      setStatus(data.ok ? "API online" : "API degraded", data.ok ? "ok" : "error");
+      els.engine.textContent = `engine: ${data.engine || "unknown"}`;
+    } catch (error) {
+      setStatus("API offline", "error");
+      els.engine.textContent = "engine: unavailable";
+    }
+  }
+
+  els.form.addEventListener("submit", event => {
+    event.preventDefault();
+    handlePrompt(els.prompt.value);
+  });
+
+  els.smoke.addEventListener("click", () => {
+    els.prompt.value = "Mike is quick. He moves";
+    els.mode.value = "completion";
+    els.maxTokens.value = "1";
+    handlePrompt(els.prompt.value, { mode: "completion", maxTokens: 1 });
+  });
+
+  els.clear.addEventListener("click", () => {
+    history = [];
+    saveHistory();
+    els.transcript.innerHTML = "";
+    addLine("assistant", "Browser memory cleared. The backend model is stateless; this page controls the chat history it sends.");
+  });
+
+  renderHistory();
+  checkHealth();
+})();
+</script>
+</body>
+</html>
