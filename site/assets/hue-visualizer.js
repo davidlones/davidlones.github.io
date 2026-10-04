@@ -254,7 +254,9 @@
       iconStates.set(icon, state);
       icon.style.pointerEvents = "none";
 
-      const count = 18 + (index % 5) * 2;
+      // Share the bounded budget across icons rather than evicting entire icons.
+      const iconCount = document.querySelectorAll(".desktop a.icon").length;
+      const count = Math.max(1, Math.min(18 + (index % 5) * 2, Math.floor(520 / Math.max(1, iconCount))));
       for (let i = 0; i < count; i += 1) {
         const color = particleColor(i + index, red, green, blue);
         const angle = (i / count) * Math.PI * 2 + Math.sin((index + 1) * 14.37 + i) * 0.6;
@@ -369,9 +371,7 @@
       if (variant !== "multiversal") return;
       const icons = document.querySelectorAll(".desktop a.icon");
       const strength = Math.max(fieldPresence, holdGravity);
-      const musicScreensaverHold = document.body.classList.contains("music-screensaver")
-        && started
-        && mediaEls.some((mediaEl) => !mediaEl.paused && !mediaEl.ended);
+      const musicScreensaverHold = document.body.classList.contains("music-screensaver");
       if (!icons.length || strength <= 0.01) {
         updateIconParticles(w, h, red, green, blue, !musicScreensaverHold && !pointerHeld, disk);
         resetDesktopGravity();
@@ -436,12 +436,17 @@
         }
       });
       updateIconParticles(w, h, red, green, blue, reassemble, disk);
+      // Recover even an icon whose final particle was evicted by the budget.
+      if (reassemble) resetDesktopGravity();
     }
 
-    function resetDesktopGravity() {
+    function resetDesktopGravity(force = false) {
       if (variant !== "multiversal") return;
       document.querySelectorAll(".desktop a.icon").forEach((icon) => {
-        if (iconStates.get(icon)?.disintegrated) return;
+        if (!force && iconStates.get(icon)?.disintegrated
+          && (document.body.classList.contains("music-screensaver") || pointerHeld
+            || iconParticles.some((particle) => particle.icon === icon))) return;
+        iconStates.delete(icon);
         icon.style.transform = "";
         icon.style.opacity = "";
         icon.style.filter = "";
@@ -805,9 +810,8 @@
         const minDim = Math.min(w, h);
         const ampCurve = Math.pow(clamp01(smoothedAmp * 4.2), 0.72);
         const audioActive = (started && mediaEls.some((mediaEl) => !mediaEl.paused && !mediaEl.ended)) || externalActive;
-        const musicScreensaverHold = variant === "multiversal"
-          && audioActive
-          && document.body.classList.contains("music-screensaver");
+        // The shell owns activation, including a latch awaiting autoplay permission.
+        const musicScreensaverHold = document.body.classList.contains("music-screensaver");
         const mobileLike = Boolean(touchOnlyMedia?.matches);
         pointerIdleFrames = pointerHeld ? 0 : Math.min(240, pointerIdleFrames + 1);
         pointerStillHoldFrames = pointerHeld ? Math.min(240, pointerStillHoldFrames + 1) : 180;
@@ -818,11 +822,11 @@
         const visualActivity = clamp01((audioActive ? 0.18 : 0) + ampCurve * 0.82 + bandPeak * 0.58 + pointerMotionGlow * 0.72 + fieldPresence * 0.46 + holdGravity * 0.42);
         visualActivitySmoothed += (visualActivity - visualActivitySmoothed) * (visualActivity > visualActivitySmoothed ? 0.12 : 0.045);
         // Embedded page audio animates the orb only. The screen-wide field is opt-in.
-        const mediaFieldDrive = mobileLike && audioActive && musicScreensaverHold
+        const mediaFieldDrive = audioActive && musicScreensaverHold
           ? clamp01(0.24 + ampCurve * 0.72 + bandPeak * 0.34)
           : 0;
         const screenSaverActive = pointerHeld || activationCharge > 0.18 || iconParticles.length > 0 || perturbations.length > 0 || mediaFieldDrive > 0.04;
-        const fieldTarget = pointerHeld || activationCharge > 0.72
+        const fieldTarget = musicScreensaverHold || pointerHeld || activationCharge > 0.72
           ? 1
           : iconParticles.length > 0
             ? 0.82
@@ -1256,7 +1260,8 @@
           window.removeEventListener("pointerdown", triggerFlare);
           window.removeEventListener("pointerup", releaseFlare);
           window.removeEventListener("pointercancel", releaseFlare);
-          resetDesktopGravity();
+          iconParticles.length = 0;
+          resetDesktopGravity(true);
           drawCanvas.remove();
           canvas.style.opacity = "";
         }

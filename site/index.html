@@ -2759,7 +2759,7 @@
   </aside>
 
 <script id="assistant-default-answers" type="application/json">{"version": 1, "generated_at": "2026-10-03T05:03:48.431286+00:00", "expires_at": 1791090228431.2861, "sources": ["/README.md", "/site-index.json", "/index.html"], "answers": {"what is sol": {"message": "Sol is David's local-first archive and assistant. Sol-37 brings together writing, research, software experiments, media, and technology projects in a retro desktop. Open an icon to explore, use the archive browser at /sitemap.html, or ask the assistant about the page you're reading.", "grounded": true}, "what are the main parts of this archive": {"message": "The archive includes writing and research, software and simulation projects, audio and video, and technical documentation. The desktop and Start menu open individual projects; /sitemap.html is the full archive browser. Sol Assistant provides conversational access, while the Site Server Manual explains the site's operation.", "grounded": true}, "how does this site work": {"message": "Sol-37 serves a collection of static pages inside a Windows-style desktop. Icons and the Start menu open pages or embedded programs. Local services add chat, voice, search, media playlists, and other live features. For details, open the Site Server Manual at /site-server.html.", "grounded": true}, "what can i open from here": {"message": "Use a desktop icon or the Start menu. Current destinations include David Lones \u2014 Parker County Technology Support, Site Map \u2014 Archive Directory, Sol Assistant \u2014 Cognitive Buddy, Star Map \u2014 StarFinder II, Public Logbook \u2014 IRC Relay, Media Player \u2014 Video Loop, Radio Observatory \u2014 Sol Site Receiver, Stardate Console \u2014 Chronology Lab, DOSBox \u2014 C:\\\\WINDOWS\\\\, Barn Swallow Pad \u2014 Contact Console, AirBits \u2014 Acoustic File Modem, Clippy 98 \u2014 Independent Microsoft Agent. Browse /sitemap.html for the full catalog.", "grounded": true}, "what changed on the site recently": {"message": "The public index checked on 2026-10-03 lists these recently modified desktop pages:\n\u2022 2026-10-01: David Lones | Parker County Technology Support (/services/index.html)\n\u2022 2026-08-30: Sol T-Dongle Universal Node | Sol-37 (/sol-tdongle.html)\n\u2022 2026-08-27: Local AI Dashboard (/dashboard/index.html)\n\u2022 2026-08-18: Radio Observatory (/programs/radio.html)\n\nThese are indexed modification dates, not a claim that each page was newly published. Open the Site Server Manual for how the site works, or the archive browser at /sitemap.html for the full catalog.", "grounded": true}, "what is new in the archive": {"message": "The public index checked on 2026-10-03 lists these recently modified desktop pages:\n\u2022 2026-10-01: David Lones | Parker County Technology Support (/services/index.html)\n\u2022 2026-08-30: Sol T-Dongle Universal Node | Sol-37 (/sol-tdongle.html)\n\u2022 2026-08-27: Local AI Dashboard (/dashboard/index.html)\n\u2022 2026-08-18: Radio Observatory (/programs/radio.html)\n\nThese are indexed modification dates, not a claim that each page was newly published. Open the Site Server Manual for how the site works, or the archive browser at /sitemap.html for the full catalog.", "grounded": true}}}</script>
-<script src="/assets/hue-visualizer.js?v=20260621b"></script>
+<script src="/assets/hue-visualizer.js?v=20261004-latch-recovery"></script>
 <script>
 (function(){
   // ---------- Helpers ----------
@@ -2913,7 +2913,7 @@
       name: 'Cisco Default Hold Music with Sol commentary C',
     },
   ];
-  const ASSISTANT_HOLD_TIMINGS_URL = '/data/assistant-hold-loop-timings.json?v=20260618-solgpt';
+  const ASSISTANT_HOLD_TIMINGS_URL = '/data/assistant-hold-loop-timings.json?v=20261004-original-cues';
   const ASSISTANT_BOOT_HIDDEN_CLASS = 'assistant-boot-hidden';
   const PUSH_ACTIVITY_URL = '/push/api/activity?limit=20';
   const PUSH_LOG_KEY = 'sol_desktop_public_push_log_v1';
@@ -4000,6 +4000,10 @@
   function setAssistantSpeaking(speaking) {
     assistantRoot.classList.toggle('speaking', speaking);
     syncAssistantPlaybackUi();
+    if (assistantState.musicScreensaverPendingAutostart && assistantState.musicScreensaverForcedActive) {
+      setAssistantStatus('Screensaver audio armed; continue interaction');
+      return;
+    }
     if (speaking) {
       if (assistantState.broadcastMode) {
         setAssistantStatus('Live broadcast through orb');
@@ -4541,7 +4545,8 @@
   }
 
   function shouldAutostartLatchedScreensaverAudio() {
-    return !assistantState.broadcastMode && !assistantState.localAudioUrl;
+    return !assistantState.broadcastMode && (!assistantState.localAudioUrl
+      || (assistantState.musicScreensaverPendingAutostart && assistantState.musicScreensaverForcedStartedPlayback));
   }
 
   function isAssistantAutoplayBlockError(error) {

@@ -1,13 +1,14 @@
 {
   "source": "assistant hold loop narration timing map",
-  "version": 2,
+  "version": 3,
   "timing_basis": "relative to the beginning of each hold track",
-  "timing_status": "restored_sol_gpt_hold_pass",
+  "timing_status": "historical_render_offsets_not_fresh_alignment",
   "notes": [
-    "These cue start times are editable working values, not authoritative alignments.",
-    "Version 2 expands the first three minutes of all three hold variants to behave more like a real phone-hold cadence.",
-    "The public hold-loop assets were restored to the original SOL-GPT 11speak voice pass from www/audio/.hold-build on 2026-06-18.",
-    "Use programs/hold-narration-timeline.html to inspect audio, seek to cues, and adjust timestamps.",
+    "Cue offsets come from the final April 28 render recipe; they are scheduled mix starts, not freshly measured speech onsets.",
+    "The June 18 SOL-GPT restoration reinstated the original 3/6/9-cue masters. The May 5/8/11-cue expansion is not present in these restored recordings.",
+    "The October 3 review verified the local A/B/C hashes against the preserved masters. Audio was not regenerated for this correction.",
+    "Machine-state narration is historical authored content, not current telemetry.",
+    "Timeline edits export a proposed cue map; they do not retime the baked MP3 audio.",
     "All times are in milliseconds from track start."
   ],
   "tracks": [
@@ -17,39 +18,28 @@
       "audio_file": "assistant-default-hold-loop-a.mp3",
       "audio_src": "/audio/assistant-default-hold-loop-a.mp3?v=20260618-solgpt",
       "audio_duration_ms": 667115.102,
-      "cue_count": 5,
+      "cue_count": 3,
       "cues": [
         {
           "index": 1,
           "label": "Opening line",
-          "start_ms": 14000,
+          "start_ms": 85000,
           "text": "Thank you for continuing to hold. This melody was originally designed to imply progress without proving it. On this server, that makes it documentation."
         },
         {
           "index": 2,
-          "label": "Song position",
-          "start_ms": 68000,
-          "text": "Please remain where you are in the song. Forward motion is currently being represented by tone, not evidence."
-        },
-        {
-          "index": 3,
-          "label": "Brief reassurance",
-          "start_ms": 138000,
-          "text": "A brief reassurance. The delay is not personal. It is simply organized with unusual confidence."
-        },
-        {
-          "index": 4,
           "label": "Status update",
-          "start_ms": 205000,
+          "start_ms": 285000,
           "text": "Status update. Caddy is active. The GUI share service is active. The local chat API is active. Load average is about three point two eight. Available memory is about five point nine gigabytes. The machine remains, against expectations, conversational."
         },
         {
-          "index": 5,
+          "index": 3,
           "label": "Premium hold",
-          "start_ms": 423000,
+          "start_ms": 520000,
           "text": "Your ambient companion would like to remind you that the broadcast override is still live elsewhere. Until then, you have been promoted to premium hold."
         }
-      ]
+      ],
+      "audio_sha256": "77cae0573c32382ca975b1e87937d0ca3c8ed77fad1b2fbb957380e9b9746a22"
     },
     {
       "id": "hold-b",
@@ -57,57 +47,46 @@
       "audio_file": "assistant-default-hold-loop-b.mp3",
       "audio_src": "/audio/assistant-default-hold-loop-b.mp3?v=20260618-solgpt",
       "audio_duration_ms": 667115.102,
-      "cue_count": 8,
+      "cue_count": 6,
       "cues": [
         {
           "index": 1,
           "label": "Opening line",
-          "start_ms": 12000,
+          "start_ms": 65000,
           "text": "Thank you for holding. The system appreciates your patience because patience is cheaper than redundancy."
         },
         {
           "index": 2,
-          "label": "Managed waiting",
-          "start_ms": 58000,
-          "text": "This portion of the experience is called managed waiting. It differs from ordinary waiting by having branding."
-        },
-        {
-          "index": 3,
           "label": "Core services",
-          "start_ms": 117000,
+          "start_ms": 175000,
           "text": "Server note. All three core services are active. Nothing is technically wrong, which is unsettling in its own way."
         },
         {
-          "index": 4,
-          "label": "Melody familiar",
-          "start_ms": 166000,
-          "text": "If the melody has become familiar, that is because reassurance and repetition currently share a department."
-        },
-        {
-          "index": 5,
+          "index": 3,
           "label": "Load average",
-          "start_ms": 211000,
+          "start_ms": 275000,
           "text": "Load average remains above three. Not dangerous. Just enough to sound impressive if read in the correct voice."
         },
         {
-          "index": 6,
+          "index": 4,
           "label": "Memory",
-          "start_ms": 307000,
+          "start_ms": 375000,
           "text": "Available memory is about five point nine gigabytes. Enough to maintain the illusion that this is all under control."
         },
         {
-          "index": 7,
+          "index": 5,
           "label": "Storage",
-          "start_ms": 401000,
+          "start_ms": 470000,
           "text": "Seventy three gigabytes remain free on root storage. The archive is trying not to take that personally."
         },
         {
-          "index": 8,
+          "index": 6,
           "label": "Silence deprecated",
-          "start_ms": 528000,
+          "start_ms": 565000,
           "text": "If you were expecting silence, that option was deprecated. We now offer transparency, mood, and tasteful telemetry over music."
         }
-      ]
+      ],
+      "audio_sha256": "e93bba8f95b5aa2769fea7ccf0e83686803bbc2d5c16118ffdb651361e2fe9f2"
     },
     {
       "id": "hold-c",
@@ -115,75 +94,64 @@
       "audio_file": "assistant-default-hold-loop-c.mp3",
       "audio_src": "/audio/assistant-default-hold-loop-c.mp3?v=20260618-solgpt",
       "audio_duration_ms": 667115.102,
-      "cue_count": 11,
+      "cue_count": 9,
       "cues": [
         {
           "index": 1,
           "label": "Opening line",
-          "start_ms": 10000,
+          "start_ms": 35000,
           "text": "Thank you for holding. This call is not being monitored for quality assurance because the call is the quality assurance."
         },
         {
           "index": 2,
-          "label": "Efficient loop",
-          "start_ms": 52000,
-          "text": "You are now inside the efficient part of the loop, where comfort is delivered at regular intervals and resolution remains theoretical."
-        },
-        {
-          "index": 3,
           "label": "Services upright",
-          "start_ms": 91000,
+          "start_ms": 120000,
           "text": "Caddy is active. The GUI share service is active. The chat API is active. Everyone is upright and pretending this was the plan."
         },
         {
-          "index": 4,
-          "label": "Music optimism",
-          "start_ms": 128000,
-          "text": "The music continues to suggest that someone important is about to return. The system admires its optimism."
-        },
-        {
-          "index": 5,
+          "index": 3,
           "label": "Load average",
-          "start_ms": 161000,
+          "start_ms": 195000,
           "text": "Load average is about three point two eight. The server prefers the phrase richly occupied."
         },
         {
-          "index": 6,
+          "index": 4,
           "label": "Memory",
-          "start_ms": 229000,
+          "start_ms": 265000,
           "text": "Available memory is about five point nine gigabytes. Swap usage is high enough to be noticeable and low enough to remain deniable."
         },
         {
-          "index": 7,
+          "index": 5,
           "label": "Root volume",
-          "start_ms": 301000,
+          "start_ms": 335000,
           "text": "There are seventy three gigabytes free on the root volume. A generous figure, if you ignore the pace of ambition."
         },
         {
-          "index": 8,
+          "index": 6,
           "label": "Broadcast override",
-          "start_ms": 379000,
+          "start_ms": 405000,
           "text": "The current broadcast override is still defined in the backend, which means somewhere, somehow, another audio layer is waiting to interrupt this one with confidence."
         },
         {
-          "index": 9,
+          "index": 7,
           "label": "Repetition architecture",
-          "start_ms": 456000,
+          "start_ms": 475000,
           "text": "If this music has started to feel intentional, that is because repetition eventually becomes architecture."
         },
         {
-          "index": 10,
+          "index": 8,
           "label": "Awareness posture",
-          "start_ms": 532000,
+          "start_ms": 545000,
           "text": "You may be wondering whether the system is becoming self-aware. The system would like to clarify that awareness is simply logging with posture."
         },
         {
-          "index": 11,
+          "index": 9,
           "label": "Final status",
           "start_ms": 610000,
           "text": "Final status for this act. Services active. Disk stable. Memory adequate. Uptime absurd. Mood: professionally trapped inside a hold queue with aesthetic aspirations."
         }
-      ]
+      ],
+      "audio_sha256": "fe7a98eb50d3cfeeca5a6afa032bdd8a8efecd9782b1db2f87a22e1b38742ebc"
     }
   ]
 }
