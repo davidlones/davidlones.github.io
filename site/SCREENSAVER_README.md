@@ -405,3 +405,5 @@ Then the site lets those systems contaminate each other until the browser window
 ### Final-icon activation repair (October 3, 2026)
 
 The renderer emits the automatic activation event only after every participating desktop icon has actually disintegrated. Merely hiding or shrinking icons does not activate it. The last icon triggers the same hold-playlist activation path as the manual ✦ control in the SOL orb popup; the full field snaps on at the next rendered frame. Blocked autoplay leaves the field active and retries on interaction. Dismissal restores the icons. Original hold recordings are unchanged.
+
+Once hold playback is running, tapping the moving SOL orb exits the screensaver, stops its music, and releases particles to re-form the desktop icons. While sound is still pending, the orb tap retries audio instead; the next tap after playback starts exits normally.
