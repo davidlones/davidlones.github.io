@@ -78,3 +78,15 @@ Regression coverage executes the real renderer with controlled frames: silent la
 The shell retry guard now accepts its own pending hold track after autoplay rejection and preserves the pending-audio status instead of claiming that music is playing. Browser testing with deliberate NotAllowedError rejection confirmed the full field remains near 0.96 opacity and a later interaction increases play attempts from one to two. This is a controlled Chromium test, not physical iPhone audio verification.
 
 Pre-repair runtime backup: `20261004T030549Z`, 5,168 items, `missing_sources: []`. Root storage exhausted again after a verified 19 MB tooling-cache offload, so production writes must wait for stable headroom. Resolved-byte backups remain required at deployment.
+
+## October 3 follow-up: iPhone reports visuals without sound
+
+After the visual repair deployed, the user reported silent iPhone playback. The April 28 session's original `playAssistantBuiltInAudio` patch already awaited audio unlock before invoking `play()`. The imported pre-repair source retained this ordering. May 10 added pending autoplay retry, but it assumed startup would reject rather than remain waiting on a suspended audio context. The same-origin site-audio helper had subsequently adopted concurrent unlock/play while the built-in hold path retained the older order.
+
+The previous GitHub homepage (commit `a193e40`) redirected to `https://sol.system42.one/gui`; the preserved `sol37/index.html` and static Star Map did not contain the orb hold-player implementation. Therefore playback reached through that redirect must not be attributed to an independently hosted static audio engine. The repository history available before May ends with March commits; April runtime source was reconstructed from the April 28 session, not invented as a GitHub commit.
+
+The follow-up repair calls audio-context resume and media play synchronously before awaiting either, uses a bounded startup wait, leaves a visible Tap for sound control while pending, and makes pending orb taps retry rather than dismiss. A playback audio-session hint is applied where supported. Original audio remains untouched. Desktop/touch renderer behavior and Star Map integration are retained.
+
+Verification includes an unresolved-unlock regression and a browser policy simulation requiring play within the click handler. Both button and orb retries produced a running context, advancing original media, and nonzero analyser samples. This is decoded-audio evidence, not confirmation of physical iPhone speaker output.
+
+Reference: WebKit's documented media gesture policy, https://webkit.org/blog/6784/new-video-policies-for-ios/ . Local source excerpts: `/mnt/sol-data/sol-stack/screensaver-audit/april-audio-source-excerpts.txt`.

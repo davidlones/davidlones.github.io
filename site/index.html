@@ -1737,6 +1737,13 @@
     opacity: calc(0.72 + (var(--page-audio-level) * 0.22));
     transition: opacity 120ms linear;
   }
+  #screensaver-audio-resume {
+    position: fixed; left: 50%; bottom: calc(62px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%); z-index: 2000; padding: 12px 20px;
+    border: 1px solid #b8d9eb; border-radius: 22px; background: #102633;
+    color: #fff; font: 600 15px system-ui, sans-serif; cursor: pointer;
+  }
+  #screensaver-audio-resume[hidden] { display: none; }
   .desktop-assistant.music-screensaver {
     z-index: 980;
   }
@@ -2758,8 +2765,9 @@
     </div>
   </aside>
 
+<button id="screensaver-audio-resume" type="button" hidden>Tap for sound</button>
 <script id="assistant-default-answers" type="application/json">{"version": 1, "generated_at": "2026-10-03T05:03:48.431286+00:00", "expires_at": 1791090228431.2861, "sources": ["/README.md", "/site-index.json", "/index.html"], "answers": {"what is sol": {"message": "Sol is David's local-first archive and assistant. Sol-37 brings together writing, research, software experiments, media, and technology projects in a retro desktop. Open an icon to explore, use the archive browser at /sitemap.html, or ask the assistant about the page you're reading.", "grounded": true}, "what are the main parts of this archive": {"message": "The archive includes writing and research, software and simulation projects, audio and video, and technical documentation. The desktop and Start menu open individual projects; /sitemap.html is the full archive browser. Sol Assistant provides conversational access, while the Site Server Manual explains the site's operation.", "grounded": true}, "how does this site work": {"message": "Sol-37 serves a collection of static pages inside a Windows-style desktop. Icons and the Start menu open pages or embedded programs. Local services add chat, voice, search, media playlists, and other live features. For details, open the Site Server Manual at /site-server.html.", "grounded": true}, "what can i open from here": {"message": "Use a desktop icon or the Start menu. Current destinations include David Lones \u2014 Parker County Technology Support, Site Map \u2014 Archive Directory, Sol Assistant \u2014 Cognitive Buddy, Star Map \u2014 StarFinder II, Public Logbook \u2014 IRC Relay, Media Player \u2014 Video Loop, Radio Observatory \u2014 Sol Site Receiver, Stardate Console \u2014 Chronology Lab, DOSBox \u2014 C:\\\\WINDOWS\\\\, Barn Swallow Pad \u2014 Contact Console, AirBits \u2014 Acoustic File Modem, Clippy 98 \u2014 Independent Microsoft Agent. Browse /sitemap.html for the full catalog.", "grounded": true}, "what changed on the site recently": {"message": "The public index checked on 2026-10-03 lists these recently modified desktop pages:\n\u2022 2026-10-01: David Lones | Parker County Technology Support (/services/index.html)\n\u2022 2026-08-30: Sol T-Dongle Universal Node | Sol-37 (/sol-tdongle.html)\n\u2022 2026-08-27: Local AI Dashboard (/dashboard/index.html)\n\u2022 2026-08-18: Radio Observatory (/programs/radio.html)\n\nThese are indexed modification dates, not a claim that each page was newly published. Open the Site Server Manual for how the site works, or the archive browser at /sitemap.html for the full catalog.", "grounded": true}, "what is new in the archive": {"message": "The public index checked on 2026-10-03 lists these recently modified desktop pages:\n\u2022 2026-10-01: David Lones | Parker County Technology Support (/services/index.html)\n\u2022 2026-08-30: Sol T-Dongle Universal Node | Sol-37 (/sol-tdongle.html)\n\u2022 2026-08-27: Local AI Dashboard (/dashboard/index.html)\n\u2022 2026-08-18: Radio Observatory (/programs/radio.html)\n\nThese are indexed modification dates, not a claim that each page was newly published. Open the Site Server Manual for how the site works, or the archive browser at /sitemap.html for the full catalog.", "grounded": true}}}</script>
-<script src="/assets/hue-visualizer.js?v=20261004-vacuum-snap"></script>
+<script src="/assets/hue-visualizer.js?v=20261004-audio-gesture"></script>
 <script>
 (function(){
   // ---------- Helpers ----------
@@ -3098,6 +3106,7 @@
     musicScreensaverForcedActive: false,
     musicScreensaverForcedStartedPlayback: false,
     musicScreensaverPendingAutostart: false,
+    musicScreensaverAudioAttempt: 0,
     musicScreensaverRaf: 0,
     musicScreensaverRestorePosition: null,
     starMapGravityField: null,
@@ -4545,14 +4554,20 @@
     );
   }
 
+  function setScreensaverAudioPending(pending) {
+    assistantState.musicScreensaverPendingAutostart = Boolean(pending);
+    const control = $('#screensaver-audio-resume');
+    if (control) control.hidden = !(pending && assistantState.musicScreensaverForcedActive);
+  }
+
   function maybeAutostartLatchedScreensaverAudio(reason = 'icons') {
     if (!shouldAutostartLatchedScreensaverAudio()) return;
-    assistantState.musicScreensaverPendingAutostart = false;
-    void playAssistantBuiltInAudio({ autostartedByLatch: true }).catch((error) => {
-      if (!assistantState.musicScreensaverForcedActive) return;
-      if (isAssistantAutoplayBlockError(error)) {
-        assistantState.musicScreensaverPendingAutostart = true;
-      }
+    setScreensaverAudioPending(true);
+    const playback = playAssistantBuiltInAudio({ autostartedByLatch: true });
+    const attempt = assistantState.musicScreensaverAudioAttempt;
+    void playback.catch((error) => {
+      if (!assistantState.musicScreensaverForcedActive || attempt !== assistantState.musicScreensaverAudioAttempt) return;
+      setScreensaverAudioPending(true);
       if (!assistantState.busy) {
         setAssistantStatus(
           assistantState.musicScreensaverPendingAutostart
@@ -4584,7 +4599,8 @@
     const stopForcedPlayback = Boolean(assistantState.musicScreensaverForcedStartedPlayback);
     assistantState.musicScreensaverForcedActive = false;
     assistantState.musicScreensaverForcedStartedPlayback = false;
-    assistantState.musicScreensaverPendingAutostart = false;
+    assistantState.musicScreensaverAudioAttempt += 1;
+    setScreensaverAudioPending(false);
     syncAssistantScreensaverLatchUi();
     if (stopForcedPlayback) {
       stopAssistantPlayback({ clearSource: true });
@@ -4812,7 +4828,7 @@
 
   async function playAssistantBuiltInAudio(options = {}) {
     assistantState.musicScreensaverForcedStartedPlayback = Boolean(options.autostartedByLatch);
-    assistantState.musicScreensaverPendingAutostart = false;
+    setScreensaverAudioPending(Boolean(options.autostartedByLatch));
     stopAssistantPlayback({ clearSource: true });
     revokeAssistantLocalAudioUrl();
     const firstTrack = ASSISTANT_DEFAULT_AUDIO_PLAYLIST[0];
@@ -4831,20 +4847,37 @@
       setAssistantStatus('Music playlist armed; waiting for broadcast override to clear');
       return;
     }
-    await unlockAssistantAudio({ manual: true });
-    if (options.autostartedByLatch && !assistantState.musicScreensaverForcedActive) return;
+    const attempt = ++assistantState.musicScreensaverAudioAttempt;
     assistantAudio.pause();
     assistantAudio.loop = false;
     assistantAudio.src = assistantState.localAudioUrl;
     assistantAudio.currentTime = 0;
+    assistantAudio.muted = false;
     assistantState.playbackPaused = false;
-    await assistantVisualizer.unlock();
-    if (options.autostartedByLatch && !assistantState.musicScreensaverForcedActive) return;
-    await assistantAudio.play();
+    // Start both operations inside the gesture: awaiting resume first can lose
+    // Safari's media permission, or wait forever on a suspended context.
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}
+    const unlockPromise = assistantVisualizer.unlock();
+    const playPromise = assistantAudio.play();
+    let timer;
+    try {
+      await Promise.race([
+        Promise.all([unlockPromise, playPromise]),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Tap for sound to resume audio')), 4000); }),
+      ]);
+      if (attempt !== assistantState.musicScreensaverAudioAttempt) return;
+      const audioState = assistantVisualizer.getAudioState?.();
+      if (audioState && audioState !== 'running') throw new Error('Tap for sound to resume audio');
+    } finally {
+      clearTimeout(timer);
+    }
+    if (attempt !== assistantState.musicScreensaverAudioAttempt) return;
     if (options.autostartedByLatch && !assistantState.musicScreensaverForcedActive) {
       assistantAudio.pause();
       return;
     }
+    assistantState.voiceUnlocked = true;
+    setScreensaverAudioPending(false);
     setAssistantMusicScreensaver(true);
     setAssistantStatus('Music screensaver active');
   }
@@ -6332,8 +6365,8 @@
         assistantState.suppressAvatarClick = false;
         return;
       }
-      if (assistantState.musicScreensaverForcedActive && !assistantState.musicScreensaverMediaActive) {
-        dismissLatchedAssistantScreensaver();
+      if (assistantState.musicScreensaverForcedActive && (assistantState.musicScreensaverPendingAutostart || !assistantState.musicScreensaverMediaActive)) {
+        maybeAutostartLatchedScreensaverAudio('manual');
         return;
       }
       if (assistantState.musicScreensaverActive) {
@@ -6477,7 +6510,14 @@
     });
     assistantOrbShell?.addEventListener('drop', handleAssistantAudioDrop);
 
-    document.addEventListener('pointerdown', () => {
+    $('#screensaver-audio-resume')?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      maybeResumePendingLatchedScreensaverAudio();
+    });
+    document.addEventListener('pointerdown', (event) => {
+      // Orb/button clicks own their retry; a capture-phase retry followed by
+      // their click would otherwise start twice or immediately pause playback.
+      if (assistantRoot.contains(event.target) || event.target.closest?.('#screensaver-audio-resume')) return;
       maybeResumePendingLatchedScreensaverAudio();
     }, true);
 
