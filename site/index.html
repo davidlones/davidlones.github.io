@@ -4056,7 +4056,7 @@
 
     const intro = document.createElement('div');
     intro.className = 'start-settings-feed-note';
-    intro.textContent = 'Baked hold narration is fixed and track-relative. Generated screensaver narration is contextual, so it appears here as timing placeholders rather than one literal script.';
+    intro.textContent = 'Baked hold narration uses the restored original recordings. Times below are scheduled offsets from the original mix, not newly measured speech onsets. Machine-state lines are historical. Generated narration is separate and appears as timing placeholders.';
     menuSettingsHoldFeed.appendChild(intro);
 
     const generatedTrack = document.createElement('section');
@@ -4564,6 +4564,7 @@
     if (!shouldAutostartLatchedScreensaverAudio()) return;
     assistantState.musicScreensaverPendingAutostart = false;
     void playAssistantBuiltInAudio({ autostartedByLatch: true }).catch((error) => {
+      if (!assistantState.musicScreensaverForcedActive) return;
       if (isAssistantAutoplayBlockError(error)) {
         assistantState.musicScreensaverPendingAutostart = true;
       }
@@ -4869,13 +4870,19 @@
       return;
     }
     await unlockAssistantAudio({ manual: true });
+    if (options.autostartedByLatch && !assistantState.musicScreensaverForcedActive) return;
     assistantAudio.pause();
     assistantAudio.loop = false;
     assistantAudio.src = assistantState.localAudioUrl;
     assistantAudio.currentTime = 0;
     assistantState.playbackPaused = false;
     await assistantVisualizer.unlock();
+    if (options.autostartedByLatch && !assistantState.musicScreensaverForcedActive) return;
     await assistantAudio.play();
+    if (options.autostartedByLatch && !assistantState.musicScreensaverForcedActive) {
+      assistantAudio.pause();
+      return;
+    }
     setAssistantMusicScreensaver(true);
     setAssistantStatus('Music screensaver active');
   }
