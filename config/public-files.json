@@ -182,6 +182,8 @@
     "start/style.css",
     "talking-thesaurus.html",
     "tree.html",
+    "vendor/hls-1.6.13.min.js",
+    "vendor/hls-LICENSE",
     "visual-essays/index.html",
     "windows98-clippy-showcase.html",
     "\ud83e\udec0.html"

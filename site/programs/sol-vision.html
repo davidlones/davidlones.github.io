@@ -19,6 +19,14 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    .camera-tabs { display: flex; gap: 8px; margin-top: 12px; }
+    .camera-tabs button { flex: 1; padding: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; font: inherit; }
+    .camera-tabs button[aria-selected="true"] { border-color: var(--green); color: var(--green); }
+    #secondary-panel .viewport { aspect-ratio: 16 / 9; }
+    #secondary-camera { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .camera-note { color: var(--muted); font-size: 12px; line-height: 1.5; }
+
 
     html, body { min-height: 100%; }
 
@@ -239,13 +247,21 @@
       <time id="clock" class="clock">initializing</time>
     </header>
 
+    <div class="camera-tabs" role="tablist" aria-label="SOL Vision cameras">
+      <button id="primary-tab" role="tab" aria-selected="true" aria-controls="primary-panel" type="button">A · Record Player · QuickCam</button>
+      <button id="secondary-tab" role="tab" aria-selected="false" aria-controls="secondary-panel" tabindex="-1" type="button">B · Keyboard · HD C615</button>
+    </div>
     <nav class="mode-picker" aria-label="Camera presentation mode">
-      <button id="classic-mode" type="button" aria-pressed="false">Classic grayscale</button>
-      <button id="vision-mode" type="button" aria-pressed="true">Full-color Vision Monitor</button>
+      <button id="classic-mode" type="button" aria-pressed="false" disabled>Filters off · local only</button>
+      <button id="vision-mode" type="button" aria-pressed="true">Custom filters on</button>
     </nav>
+    <p id="vision-access" class="camera-note">Checking network access · filters required</p>
+    <button id="lens-audio" type="button">Enable sound</button>
+    <p id="playback-status" class="camera-note">Connecting synchronized audio and video…</p>
+    <div id="primary-panel" role="tabpanel" aria-labelledby="primary-tab">
 
     <section class="viewport" aria-label="Live SOL vision webcam">
-      <img id="camera" alt="Live webcam used by SOL vision">
+      <video id="camera" aria-label="Live webcam used by SOL vision" autoplay muted playsinline></video>
       <div class="live-tag"><span class="dot"></span><span id="stream-state">connecting</span></div>
     </section>
 
@@ -276,8 +292,26 @@
       <span id="device">/dev/video0 · 324 × 240</span>
       <span id="updated">No telemetry received</span>
     </footer>
+    </div>
+    <section id="secondary-panel" role="tabpanel" aria-labelledby="secondary-tab" hidden>
+      <p class="camera-note">Additional camera · HD Webcam C615. Record Player remains the default and motion source; the fleet card briefly alternates views.</p>
+      <div class="viewport">
+        <video id="secondary-camera" aria-label="Live additional HD webcam" autoplay muted playsinline></video>
+        <div class="live-tag"><span class="dot"></span><span id="secondary-state">connecting</span></div>
+      </div>
+      <div class="telemetry">
+        <div class="readouts">
+          <div class="readout"><span class="label">Connection</span><span class="value" id="secondary-connection">checking</span></div>
+          <div class="readout"><span class="label">Frame</span><span class="value" id="secondary-frame">waiting</span></div>
+          <div class="readout"><span class="label">Capture</span><span class="value">1280 × 720 · color</span></div>
+        </div>
+        <p class="camera-note caption">Optional screen detection: no assumed screen or inherited polygon. Outlined screens are unconfirmed candidates. People counting is not enabled for this camera.</p>
+      </div>
+      <footer><span>HD C615 · independent source</span><span id="secondary-screen">Screen: checking</span><span id="secondary-audio">Lens effect: checking</span><span id="secondary-updated">Waiting for camera</span></footer>
+    </section>
   </main>
 
+  <script src="/vendor/hls-1.6.13.min.js"></script>
   <script>
     const ids = Object.fromEntries(
       ["camera", "stream-state", "capture", "frame", "observers", "inference", "motion", "people", "in-frame", "on-screen", "analysis-detail", "services", "device", "updated", "clock", "classic-mode", "vision-mode"]
@@ -289,27 +323,107 @@
       "sol-observer.service": "observer loop",
       "caddy-sol37.service": "site transport"
     };
-    const localFocus = ["127.0.0.1", "localhost", "::1"].includes(window.location.hostname);
-    const modeKey = "sol_vision_monitor_mode";
-    let visionMode = localStorage.getItem(modeKey) !== "classic";
-    if (!localFocus && !localStorage.getItem(modeKey)) {
-      visionMode = false;
-    }
+    let localFocus = false;
+    let visionMode = true;
 
+    let selectedCamera = "primary";
+    let cameraStream = "";
+    let avPlayer = null;
+    let soundEnabled = false;
+    let playbackGeneration = 0;
+    const secondaryImage = document.getElementById("secondary-camera");
+    const primaryTab = document.getElementById("primary-tab");
+    const secondaryTab = document.getElementById("secondary-tab");
+    secondaryTab.hidden = false;
+
+    function selectCamera(camera) {
+      selectedCamera = camera === "secondary" ? "secondary" : "primary";
+      const secondary = selectedCamera === "secondary";
+      document.getElementById("primary-panel").hidden = secondary;
+      document.getElementById("secondary-panel").hidden = !secondary;
+      primaryTab.setAttribute("aria-selected", String(!secondary));
+      secondaryTab.setAttribute("aria-selected", String(secondary));
+      primaryTab.tabIndex = secondary ? -1 : 0;
+      secondaryTab.tabIndex = secondary ? 0 : -1;
+      document.querySelector(".eyebrow").textContent = secondary ? "SOL / machine perception / camera 02" : "SOL / machine perception / camera 01";
+      document.querySelector("main").classList.toggle("local-full-frame", !secondary);
+      if (secondary) {
+        selectCameraMode(visionMode);
+      } else {
+        selectCameraMode(visionMode);
+      }
+      refresh();
+    }
+    primaryTab.addEventListener("click", () => selectCamera("primary"));
+    secondaryTab.addEventListener("click", () => selectCamera("secondary"));
+    for (const tab of [primaryTab, secondaryTab]) tab.addEventListener("keydown", event => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      const secondary = event.key === "End" || (event.key !== "Home" && selectedCamera === "primary");
+      selectCamera(secondary ? "secondary" : "primary");
+      (secondary ? secondaryTab : primaryTab).focus();
+    });
+    function startAV() {
+      const generation = ++playbackGeneration;
+      if (avPlayer) { avPlayer.destroy(); avPlayer = null; }
+      for (const video of [ids.camera, secondaryImage]) {
+        video.pause(); video.removeAttribute("src"); video.load();
+      }
+      const video = selectedCamera === "primary" ? ids.camera : secondaryImage;
+      const mode = !localFocus ? "public" : visionMode ? "local" : "raw";
+      const url = `/api/dashboard/vision-av/${selectedCamera}/${mode}/live.m3u8`;
+      video.muted = !soundEnabled;
+      const play = () => video.play().catch(() => {
+        video.muted = true; soundEnabled = false;
+        document.getElementById("lens-audio").textContent = "Enable sound";
+        video.play().catch(() => {});
+      });
+      if (window.Hls && Hls.isSupported()) {
+        avPlayer = new Hls({liveSyncDurationCount: 3, liveMaxLatencyDurationCount: 6,
+          maxBufferLength: 5, maxMaxBufferLength: 8, backBufferLength: 2,
+          maxLiveSyncPlaybackRate: 1, enableWorker: true});
+        avPlayer.loadSource(url);
+        avPlayer.attachMedia(video);
+        avPlayer.on(Hls.Events.MANIFEST_PARSED, play);
+        avPlayer.on(Hls.Events.ERROR, (_, data) => {
+          if (!data.fatal) return;
+          document.getElementById("playback-status").textContent = "Reconnecting audio and video…";
+          setTimeout(() => { if (generation === playbackGeneration) startAV(); }, 1500);
+        });
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        video.src = url;
+        play();
+      } else {
+        document.getElementById("playback-status").textContent = "This browser cannot play the synchronized stream.";
+      }
+    }
     function selectCameraMode(useVision) {
-      visionMode = Boolean(useVision);
-      localStorage.setItem(modeKey, visionMode ? "vision" : "classic");
-      document.querySelector("main")?.classList.toggle("local-full-frame", visionMode);
-      ids.camera.closest(".viewport")?.classList.toggle("rotated-full-frame", visionMode);
-      ids["classic-mode"].setAttribute("aria-pressed", visionMode ? "false" : "true");
-      ids["vision-mode"].setAttribute("aria-pressed", visionMode ? "true" : "false");
-      const endpoint = visionMode
-        ? (localFocus ? "/api/dashboard/camera-tracked.mjpg" : "/api/dashboard/camera-vision.mjpg")
-        : "/api/dashboard/camera.mjpg";
-      ids.camera.src = `${endpoint}?mode=${visionMode ? "vision" : "classic"}&ts=${Date.now()}`;
+      visionMode = !localFocus || Boolean(useVision);
+      document.querySelector("main").classList.toggle("local-full-frame", selectedCamera === "primary");
+      ids.camera.closest(".viewport").classList.add("rotated-full-frame");
+      ids.camera.classList.remove("local-focus");
+      ids["classic-mode"].setAttribute("aria-pressed", String(!visionMode));
+      ids["vision-mode"].setAttribute("aria-pressed", String(visionMode));
+      startAV();
     }
-
-    selectCameraMode(visionMode);
+    async function refreshAccess() {
+      let access = {};
+      try {
+        const response = await fetch("/api/dashboard/vision-access", {cache: "no-store"});
+        if (response.ok) access = await response.json();
+      } catch (_) {}
+      const previous = localFocus;
+      localFocus = access.local_client === true;
+      ids["classic-mode"].disabled = !localFocus;
+      document.getElementById("vision-access").textContent = localFocus
+        ? (access.access_kind === "home_network_via_public_link" ? "Home network · via public link · local controls enabled" : "Local network · local controls enabled")
+        : "Public access · custom filters required";
+      if (previous !== localFocus) selectCameraMode(visionMode);
+    }
+    selectCameraMode(true);
+    refreshAccess();
+    setTimeout(refreshAccess, 6000);
+    setInterval(refreshAccess, 30000);
 
     function age(seconds) {
       if (!Number.isFinite(Number(seconds))) return "unknown";
@@ -334,11 +448,9 @@
       setTone(ids["stream-state"], fresh ? "good" : "bad");
       ids.frame.textContent = camera.frame_id ? `#${camera.frame_id} · ${(camera.frame_signature || "").replace("sha1:", "")}` : "waiting";
       ids.observers.textContent = `${camera.viewer_count || 0} connected`;
-      const tracking = localFocus ? (camera.tracking || {}) : contextTracking;
+      const tracking = camera.tracking || contextTracking;
       const bodyDetector = tracking.body_detector || { available: tracking.body_detector_available };
-      const retrospective = localFocus
-        ? (camera.retrospective_person_inference || {})
-        : (visionContext.retrospective_person_inference || {});
+      const retrospective = camera.retrospective_person_inference || visionContext.retrospective_person_inference || {};
       const trackerReady = fresh && bodyDetector.available && tracking.screen_detected;
       const activity = tracking.meaningful_activity || {};
       ids.motion.textContent = !fresh ? "UNKNOWN · stale camera" : activity.status !== "ok" ? "WARMING UP" : `${activity.active ? (activity.trigger === "person" ? "PERSON ACTIVITY" : "SIGNIFICANT MOTION") : "QUIET"} · ${tracking.motion_object_count || 0} raw objects`;
@@ -367,7 +479,7 @@
       ids["analysis-detail"].textContent = `${sceneAssessment.motion || camera.caption_motion || `Deterministic tracker sees ${tracking.motion_object_count || 0} moving objects.`} ${sceneAssessment.people || camera.caption_people || `${tracking.person_candidates_in_frame || 0} body candidates; model ${bodyDetector.available ? "ready" : "unavailable"}.`} Screen: ${tracking.screen_detection_source || "unavailable"} at ${Math.round((tracking.screen_confidence || 0) * 100)}%. Counts are conservative candidates, not identity claims.`;
       ids.device.textContent = visionMode
         ? `${camera.camera_device || "/dev/video0"} · 324 × 240 sensor maximum · full-color Vision Monitor · 90° clockwise`
-        : `${camera.camera_device || "/dev/video0"} · classic 324 × 240 monochrome evidence feed`;
+        : `${camera.camera_device || "/dev/video0"} · 324 × 240 sensor · filters off · 90° clockwise`;
 
       const selected = (data.services || []).filter((service) => serviceNames[service.id]);
       const visionRuntime = (data.chat_health?.backends || []).find((backend) => backend.id === "vision_fast");
@@ -388,10 +500,30 @@
     }
 
     async function refresh() {
+      const requestedCamera = selectedCamera;
+      if (requestedCamera === "secondary") {
+        try {
+          const response = await fetch("/api/dashboard/cameras/c615/status", { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          if (selectedCamera !== requestedCamera) return;
+          document.getElementById("secondary-state").textContent = data.fresh ? "live capture" : data.status;
+          document.getElementById("secondary-connection").textContent = data.fresh ? "LIVE" : data.error || "Connecting";
+          document.getElementById("secondary-frame").textContent = data.fresh ? `#${data.frame_id} · ${age(data.frame_age_s)} old` : "No fresh frame";
+          document.getElementById("secondary-audio").textContent = `Lens effect: ${data.music_warp?.phase || "waiting"}`;
+          document.getElementById("secondary-screen").textContent = `Screen: ${data.screen?.status || "unavailable"}`;
+          document.getElementById("secondary-updated").textContent = `Checked ${new Date().toLocaleTimeString()}`;
+        } catch (error) {
+          document.getElementById("secondary-state").textContent = "offline";
+          document.getElementById("secondary-connection").textContent = error.message;
+        }
+        return;
+      }
       try {
         const response = await fetch("/api/dashboard/status", { cache: "no-store" });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        render(await response.json());
+        const data = await response.json();
+        if (selectedCamera === requestedCamera) render(data);
       } catch (error) {
         ids.capture.textContent = `OFFLINE · ${error.message}`;
         setTone(ids.capture, "bad");
@@ -399,18 +531,21 @@
       }
     }
 
-    ids.camera.addEventListener("load", () => {
+    ids.camera.addEventListener("playing", () => {
       ids["stream-state"].textContent = "live capture";
       setTone(ids["stream-state"], "good");
     });
     ids["classic-mode"].addEventListener("click", () => selectCameraMode(false));
     ids["vision-mode"].addEventListener("click", () => selectCameraMode(true));
-    ids.camera.addEventListener("error", () => {
-      ids["stream-state"].textContent = "stream offline";
-      setTone(ids["stream-state"], "bad");
-      window.setTimeout(() => {
-        ids.camera.src = `${cameraStream}?reconnect=${Date.now()}`;
-      }, 1500);
+    for (const video of [ids.camera, secondaryImage]) video.addEventListener("playing", () => {
+      document.getElementById("playback-status").textContent = "Live · synchronized audio and video";
+    });
+    document.getElementById("lens-audio").addEventListener("click", async () => {
+      soundEnabled = !soundEnabled;
+      const video = selectedCamera === "primary" ? ids.camera : secondaryImage;
+      video.muted = !soundEnabled;
+      try { await video.play(); } catch (_) { soundEnabled = false; video.muted = true; }
+      document.getElementById("lens-audio").textContent = soundEnabled ? "Mute sound" : "Enable sound";
     });
 
     function tick() {
