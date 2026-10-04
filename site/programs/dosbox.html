@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="robots" content="indexifembedded">
+<title>DOSBox - Sol-37</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #06080d;
+    --panel: #111827;
+    --panel-edge: #334155;
+    --text: #d6e3ff;
+    --muted: #8aa2c8;
+    --accent: #5ce1e6;
+    --accent-strong: #facc15;
+    --danger: #f97316;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at top, rgba(92, 225, 230, 0.16), transparent 30%),
+      linear-gradient(180deg, #09111d 0%, var(--bg) 100%);
+    color: var(--text);
+    font: 14px/1.45 "Lucida Console", "Courier New", monospace;
+  }
+
+  .shell {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    min-height: 100%;
+  }
+
+  .banner {
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid rgba(138, 162, 200, 0.22);
+    background: rgba(10, 16, 28, 0.88);
+    backdrop-filter: blur(6px);
+  }
+
+  .banner h1 {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .banner p {
+    margin: 6px 0 0;
+    color: var(--muted);
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    padding: 12px 18px;
+  }
+
+  .card {
+    padding: 10px 12px;
+    background: rgba(17, 24, 39, 0.86);
+    border: 1px solid var(--panel-edge);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .card strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: var(--accent-strong);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .card span { color: var(--text); }
+
+  .stage {
+    position: relative;
+    min-height: 360px;
+    padding: 0 18px 18px;
+  }
+
+  #player {
+    width: 100%;
+    height: 100%;
+    min-height: 420px;
+    border: 1px solid var(--panel-edge);
+    background: #000;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  }
+
+  #player canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: none;
+    image-rendering: pixelated;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0 18px 18px;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(4, 7, 12, 0.84);
+  }
+
+  .overlay.hidden { display: none; }
+
+  .status-panel {
+    width: min(720px, 100%);
+    padding: 18px;
+    background: rgba(8, 13, 23, 0.96);
+    border: 1px solid var(--panel-edge);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .status-panel h2 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    color: var(--accent);
+  }
+
+  .status-panel p {
+    margin: 0 0 10px;
+    color: var(--muted);
+  }
+
+  .status-line {
+    margin: 10px 0 0;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .progress {
+    width: 100%;
+    height: 14px;
+    margin-top: 12px;
+    border: 1px solid var(--panel-edge);
+    background: #02050a;
+  }
+
+  .progress > span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), #3b82f6);
+    transition: width 0.12s linear;
+  }
+
+  .warning {
+    color: var(--danger);
+  }
+
+  .runtime {
+    padding: 0 18px 18px;
+  }
+
+  .runtime-card {
+    padding: 12px;
+    background: rgba(10, 16, 28, 0.92);
+    border: 1px solid var(--panel-edge);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  .runtime-card strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--accent-strong);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .runtime-card p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  @media (max-width: 640px) {
+    .banner, .meta, .stage { padding-left: 12px; padding-right: 12px; }
+    .overlay { inset: 0 12px 12px; }
+    #player { min-height: 360px; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="banner">
+      <h1>DOSBox Local Clone</h1>
+      <p>Browser snapshot of <code>/home/david/.dosbox</code> booting against <code>/home/david/C</code>.</p>
+    </header>
+
+    <section class="meta">
+      <div class="card">
+        <strong>Boot Target</strong>
+        <span><code>C:\WINDOWS</code></span>
+      </div>
+      <div class="card">
+        <strong>Mount Source</strong>
+        <span><code>/generated/dosbox/c-drive</code> -> <code>/home/david/C</code></span>
+      </div>
+      <div class="card">
+        <strong>Controls</strong>
+        <span>Click inside the canvas to focus it. The deferred side of C: now loads when DOS actually opens a file.</span>
+      </div>
+    </section>
+
+    <main class="stage">
+      <div id="player" aria-label="DOSBox emulator"></div>
+      <div class="overlay" id="overlay">
+        <section class="status-panel">
+          <h2 id="status-title">Preparing DOS snapshot</h2>
+          <p id="status-copy">Loading manifest and DOSBox config.</p>
+          <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+          <div class="status-line" id="status-line">Waiting for local snapshot metadata...</div>
+        </section>
+      </div>
+    </main>
+
+    <section class="runtime">
+      <div class="runtime-card">
+        <strong id="hydrate-title">Deferred Drive Hydration</strong>
+        <p id="hydrate-copy">Waiting for boot pack metadata...</p>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://v8.js-dos.com/latest/emulators/emulators.js"></script>
+  <script>
+    if (window.emulators) {
+      window.emulators.pathPrefix = "https://v8.js-dos.com/latest/emulators/";
+    }
+
+    const overlay = document.getElementById("overlay");
+    const statusTitle = document.getElementById("status-title");
+    const statusCopy = document.getElementById("status-copy");
+    const statusLine = document.getElementById("status-line");
+    const progressBar = document.getElementById("progress-bar");
+    const player = document.getElementById("player");
+    const hydrateTitle = document.getElementById("hydrate-title");
+    const hydrateCopy = document.getElementById("hydrate-copy");
+    const urlParams = new URLSearchParams(window.location.search);
+    const bootMode = (urlParams.get("boot") || "").toLowerCase();
+    const traceFsActivity = urlParams.get("trace") === "1";
+    window.__sol37DosboxEvents = [];
+    window.__sol37DosboxFsTrace = [];
+    let driveAudioContext = null;
+    let driveAudioUnlocked = false;
+    let driveClickTimer = null;
+    let driveLoadingActive = false;
+    let dosboxHasFocus = false;
+    let emulatorAudioContext = null;
+    let lastDriveClickAt = 0;
+    const DRIVE_CLICK_MIN_GAP_MS = 18;
+    const DRIVE_CLICK_DURATION_S = 0.03;
+    const DRIVE_CLICK_ATTACK_S = 0.002;
+    const DRIVE_CLICK_PEAK_GAIN = 0.07;
+    const FETCH_RETRY_COUNT = 3;
+    const FETCH_RETRY_DELAY_MS = 450;
+    const DOM_TO_DOS_KEY_CODE = {
+      8: 259,
+      9: 258,
+      13: 257,
+      16: 340,
+      17: 341,
+      18: 342,
+      19: 284,
+      27: 256,
+      32: 32,
+      33: 266,
+      34: 267,
+      35: 269,
+      36: 268,
+      37: 263,
+      38: 265,
+      39: 262,
+      40: 264,
+      45: 260,
+      46: 261,
+      48: 48,
+      49: 49,
+      50: 50,
+      51: 51,
+      52: 52,
+      53: 53,
+      54: 54,
+      55: 55,
+      56: 56,
+      57: 57,
+      59: 59,
+      64: 61,
+      65: 65,
+      66: 66,
+      67: 67,
+      68: 68,
+      69: 69,
+      70: 70,
+      71: 71,
+      72: 72,
+      73: 73,
+      74: 74,
+      75: 75,
+      76: 76,
+      77: 77,
+      78: 78,
+      79: 79,
+      80: 80,
+      81: 81,
+      82: 82,
+      83: 83,
+      84: 84,
+      85: 85,
+      86: 86,
+      87: 87,
+      88: 88,
+      89: 89,
+      90: 90,
+      91: 91,
+      93: 93,
+      96: 320,
+      97: 321,
+      98: 322,
+      99: 323,
+      100: 324,
+      101: 325,
+      102: 326,
+      103: 327,
+      104: 328,
+      105: 329,
+      111: 331,
+      112: 290,
+      113: 291,
+      114: 292,
+      115: 293,
+      116: 294,
+      117: 295,
+      118: 296,
+      119: 297,
+      120: 298,
+      121: 299,
+      122: 300,
+      123: 301,
+      144: 282,
+      145: 281,
+      173: 45,
+      186: 59,
+      187: 61,
+      188: 44,
+      189: 45,
+      190: 46,
+      191: 47,
+      219: 91,
+      220: 92,
+      221: 93,
+    };
+
+    const formatBytes = (value) => {
+      if (!Number.isFinite(value) || value <= 0) return "0 B";
+      const units = ["B", "KB", "MB", "GB"];
+      let size = value;
+      let unit = units[0];
+      for (let index = 0; index < units.length; index += 1) {
+        unit = units[index];
+        if (size < 1024 || index === units.length - 1) break;
+        size /= 1024;
+      }
+      return `${size >= 100 ? size.toFixed(0) : size.toFixed(1)} ${unit}`;
+    };
+
+    const setProgress = (loaded, total) => {
+      const percent = total > 0 ? Math.max(0, Math.min(100, (loaded / total) * 100)) : 0;
+      progressBar.style.width = `${percent}%`;
+    };
+
+    const setStatus = (title, copy, line, loaded = 0, total = 0) => {
+      statusTitle.textContent = title;
+      statusCopy.textContent = copy;
+      statusLine.textContent = line;
+      setProgress(loaded, total);
+    };
+
+    const revealPlayer = () => {
+      overlay.classList.add("hidden");
+    };
+
+    const setHydration = (title, copy) => {
+      hydrateTitle.textContent = title;
+      hydrateCopy.textContent = copy;
+    };
+
+    function focusDosboxSurface() {
+      dosboxHasFocus = true;
+      try { window.focus(); } catch {}
+      try { document.body.focus(); } catch {}
+      const canvas = player.querySelector("canvas");
+      if (canvas) {
+        if (!canvas.hasAttribute("tabindex")) {
+          canvas.tabIndex = 0;
+        }
+        try { canvas.focus({ preventScroll: true }); } catch { try { canvas.focus(); } catch {} }
+        return;
+      }
+      if (!player.hasAttribute("tabindex")) {
+        player.tabIndex = 0;
+      }
+      try { player.focus({ preventScroll: true }); } catch { try { player.focus(); } catch {} }
+    }
+
+    function blurDosboxSurface() {
+      dosboxHasFocus = false;
+    }
+
+    function mapDomKeyToDosKey(event) {
+      const domKeyCode = event.which || event.keyCode || 0;
+      return DOM_TO_DOS_KEY_CODE[domKeyCode] || 0;
+    }
+
+    function attachKeyboardBridge(ci) {
+      const activeKeys = new Map();
+      const shouldCapture = (event) => {
+        if (!dosboxHasFocus) return false;
+        if (event.metaKey) return false;
+        return true;
+      };
+
+      const handleKeyDown = (event) => {
+        if (!shouldCapture(event)) return;
+        const dosKey = mapDomKeyToDosKey(event);
+        if (!dosKey) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (activeKeys.get(event.code || dosKey)) return;
+        activeKeys.set(event.code || dosKey, dosKey);
+        ci.sendKeyEvent(dosKey, true);
+      };
+
+      const handleKeyUp = (event) => {
+        const keyId = event.code || mapDomKeyToDosKey(event);
+        const dosKey = activeKeys.get(keyId) || mapDomKeyToDosKey(event);
+        if (!dosKey) return;
+        activeKeys.delete(keyId);
+        event.preventDefault();
+        event.stopPropagation();
+        ci.sendKeyEvent(dosKey, false);
+      };
+
+      window.addEventListener("keydown", handleKeyDown, true);
+      window.addEventListener("keyup", handleKeyUp, true);
+      window.addEventListener("blur", () => {
+        for (const dosKey of activeKeys.values()) {
+          try { ci.sendKeyEvent(dosKey, false); } catch {}
+        }
+        activeKeys.clear();
+        blurDosboxSurface();
+      });
+    }
+
+    function mapCanvasPointer(canvas, ci, clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
+      const y = Math.max(0, Math.min(1, (clientY - rect.top) / Math.max(1, rect.height)));
+      return { x, y };
+    }
+
+    function attachMouseBridge(ci, canvas) {
+      const scaleRelativeMotion = (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const frameWidth = Math.max(1, ci.width() || canvas.width || 640);
+        const frameHeight = Math.max(1, ci.height() || canvas.height || 400);
+        const deltaX = event.movementX * (frameWidth / Math.max(1, rect.width));
+        const deltaY = event.movementY * (frameHeight / Math.max(1, rect.height));
+        return { x: deltaX, y: deltaY };
+      };
+
+      const sendPointerPosition = (event) => {
+        const point = mapCanvasPointer(canvas, ci, event.clientX, event.clientY);
+        ci.sendMouseMotion(point.x, point.y);
+      };
+
+      canvas.addEventListener("mousedown", (event) => {
+        focusDosboxSurface();
+        const isLocked = document.pointerLockElement === canvas;
+        if (!isLocked) {
+          ci.sendMouseSync();
+          sendPointerPosition(event);
+        }
+        ci.sendMouseButton(event.button === 0 ? 0 : 1, true);
+        if (!isLocked && canvas.requestPointerLock) {
+          canvas.requestPointerLock();
+        }
+      });
+
+      canvas.addEventListener("mouseenter", () => {
+        ci.sendMouseSync();
+      });
+
+      canvas.addEventListener("mouseup", (event) => {
+        if (document.pointerLockElement !== canvas) {
+          sendPointerPosition(event);
+        }
+        ci.sendMouseButton(event.button === 0 ? 0 : 1, false);
+      });
+
+      canvas.addEventListener("mousemove", (event) => {
+        if (document.pointerLockElement === canvas) {
+          const delta = scaleRelativeMotion(event);
+          ci.sendMouseRelativeMotion(delta.x, delta.y);
+          return;
+        }
+        sendPointerPosition(event);
+      });
+
+      canvas.addEventListener("mouseleave", (event) => {
+        if (document.pointerLockElement === canvas) return;
+        sendPointerPosition(event);
+      });
+
+      canvas.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
+
+      document.addEventListener("pointerlockchange", () => {
+        if (document.pointerLockElement === canvas) {
+          ci.sendMouseSync();
+        }
+      });
+    }
+
+    function attachAudioBridge(ci) {
+      const sampleRate = ci.soundFrequency();
+      if (!sampleRate) return;
+
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtor) return;
+
+      emulatorAudioContext = new AudioCtor({
+        sampleRate,
+        latencyHint: "interactive",
+      });
+
+      const channels = 1;
+      const queue = [];
+      const bufferSize = 2048;
+      const preBufferSize = 2048;
+      let started = false;
+
+      ci.events().onSoundPush((samples) => {
+        if (queue.length < 6) queue.push(samples);
+      });
+
+      const processor = emulatorAudioContext.createScriptProcessor(bufferSize, 0, channels);
+      const gainNode = emulatorAudioContext.createGain();
+      gainNode.gain.value = 1;
+
+      processor.onaudioprocess = (event) => {
+        let totalQueued = 0;
+        for (const next of queue) totalQueued += next.length;
+        if (!started) started = totalQueued >= preBufferSize;
+        if (!started) return;
+
+        for (let channel = 0; channel < event.outputBuffer.numberOfChannels; channel += 1) {
+          const output = event.outputBuffer.getChannelData(channel);
+          let written = 0;
+          while (queue.length && written < output.length) {
+            const source = queue[0];
+            const toRead = Math.min(output.length - written, source.length);
+            output.set(source.subarray(0, toRead), written);
+            written += toRead;
+            if (toRead === source.length) {
+              queue.shift();
+            } else {
+              queue[0] = source.slice(toRead);
+            }
+          }
+          if (written < output.length) output.fill(0, written);
+        }
+      };
+
+      processor.connect(gainNode);
+      gainNode.connect(emulatorAudioContext.destination);
+
+      const resumeAudio = () => {
+        if (emulatorAudioContext?.state === "suspended") {
+          emulatorAudioContext.resume().catch(() => {});
+        }
+      };
+
+      document.addEventListener("click", resumeAudio, { once: true });
+      document.addEventListener("keydown", resumeAudio, { once: true });
+      ci.events().onExit(() => {
+        try { processor.disconnect(); } catch {}
+        try { gainNode.disconnect(); } catch {}
+        emulatorAudioContext?.close().catch(() => {});
+      });
+    }
+
+    function ensureDriveAudioContext() {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtor) return null;
+      if (!driveAudioContext) {
+        driveAudioContext = new AudioCtor();
+      }
+      if (driveAudioContext.state === "suspended") {
+        driveAudioContext.resume().catch(() => {});
+      }
+      return driveAudioContext;
+    }
+
+    function unlockDriveAudio() {
+      driveAudioUnlocked = true;
+      ensureDriveAudioContext();
+      if (driveLoadingActive) {
+        scheduleDriveClickLoop();
+      }
+    }
+
+    window.addEventListener("pointerdown", unlockDriveAudio, { passive: true });
+    window.addEventListener("keydown", unlockDriveAudio, { passive: true });
+    window.addEventListener("message", (event) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type === "sol-window-focus-request" || (event.data?.type === "sol-window-activity" && event.data?.active)) {
+        focusDosboxSurface();
+      }
+    });
+
+    function scheduleDriveClickAt(context, when) {
+      const noiseBuffer = context.createBuffer(1, Math.max(128, Math.floor(context.sampleRate * 0.016)), context.sampleRate);
+      const channel = noiseBuffer.getChannelData(0);
+      for (let index = 0; index < channel.length; index += 1) {
+        const decay = 1 - (index / channel.length);
+        channel[index] = (Math.random() * 2 - 1) * Math.pow(decay, 2.8);
+      }
+
+      const noise = context.createBufferSource();
+      noise.buffer = noiseBuffer;
+
+      const bandpass = context.createBiquadFilter();
+      bandpass.type = "bandpass";
+      bandpass.frequency.setValueAtTime(1800 + (Math.random() * 1200), when);
+      bandpass.Q.setValueAtTime(1.8, when);
+
+      const highpass = context.createBiquadFilter();
+      highpass.type = "highpass";
+      highpass.frequency.setValueAtTime(720, when);
+
+      const gain = context.createGain();
+      gain.gain.setValueAtTime(0.0001, when);
+      gain.gain.exponentialRampToValueAtTime(DRIVE_CLICK_PEAK_GAIN, when + DRIVE_CLICK_ATTACK_S);
+      gain.gain.exponentialRampToValueAtTime(0.0001, when + DRIVE_CLICK_DURATION_S);
+
+      noise.connect(bandpass);
+      bandpass.connect(highpass);
+      highpass.connect(gain);
+      gain.connect(context.destination);
+
+      noise.start(when);
+      noise.stop(when + DRIVE_CLICK_DURATION_S);
+    }
+
+    function playDriveClick() {
+      if (!driveAudioUnlocked) return;
+      const context = ensureDriveAudioContext();
+      if (!context) return;
+
+      if ((performance.now() - lastDriveClickAt) < DRIVE_CLICK_MIN_GAP_MS) return;
+      lastDriveClickAt = performance.now();
+      scheduleDriveClickAt(context, context.currentTime);
+    }
+
+    function playDriveBurst(durationMs = 220) {
+      if (!driveAudioUnlocked) return;
+      const context = ensureDriveAudioContext();
+      if (!context) return;
+      const burstLength = Math.max(2, Math.ceil(durationMs / 65));
+      const start = context.currentTime;
+      for (let index = 0; index < burstLength; index += 1) {
+        scheduleDriveClickAt(context, start + (index * 0.058) + (Math.random() * 0.02));
+      }
+      lastDriveClickAt = performance.now();
+    }
+
+    function setDriveLoading(loading) {
+      driveLoadingActive = loading;
+      if (!loading && driveClickTimer) {
+        clearTimeout(driveClickTimer);
+        driveClickTimer = null;
+        return;
+      }
+      if (loading) {
+        scheduleDriveClickLoop();
+      }
+    }
+
+    function scheduleDriveClickLoop() {
+      if (!driveLoadingActive || driveClickTimer || !driveAudioUnlocked) return;
+      const tick = () => {
+        driveClickTimer = null;
+        if (!driveLoadingActive) return;
+        playDriveClick();
+        const delay = 45 + Math.floor(Math.random() * 150);
+        driveClickTimer = window.setTimeout(tick, delay);
+      };
+      tick();
+    }
+
+    async function fetchBinary(url) {
+      let lastError = null;
+      for (let attempt = 1; attempt <= FETCH_RETRY_COUNT; attempt += 1) {
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Failed to fetch ${url}: HTTP ${response.status}`);
+          return new Uint8Array(await response.arrayBuffer());
+        } catch (error) {
+          lastError = error;
+          if (attempt < FETCH_RETRY_COUNT) {
+            await new Promise((resolve) => window.setTimeout(resolve, FETCH_RETRY_DELAY_MS * attempt));
+          }
+        }
+      }
+      throw lastError || new Error(`Failed to fetch ${url}`);
+    }
+
+    async function fetchText(url) {
+      let lastError = null;
+      for (let attempt = 1; attempt <= FETCH_RETRY_COUNT; attempt += 1) {
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Failed to fetch ${url}: HTTP ${response.status}`);
+          return await response.text();
+        } catch (error) {
+          lastError = error;
+          if (attempt < FETCH_RETRY_COUNT) {
+            await new Promise((resolve) => window.setTimeout(resolve, FETCH_RETRY_DELAY_MS * attempt));
+          }
+        }
+      }
+      throw lastError || new Error(`Failed to fetch ${url}`);
+    }
+
+    async function fetchJson(url) {
+      const text = await fetchText(url);
+      return JSON.parse(text);
+    }
+
+    function fetchBinarySync(url) {
+      const request = new XMLHttpRequest();
+      request.open("GET", url, false);
+      request.overrideMimeType("text/plain; charset=x-user-defined");
+      request.send(null);
+      if (request.status < 200 || request.status >= 300) {
+        throw new Error(`Failed to fetch ${url}: ${request.status}`);
+      }
+      const text = request.responseText || "";
+      const bytes = new Uint8Array(text.length);
+      for (let index = 0; index < text.length; index += 1) {
+        bytes[index] = text.charCodeAt(index) & 0xff;
+      }
+      return bytes;
+    }
+
+    function ensureFsDirectory(FS, absoluteDirPath) {
+      const parts = absoluteDirPath.split("/").filter(Boolean);
+      let current = "";
+      for (const part of parts) {
+        current += `/${part}`;
+        try {
+          FS.lookupPath(current);
+        } catch {
+          FS.mkdir(current);
+        }
+      }
+    }
+
+    function capitalizeSegment(value) {
+      if (!value) return value;
+      return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+    }
+
+    function normalizeFsKey(path) {
+      const raw = `/${String(path || "").replace(/\\/g, "/").replace(/^\/+/, "")}`;
+      const stack = [];
+      for (const segment of raw.split("/")) {
+        if (!segment || segment === ".") continue;
+        if (segment === "..") {
+          stack.pop();
+          continue;
+        }
+        stack.push(segment);
+      }
+      return `/${stack.join("/")}` || "/";
+    }
+
+    function recordFsTrace(type, path, detail = {}) {
+      if (!traceFsActivity && type === "lookup") return;
+      const entry = {
+        type,
+        path: normalizeFsKey(path),
+        timeMs: Math.round(performance.now()),
+        ...detail,
+      };
+      window.__sol37DosboxFsTrace.push(entry);
+      if (window.__sol37DosboxFsTrace.length > 800) {
+        window.__sol37DosboxFsTrace.splice(0, window.__sol37DosboxFsTrace.length - 800);
+      }
+    }
+
+    function buildAliasPaths(absolutePath) {
+      const cleanPath = String(absolutePath || "").replace(/^\/+/, "");
+      const segments = cleanPath.split("/").filter(Boolean);
+      if (!segments.length) return ["/"];
+
+      const dirSegments = segments.slice(0, -1);
+      const fileName = segments[segments.length - 1];
+      const dotIndex = fileName.lastIndexOf(".");
+      const baseName = dotIndex > 0 ? fileName.slice(0, dotIndex) : fileName;
+      const extension = dotIndex > 0 ? fileName.slice(dotIndex) : "";
+
+      const dirVariants = dirSegments.length ? [
+        dirSegments,
+        dirSegments.map((part) => part.toUpperCase()),
+        dirSegments.map((part) => part.toLowerCase()),
+        dirSegments.map(capitalizeSegment),
+      ] : [[]];
+
+      const fileVariants = [
+        fileName,
+        fileName.toUpperCase(),
+        fileName.toLowerCase(),
+        `${capitalizeSegment(baseName)}${extension.toLowerCase()}`,
+        `${capitalizeSegment(baseName)}${extension.toUpperCase()}`,
+      ];
+
+      return Array.from(new Set(
+        dirVariants.flatMap((dirs) => (
+          fileVariants.map((name) => `/${[...dirs, name].join("/")}`)
+        ))
+      ));
+    }
+
+    function overrideAutoexec(rawConf, nextAutoexecLines) {
+      const nextBlock = ["[autoexec]", ...nextAutoexecLines].join("\n");
+      if (/\[autoexec\]/i.test(rawConf)) {
+        return rawConf.replace(/\[autoexec\][\s\S]*$/i, `${nextBlock}\n`);
+      }
+      return `${rawConf.replace(/\s+$/, "")}\n\n${nextBlock}\n`;
+    }
+
+    function prepareDosboxConf(rawConf) {
+      if (bootMode !== "dos") return rawConf;
+      return overrideAutoexec(rawConf, [
+        "mount c .",
+        "C:",
+        "cls",
+      ]);
+    }
+
+    function detectDriveRoot(FS) {
+      const cwd = normalizeFsKey(FS.cwd ? FS.cwd() : "/");
+      const segments = cwd.split("/").filter(Boolean);
+      const candidates = [cwd];
+      while (segments.length) {
+        segments.pop();
+        candidates.push(`/${segments.join("/")}`);
+      }
+      for (const candidate of candidates) {
+        const testPath = `${candidate === "/" ? "" : candidate}/WINDOWS`;
+        try {
+          const node = FS.lookupPath(testPath).node;
+          if (FS.isDir(node.mode)) {
+            return candidate === "/" ? "" : candidate;
+          }
+        } catch {}
+      }
+      return cwd === "/" ? "" : cwd;
+    }
+
+    function installLazyDrive(module, files, launchIndex = {}) {
+      const FS = module.FS;
+      if (!files.length) {
+        setHydration("Deferred Drive Hydration", "Nothing deferred. The full drive was part of the boot pack.");
+        return;
+      }
+
+      let loadedCount = 0;
+      let loadedBytes = 0;
+      let requestedPath = "";
+      const lazyEntriesByKey = new Map();
+      const driveRoot = detectDriveRoot(FS);
+
+      setHydration(
+        "Deferred Drive Hydration",
+        `Installing ${files.length} lazy placeholders under ${driveRoot || "/"} . Deferred files will fetch the moment DOS opens them.`
+      );
+
+      for (const file of files) {
+        const absolutePath = `/${String(file.path).replace(/^\/+/, "")}`;
+        const aliasPaths = buildAliasPaths(absolutePath).map((path) => `${driveRoot}${path}`);
+        const lazy = {
+          loaded: false,
+          loading: false,
+          size: Number(file.size || 0),
+          path: file.path,
+          url: file.url,
+        };
+        const boundNodes = [];
+
+        const ensureLoaded = () => {
+          if (lazy.loaded || lazy.loading) return;
+          lazy.loading = true;
+          requestedPath = lazy.path;
+          recordFsTrace("hydrate-file", `${driveRoot}${absolutePath}`, { source: lazy.path });
+          playDriveBurst(Math.min(420, Math.max(180, Math.round(lazy.size / 32000))));
+          setHydration(
+            "Deferred Drive Hydration",
+            `Loading ${lazy.path} on demand (${formatBytes(lazy.size)})...`
+          );
+          const bytes = fetchBinarySync(lazy.url);
+          const timestamp = Date.now();
+          for (const targetNode of boundNodes) {
+            targetNode.contents = bytes;
+            targetNode.usedBytes = bytes.length;
+            targetNode.timestamp = timestamp;
+          }
+          lazy.loaded = true;
+          lazy.loading = false;
+          loadedCount += 1;
+          loadedBytes += bytes.length;
+          setHydration(
+            "Deferred Drive Hydration",
+            `${loadedCount} deferred files loaded on demand · ${formatBytes(loadedBytes)} fetched so far. Last: ${lazy.path}`
+          );
+        };
+
+        for (const aliasPath of aliasPaths) {
+          const slash = aliasPath.lastIndexOf("/");
+          const absoluteDir = slash > 0 ? aliasPath.slice(0, slash) : "/";
+          ensureFsDirectory(FS, absoluteDir);
+
+          try {
+            FS.lookupPath(aliasPath);
+          } catch {
+            FS.writeFile(aliasPath, new Uint8Array(0));
+          }
+
+          const node = FS.lookupPath(aliasPath).node;
+          boundNodes.push(node);
+          lazyEntriesByKey.set(normalizeFsKey(aliasPath).toUpperCase(), {
+            ensureLoaded,
+            path: lazy.path,
+            size: lazy.size,
+          });
+          lazyEntriesByKey.set(normalizeFsKey(aliasPath.slice(driveRoot.length) || "/").toUpperCase(), {
+            ensureLoaded,
+            path: lazy.path,
+            size: lazy.size,
+          });
+
+          const originalNodeOps = node.node_ops;
+          const originalStreamOps = node.stream_ops;
+          const originalGetattr = originalNodeOps.getattr.bind(originalNodeOps);
+          const originalRead = originalStreamOps.read.bind(originalStreamOps);
+          const originalOpen = originalStreamOps.open ? originalStreamOps.open.bind(originalStreamOps) : null;
+          const originalLlseek = originalStreamOps.llseek ? originalStreamOps.llseek.bind(originalStreamOps) : null;
+          const originalAllocate = originalStreamOps.allocate ? originalStreamOps.allocate.bind(originalStreamOps) : null;
+          const originalMmap = originalStreamOps.mmap ? originalStreamOps.mmap.bind(originalStreamOps) : null;
+
+          node.node_ops = {
+            ...originalNodeOps,
+            getattr(targetNode) {
+              const attrs = originalGetattr(targetNode);
+              if (!lazy.loaded) attrs.size = lazy.size;
+              return attrs;
+            },
+          };
+
+          node.stream_ops = {
+            ...originalStreamOps,
+            open(stream) {
+              ensureLoaded();
+              if (originalOpen) return originalOpen(stream);
+              return undefined;
+            },
+            read(stream, buffer, offset, length, position) {
+              ensureLoaded();
+              return originalRead(stream, buffer, offset, length, position);
+            },
+            llseek(stream, offset, whence) {
+              ensureLoaded();
+              if (originalLlseek) return originalLlseek(stream, offset, whence);
+              return stream.position;
+            },
+            allocate(stream, offset, length) {
+              ensureLoaded();
+              if (originalAllocate) return originalAllocate(stream, offset, length);
+              return undefined;
+            },
+            mmap(stream, length, position, prot, flags) {
+              ensureLoaded();
+              if (originalMmap) return originalMmap(stream, length, position, prot, flags);
+              return undefined;
+            },
+          };
+        }
+      }
+
+      const launchRoots = Object.entries(launchIndex || {})
+        .map(([root, entries]) => ({
+          key: normalizeFsKey(root).toUpperCase(),
+          root: normalizeFsKey(root),
+          entries: Array.isArray(entries) ? entries : [],
+          loaded: false,
+        }))
+        .sort((left, right) => right.key.length - left.key.length);
+
+      const hydrateLaunchRoot = (launchRoot, reasonPath) => {
+        if (!launchRoot || launchRoot.loaded) return;
+        launchRoot.loaded = true;
+        recordFsTrace("hydrate-launch-root", launchRoot.root, {
+          reasonPath: normalizeFsKey(reasonPath),
+          fileCount: launchRoot.entries.length,
+        });
+        let hydrated = 0;
+        for (const entry of launchRoot.entries) {
+          const lazyEntry = lazyEntriesByKey.get(normalizeFsKey(`/${entry.path || ""}`).toUpperCase());
+          if (!lazyEntry) continue;
+          lazyEntry.ensureLoaded();
+          hydrated += 1;
+        }
+        setHydration(
+          "Deferred Drive Hydration",
+          `Launch root ${launchRoot.root} hydrated on lookup · ${hydrated} deferred files primed.`
+        );
+      };
+
+      const originalLookupPath = FS.lookupPath.bind(FS);
+      FS.lookupPath = function wrappedLookupPath(path, options) {
+        const normalized = normalizeFsKey(path);
+        recordFsTrace("lookup", normalized);
+        const relativeKey = normalizeFsKey(
+          driveRoot && normalized.toUpperCase().startsWith(`${driveRoot.toUpperCase()}/`)
+            ? normalized.slice(driveRoot.length)
+            : normalized
+        );
+        const lookupKey = relativeKey.toUpperCase();
+        const launchRoot = launchRoots.find((candidate) => (
+          lookupKey === candidate.key || lookupKey.startsWith(`${candidate.key}/`)
+        ));
+        if (launchRoot) {
+          hydrateLaunchRoot(launchRoot, relativeKey);
+        }
+        return originalLookupPath(path, options);
+      };
+
+      module._rescanFilesystem();
+      setHydration(
+        "Deferred Drive Hydration",
+        `Lazy drive ready. ${files.length} deferred files are present in the DOS tree and will fetch on first open.`
+      );
+
+      window.__sol37DosboxLazyInfo = {
+        deferredFileCount: files.length,
+        getLoadedCount: () => loadedCount,
+        getLoadedBytes: () => loadedBytes,
+        getLastRequestedPath: () => requestedPath,
+        getTrace: () => window.__sol37DosboxFsTrace.slice(),
+        launchRoots: launchRoots.map((entry) => entry.root),
+        driveRoot,
+      };
+    }
+
+    function attachFrameRenderer(ci, canvas) {
+      const context = canvas.getContext("2d", { alpha: false });
+      let width = 640;
+      let height = 400;
+      let frameBuffer = new Uint8ClampedArray(width * height * 4);
+      let imageData = new ImageData(frameBuffer, width, height);
+
+      const resizeFrame = (nextWidth, nextHeight) => {
+        width = nextWidth;
+        height = nextHeight;
+        canvas.width = width;
+        canvas.height = height;
+        frameBuffer = new Uint8ClampedArray(width * height * 4);
+        imageData = new ImageData(frameBuffer, width, height);
+      };
+
+      ci.events().onFrameSize((nextWidth, nextHeight) => {
+        resizeFrame(nextWidth, nextHeight);
+      });
+
+      ci.events().onFrame((rgb) => {
+        if (!rgb || !rgb.length) return;
+        if (canvas.width !== width || canvas.height !== height) {
+          resizeFrame(width, height);
+        }
+        let source = 0;
+        let target = 0;
+        while (source < rgb.length && target < frameBuffer.length) {
+          frameBuffer[target++] = rgb[source++];
+          frameBuffer[target++] = rgb[source++];
+          frameBuffer[target++] = rgb[source++];
+          frameBuffer[target++] = 255;
+        }
+        context.putImageData(imageData, 0, 0);
+      });
+
+      if (ci.width() && ci.height()) {
+        resizeFrame(ci.width(), ci.height());
+      }
+    }
+
+    async function boot() {
+      setStatus("Preparing DOS snapshot", "Loading manifest and DOSBox config.", "Fetching export metadata...");
+      setHydration("Deferred Drive Hydration", "Inspecting the DOS export manifest...");
+
+      const [manifest, rawDosboxConf] = await Promise.all([
+        fetchJson("/generated/dosbox/manifest.json"),
+        fetchText("/generated/dosbox/dosbox.conf"),
+      ]);
+      const dosboxConf = prepareDosboxConf(rawDosboxConf);
+      const corePhase = manifest.phases && manifest.phases.core ? manifest.phases.core : { files: [], fileCount: 0, totalBytes: 0 };
+      const streamPhase = manifest.phases && manifest.phases.stream ? manifest.phases.stream : { files: [], fileCount: 0, totalBytes: 0 };
+      const launchIndex = manifest.launchIndex && typeof manifest.launchIndex === "object" ? manifest.launchIndex : {};
+      const files = Array.isArray(corePhase.files) ? corePhase.files : [];
+      const streamFiles = Array.isArray(streamPhase.files) ? streamPhase.files : [];
+      const totalBytes = Number(corePhase.totalBytes || 0);
+      const streamBytes = Number(streamPhase.totalBytes || 0);
+      let loadedBytes = 0;
+
+      setStatus(
+        "Downloading Boot Pack",
+        `Loading ${corePhase.fileCount || files.length} core files needed to start quickly.`,
+        `0 / ${formatBytes(totalBytes)} loaded`
+      );
+      setDriveLoading(true);
+      setHydration(
+        "Deferred Drive Hydration",
+        `${streamPhase.fileCount || streamFiles.length} files (${formatBytes(streamBytes)}) will stream in after boot.`
+      );
+
+      const initFs = [];
+      const concurrency = 6;
+      let cursor = 0;
+
+      async function worker() {
+        while (cursor < files.length) {
+          const currentIndex = cursor;
+          cursor += 1;
+          const file = files[currentIndex];
+          setStatus(
+            "Downloading Boot Pack",
+            `Loading ${corePhase.fileCount || files.length} core files needed to start quickly.`,
+            `Fetching ${file.path} · ${currentIndex + 1} / ${files.length} files · ${formatBytes(loadedBytes)} / ${formatBytes(totalBytes)}`,
+            loadedBytes,
+            totalBytes
+          );
+          const bytes = await fetchBinary(file.url);
+          initFs[currentIndex] = { path: file.path, contents: bytes };
+          loadedBytes += bytes.byteLength;
+          setStatus(
+            "Downloading Boot Pack",
+            `Loading ${corePhase.fileCount || files.length} core files needed to start quickly.`,
+            `${currentIndex + 1} / ${files.length} files · ${formatBytes(loadedBytes)} / ${formatBytes(totalBytes)}`,
+            loadedBytes,
+            totalBytes
+          );
+        }
+      }
+
+      await Promise.all(Array.from({ length: Math.min(concurrency, files.length || 1) }, () => worker()));
+      setDriveLoading(false);
+
+      setStatus(
+        "Starting DOSBox",
+        "Passing the boot pack to the direct DOSBox backend.",
+        `Booting ${files.length} core files from ${manifest.source || "/home/david/C"}...`,
+        totalBytes,
+        totalBytes
+      );
+
+      const canvas = document.createElement("canvas");
+      canvas.tabIndex = 0;
+      player.replaceChildren(canvas);
+      canvas.addEventListener("pointerdown", unlockDriveAudio, { passive: true });
+      canvas.addEventListener("pointerdown", () => {
+        focusDosboxSurface();
+      }, { passive: true });
+      canvas.addEventListener("click", () => {
+        focusDosboxSurface();
+      }, { passive: true });
+      const ci = await window.emulators.dosboxDirect([dosboxConf, ...initFs], { canvas });
+      window.__sol37DosboxCi = ci;
+      attachFrameRenderer(ci, canvas);
+      attachKeyboardBridge(ci);
+      attachMouseBridge(ci, canvas);
+      attachAudioBridge(ci);
+      window.__sol37DosboxEvents.push({
+        eventName: "ci-ready",
+        hasCi: Boolean(ci),
+        hasTransport: Boolean(ci && ci.transport),
+      });
+      window.__sol37DosboxCiInfo = {
+        hasTransport: Boolean(ci && ci.transport),
+        transportKeys: ci && ci.transport ? Object.keys(ci.transport) : [],
+        hasModule: Boolean(ci && ci.transport && ci.transport.module),
+      };
+
+      revealPlayer();
+      focusDosboxSurface();
+      setStatus(
+        "DOSBox Running",
+        "Boot pack loaded. The rest of C: is now represented by lazy placeholders.",
+        `Boot pack complete: ${files.length} files · deferred pack armed: ${streamFiles.length} files`
+      );
+      installLazyDrive(ci.transport.module, streamFiles, launchIndex);
+    }
+
+    boot().catch((error) => {
+      console.error(error);
+      overlay.classList.remove("hidden");
+      statusTitle.textContent = "DOSBox launch failed";
+      statusCopy.innerHTML = '<span class="warning">DOSBox could not finish loading its browser runtime or boot files.</span>';
+      statusLine.textContent = String(error && error.message ? error.message : error);
+      progressBar.style.width = "0%";
+    });
+  </script>
+</body>
+</html>

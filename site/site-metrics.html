@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="indexifembedded">
+<title>Sol-37 Activity Analytics</title>
+  <style>
+    :root {
+      --panel: #c6c9ce;
+      --panel-dark: #747983;
+      --panel-light: #f7f8fa;
+      --panel-mid: #d7dbe2;
+      --ink: #13161b;
+      --muted: #4f5663;
+      --blue: #000080;
+      --green: #17754a;
+      --amber: #8f5c08;
+      --red: #8e1f1f;
+      --edge: rgba(18, 28, 48, 0.14);
+      --row: rgba(255, 255, 255, 0.46);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      overflow: auto;
+      background:
+        linear-gradient(180deg, #d6dbe3 0%, #c2c7cf 100%);
+      color: var(--ink);
+      font-family: "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
+      padding: 10px;
+    }
+
+    body.standalone {
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,.2), transparent 30%),
+        linear-gradient(180deg, #42506e 0%, #6f7d95 18%, #c2c7cf 100%);
+      padding: 24px;
+    }
+
+    .panel {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto auto auto auto auto auto;
+      gap: 10px;
+      background:
+        linear-gradient(180deg, var(--panel-light) 0%, var(--panel) 12%, var(--panel-mid) 100%);
+      border: 2px solid #fff;
+      border-right-color: #404040;
+      border-bottom-color: #404040;
+      box-shadow:
+        0 8px 18px var(--edge),
+        inset -1px -1px 0 #000,
+        inset 1px 1px 0 #dfdfdf;
+      padding: 10px;
+    }
+
+    body.standalone .panel {
+      min-height: auto;
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 14px;
+      box-shadow:
+        0 18px 42px rgba(10, 14, 22, 0.3),
+        inset -1px -1px 0 #000,
+        inset 1px 1px 0 #dfdfdf;
+    }
+
+    .banner {
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      gap: 10px;
+      align-items: start;
+      padding: 10px;
+      background:
+        linear-gradient(180deg, #fafbfc 0%, #eef1f5 100%);
+      border: 2px solid #fff;
+      border-right-color: var(--panel-dark);
+      border-bottom-color: var(--panel-dark);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.75);
+    }
+
+    .alert-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 35% 35%, #ffeb99, #d19800);
+      border: 1px solid #5f4300;
+      font-weight: 700;
+      font-size: 24px;
+    }
+
+    h1 {
+      margin: 0 0 4px;
+      font-size: 21px;
+    }
+
+    body.standalone h1 {
+      font-size: 26px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    body.standalone .subtitle {
+      font-size: 13px;
+      max-width: 88ch;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .stat,
+    .section {
+      padding: 8px 10px;
+      background:
+        linear-gradient(180deg, #fbfbfc 0%, #eef1f4 100%);
+      border: 2px solid #fff;
+      border-right-color: var(--panel-dark);
+      border-bottom-color: var(--panel-dark);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.75),
+        0 3px 8px rgba(34, 48, 74, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat::before,
+    .section::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: linear-gradient(180deg, rgba(0,0,128,.75), rgba(23,117,74,.65));
+      opacity: .65;
+    }
+
+    .stat .label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .stat .value {
+      margin-top: 4px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      text-shadow: 0 1px 0 rgba(255,255,255,.7);
+    }
+
+    body.standalone .stat .value {
+      font-size: 28px;
+    }
+
+    .value.green { color: var(--green); }
+    .value.amber { color: var(--amber); }
+    .value.red { color: var(--red); }
+
+    .value.blue { color: var(--blue); }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .triple {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .section h2 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      text-shadow: 0 1px 0 rgba(255,255,255,.6);
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 5px 6px;
+      margin: 0 -2px;
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+      border-bottom: 1px dotted rgba(116, 121, 131, 0.5);
+      background: linear-gradient(90deg, var(--row), transparent 82%);
+    }
+
+    .row:last-child { border-bottom: 0; }
+    .row span:first-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .row .hits {
+      font-weight: 700;
+      color: #222b38;
+    }
+
+    .log {
+      max-height: 100%;
+      overflow: auto;
+      display: grid;
+      gap: 6px;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+    }
+
+    .entry {
+      padding: 6px 7px;
+      background: linear-gradient(180deg, #ffffff 0%, #f4f6f9 100%);
+      border: 1px solid #8b93a1;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .entry strong {
+      display: block;
+      color: var(--blue);
+      margin-bottom: 3px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .entry small {
+      color: var(--muted);
+      display: block;
+      margin-top: 4px;
+    }
+
+    .narrative {
+      display: grid;
+      gap: 8px;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .narrative-card {
+      padding: 8px 9px;
+      background: linear-gradient(180deg, #fffdf5 0%, #f4f0df 100%);
+      border: 1px solid #8f8661;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    .narrative-card strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #584400;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      font-size: 11px;
+    }
+
+    .screenplay-log {
+      display: grid;
+      gap: 6px;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+    }
+
+    .screenplay-line {
+      padding: 7px 8px;
+      background: linear-gradient(180deg, #fff 0%, #f4f5f7 100%);
+      border: 1px solid #8b93a1;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+    }
+
+    .screenplay-line .cue {
+      color: var(--blue);
+      font-weight: 700;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .screenplay-line .beat {
+      color: var(--ink);
+      display: block;
+    }
+
+    .screenplay-line .meta {
+      color: var(--muted);
+      display: block;
+      margin-top: 3px;
+    }
+
+    body.standalone .split:last-of-type .section,
+    body.standalone .triple .section {
+      min-height: 220px;
+    }
+
+    body.standalone .log {
+      max-height: 420px;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .button {
+      padding: 5px 12px;
+      border: 1px solid #000;
+      box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+      background: linear-gradient(180deg, #f4f6f8 0%, var(--panel) 100%);
+      font: inherit;
+      cursor: pointer;
+      transition: transform 0.08s ease, filter 0.12s ease;
+    }
+
+    .button:hover {
+      filter: brightness(1.03);
+    }
+
+    .button:active {
+      transform: translateY(1px);
+    }
+
+    @media (max-width: 1080px) {
+      .triple { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 6px; }
+      .stats, .split, .triple { grid-template-columns: 1fr; }
+      .panel { grid-template-rows: auto auto auto auto auto auto; }
+      .banner {
+        grid-template-columns: 1fr;
+      }
+      .alert-icon {
+        display: none;
+      }
+      h1 {
+        font-size: 18px;
+      }
+      .subtitle {
+        font-size: 11px;
+      }
+      .stat .value,
+      body.standalone .stat .value {
+        font-size: 24px;
+      }
+      .footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .button {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 420px) {
+      body {
+        padding: 4px;
+      }
+      .panel {
+        gap: 6px;
+        padding: 6px;
+      }
+      .banner,
+      .stat,
+      .section {
+        padding: 6px;
+      }
+      h1 {
+        font-size: 16px;
+      }
+      .subtitle {
+        font-size: 10px;
+      }
+      .row,
+      .log {
+        font-size: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="panel">
+    <div class="banner">
+      <div class="alert-icon">!</div>
+      <div>
+        <h1>Archive Activity Analytics</h1>
+        <p class="subtitle">
+          The taskbar counter now opens a visitor-focused analytics page first. It still preserves the raw Sol-37 operations monitor,
+          but leads with the last 24 hours so unique visitors, crawlers, and API polling stop blending into one misleading total.
+        </p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="label">24h Public Human Visitors</div>
+        <div class="value blue" id="stat-public-humans">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">24h Human-Like Visitors</div>
+        <div class="value green" id="stat-human-visitors">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">24h Bot/Crawler Visitors</div>
+        <div class="value red" id="stat-bot-visitors">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">24h Page Visitors</div>
+        <div class="value amber" id="stat-page-visitors">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">24h API Visitors</div>
+        <div class="value amber" id="stat-api-visitors">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">All Host Hits</div>
+        <div class="value green" id="stat-host-total">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">Visible Archive Hits</div>
+        <div class="value green" id="stat-log-hits">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">Suppressed Polling</div>
+        <div class="value red" id="stat-suppressed-hits">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">Hits Today</div>
+        <div class="value amber" id="stat-today-hits">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">Hits Last 24h</div>
+        <div class="value green" id="stat-last-24h">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">Unique Sources</div>
+        <div class="value amber" id="stat-ips">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">External Hits</div>
+        <div class="value green" id="stat-ext-hits">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">External Sources</div>
+        <div class="value amber" id="stat-ext-ips">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">Last Sweep</div>
+        <div class="value red" style="font-size:14px" id="stat-generated">--</div>
+      </div>
+      <div class="stat">
+        <div class="label">Tracked Host</div>
+        <div class="value" style="font-size:14px" id="stat-host">--</div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="section">
+        <h2>24h Visitor Read</h2>
+        <div class="row"><span>Visitor window start</span><span class="hits" id="visitors-window-start">--</span></div>
+        <div class="row"><span>Visitor window end</span><span class="hits" id="visitors-window-end">--</span></div>
+        <div class="row"><span>All unique IPs</span><span class="hits" id="visitors-all-ips">--</span></div>
+        <div class="row"><span>External unique IPs</span><span class="hits" id="visitors-external-ips">--</span></div>
+        <div class="row"><span>Page visitors</span><span class="hits" id="visitors-page-ips">--</span></div>
+        <div class="row"><span>API visitors</span><span class="hits" id="visitors-api-ips">--</span></div>
+        <div class="row"><span>Human-like page visitors</span><span class="hits" id="visitors-human-ips">--</span></div>
+        <div class="row"><span>Public human visitors</span><span class="hits" id="visitors-public-human-ips">--</span></div>
+        <div class="row"><span>Bot page visitors</span><span class="hits" id="visitors-bot-ips">--</span></div>
+      </div>
+      <div class="section">
+        <h2>Observed Window</h2>
+        <div class="row"><span>Log window start</span><span class="hits" id="window-start">--</span></div>
+        <div class="row"><span>Log window end</span><span class="hits" id="window-end">--</span></div>
+        <div class="row"><span>Current host hits</span><span class="hits" id="window-host-hits">--</span></div>
+        <div class="row"><span>Current visible hits</span><span class="hits" id="window-visible-hits">--</span></div>
+        <div class="row"><span>Current suppressed hits</span><span class="hits" id="window-suppressed-hits">--</span></div>
+        <div class="row"><span>System reboot</span><span class="hits" id="system-reboot-at">--</span></div>
+        <div class="row"><span>Caddy started</span><span class="hits" id="caddy-started-at">--</span></div>
+        <div class="row"><span>Recovered checkpoint</span><span class="hits" id="recovered-checkpoint-at">--</span></div>
+      </div>
+      <div class="section">
+        <h2>Recent Day Counts</h2>
+        <div id="daily-hits"></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="section">
+        <h2>Generated Summary</h2>
+        <div class="narrative" id="generated-summary"></div>
+      </div>
+      <div class="section">
+        <h2>Screenplay Log</h2>
+        <div class="screenplay-log" id="screenplay-log"></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="section">
+        <h2>Likely Human Paths</h2>
+        <div id="top-nonbot-page-paths"></div>
+      </div>
+      <div class="section">
+        <h2>Crawler Paths</h2>
+        <div id="top-bot-page-paths"></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="section">
+        <h2>Hot Paths</h2>
+        <div id="top-paths"></div>
+      </div>
+      <div class="section">
+        <h2>External Paths</h2>
+        <div id="top-external-paths"></div>
+      </div>
+    </div>
+
+    <div class="triple">
+      <div class="section">
+        <h2>Source Types</h2>
+        <div id="source-types"></div>
+      </div>
+      <div class="section">
+        <h2>Status Codes</h2>
+        <div id="status-codes"></div>
+      </div>
+      <div class="section">
+        <h2>Query Tags</h2>
+        <div id="query-tags"></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="section">
+        <h2>Suppressed Paths</h2>
+        <div id="suppressed-breakdown"></div>
+      </div>
+      <div class="section">
+        <h2>Restart Ledger</h2>
+        <div class="log" id="restart-events"></div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="section">
+        <h2>Likely Human Visitors</h2>
+        <div class="log" id="human-visitors"></div>
+      </div>
+      <div class="section">
+        <h2>Recent Activity</h2>
+        <div class="log" id="recent-requests"></div>
+      </div>
+      <div class="section">
+        <h2>Recovery Notes</h2>
+        <div class="log" id="recovery-notes"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Sensor Readouts</h2>
+      <div class="subtitle" id="sensor-meta">MasterBot telemetry mirror</div>
+      <div id="sensor-readouts"></div>
+    </div>
+
+    <div class="split">
+      <div class="section">
+        <h2>Hot Sources</h2>
+        <div id="top-ips"></div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>The 24-hour visitor block is computed from the current access log plus recent rotated Caddy logs. Persistent totals still come from the long-running snapshot state. Internal polling paths like <code>/site-metrics.json</code>, <code>/api/logbook/messages</code>, and <code>/posts/index.json</code> remain suppressed from visible-hit counts.</span>
+      <button class="button" type="button" id="refresh-btn">Refresh</button>
+    </div>
+  </section>
+  <script>
+    const fmtTime = (iso) => {
+      if (!iso) return "--";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+    };
+
+    const fmtDateTime = (iso) => {
+      if (!iso) return "--";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    };
+
+    const renderRows = (items, container, keyName) => {
+      container.innerHTML = "";
+      if (!items.length) {
+        container.innerHTML = '<div class="row"><span>No data yet.</span><span class="hits">0</span></div>';
+        return;
+      }
+      items.slice(0, 6).forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `<span>${item[keyName]}</span><span class="hits">${item.hits}</span>`;
+        container.appendChild(row);
+      });
+    };
+
+    const renderKeyValueRows = (items, container) => {
+      container.innerHTML = "";
+      if (!items.length) {
+        container.innerHTML = '<div class="row"><span>No telemetry yet.</span><span class="hits">--</span></div>';
+        return;
+      }
+      items.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `<span>${item.label || "--"}</span><span class="hits">${item.value || "--"}</span>`;
+        container.appendChild(row);
+      });
+    };
+
+    const renderVisitorEntries = (items, container) => {
+      container.innerHTML = "";
+      if (!items.length) {
+        container.innerHTML = '<div class="entry"><strong>No likely human visitors in this window</strong><div>The last 24 hours are currently crawler-heavy or local-only.</div></div>';
+        return;
+      }
+      items.forEach((item) => {
+        const el = document.createElement("div");
+        el.className = "entry";
+        const topPaths = (item.top_paths || []).map((path) => `${path.path} (${path.hits})`).join(" · ");
+        el.innerHTML = `<strong>${item.ip}</strong><div>${item.hits} total hits · ${item.page_hits} page hits · ${item.api_hits} api hits · last seen ${fmtDateTime(item.last_seen)}</div><small>${topPaths || "No path summary"}</small>`;
+        container.appendChild(el);
+      });
+    };
+
+    const pluralize = (count, singular, plural = `${singular}s`) => `${count} ${count === 1 ? singular : plural}`;
+
+    const renderNarrative = (data) => {
+      const analytics24h = data.analytics_24h || {};
+      const container = document.getElementById("generated-summary");
+      const summaryCards = [];
+
+      const publicHumans = analytics24h.unique_public_human_like_page_visitors ?? 0;
+      const humanVisitors = analytics24h.unique_human_like_page_visitors ?? 0;
+      const botVisitors = analytics24h.unique_bot_page_visitors ?? 0;
+      const topHumanPath = (analytics24h.top_nonbot_page_paths || [])[0];
+      const topBotPath = (analytics24h.top_bot_page_paths || [])[0];
+      const topVisitor = (analytics24h.top_human_like_visitors || [])[0];
+      const recentRequests = data.recent_requests || [];
+      const chatPosts = recentRequests.filter((entry) => entry.uri === "/api/chat" && entry.method === "POST").length;
+
+      summaryCards.push({
+        label: "Scene",
+        text: `In the last 24 hours, the archive drew ${pluralize(publicHumans, "public human visitor")} and ${pluralize(botVisitors, "crawler")} that touched page surfaces.`
+      });
+
+      if (topHumanPath) {
+        summaryCards.push({
+          label: "Focus",
+          text: `The strongest likely-human page path was ${topHumanPath.path} with ${pluralize(topHumanPath.hits, "hit")}, suggesting attention concentrated on that document or shell surface.`
+        });
+      }
+
+      if (topBotPath) {
+        summaryCards.push({
+          label: "Counterpoint",
+          text: `Crawler traffic leaned hardest on ${topBotPath.path} with ${pluralize(topBotPath.hits, "hit")}, which is why raw page totals read louder than the human audience actually was.`
+        });
+      }
+
+      if (topVisitor) {
+        summaryCards.push({
+          label: "Lead",
+          text: `${topVisitor.ip} was the dominant human-like session with ${pluralize(topVisitor.hits, "request")}, including ${pluralize(topVisitor.page_hits, "page hit")} and ${pluralize(topVisitor.api_hits, "API hit")}.`
+        });
+      }
+
+      summaryCards.push({
+        label: "Commentary",
+        text: chatPosts > 0
+          ? `Recent activity includes ${pluralize(chatPosts, "interactive chat post")}, which reads more like active assistant use than passive page viewing.`
+          : `Recent activity skews toward polling and retrieval rather than direct chat submission, so the archive feels observed more than conversed with in this slice.`
+      });
+
+      if (!humanVisitors && !botVisitors) {
+        summaryCards.length = 0;
+        summaryCards.push({ label: "Summary", text: "No 24-hour visitor story is available yet." });
+      }
+
+      container.innerHTML = summaryCards.map((card) => (
+        `<div class="narrative-card"><strong>${card.label}</strong>${card.text}</div>`
+      )).join("");
+    };
+
+    const renderScreenplayLog = (data) => {
+      const analytics24h = data.analytics_24h || {};
+      const container = document.getElementById("screenplay-log");
+      const lines = [];
+      const topVisitor = (analytics24h.top_human_like_visitors || [])[0];
+      const topHumanPath = (analytics24h.top_nonbot_page_paths || [])[0];
+      const topBotPath = (analytics24h.top_bot_page_paths || [])[0];
+
+      lines.push({
+        cue: "INT. SOL-37 TASKBAR - LAST 24 HOURS",
+        beat: `${pluralize(analytics24h.unique_page_visitors ?? 0, "page visitor")}. ${pluralize(analytics24h.unique_bot_page_visitors ?? 0, "crawler")} in the frame. ${pluralize(analytics24h.unique_public_human_like_page_visitors ?? 0, "public human")} still readable through the noise.`,
+        meta: `Window ${fmtDateTime(analytics24h.window_start)} to ${fmtDateTime(analytics24h.window_end)}`
+      });
+
+      if (topHumanPath) {
+        lines.push({
+          cue: "CUT TO: HUMAN ATTENTION",
+          beat: `${topHumanPath.path} holds the foreground with ${pluralize(topHumanPath.hits, "hit")}.`,
+          meta: "Derived from non-bot page traffic"
+        });
+      }
+
+      if (topVisitor) {
+        const pathText = (topVisitor.top_paths || []).map((item) => `${item.path} (${item.hits})`).join(" · ");
+        lines.push({
+          cue: "CLOSE ON: ACTIVE SESSION",
+          beat: `${topVisitor.ip} keeps returning, splitting time between page context and live APIs.`,
+          meta: `${pluralize(topVisitor.page_hits, "page hit")} · ${pluralize(topVisitor.api_hits, "API hit")} · ${pathText}`
+        });
+      }
+
+      if (topBotPath) {
+        lines.push({
+          cue: "OFFSCREEN: CRAWLER CHORUS",
+          beat: `${topBotPath.path} absorbs the loudest machine attention at ${pluralize(topBotPath.hits, "hit")}.`,
+          meta: "Bots continue to dominate the visible page count"
+        });
+      }
+
+      const recent = (data.recent_requests || []).slice(-4).reverse();
+      recent.forEach((entry) => {
+        lines.push({
+          cue: `${entry.method || "GET"} ${entry.uri}`,
+          beat: `${entry.client_ip || "unknown source"} moves through the archive with status ${entry.status ?? "--"}.`,
+          meta: `${fmtDateTime(entry.timestamp_iso)} · ${entry.source_type || "unknown source type"}`
+        });
+      });
+
+      if (!lines.length) {
+        lines.push({
+          cue: "FADE IN",
+          beat: "No activity has been recorded yet.",
+          meta: ""
+        });
+      }
+
+      container.innerHTML = lines.map((line) => (
+        `<div class="screenplay-line"><span class="cue">${line.cue}</span><span class="beat">${line.beat}</span>${line.meta ? `<span class="meta">${line.meta}</span>` : ""}</div>`
+      )).join("");
+    };
+
+    let metricsRequest = null;
+
+    async function loadMetrics() {
+      if (metricsRequest) return metricsRequest;
+      metricsRequest = (async () => {
+      const res = await fetch("site-metrics.json", { cache: "no-store" });
+      const data = await res.json();
+      const sensorSnapshot = data.sensor_snapshot || {};
+      const analytics24h = data.analytics_24h || {};
+      document.getElementById("stat-public-humans").textContent = analytics24h.unique_public_human_like_page_visitors ?? "--";
+      document.getElementById("stat-human-visitors").textContent = analytics24h.unique_human_like_page_visitors ?? "--";
+      document.getElementById("stat-bot-visitors").textContent = analytics24h.unique_bot_page_visitors ?? "--";
+      document.getElementById("stat-page-visitors").textContent = analytics24h.unique_page_visitors ?? "--";
+      document.getElementById("stat-api-visitors").textContent = analytics24h.unique_api_visitors ?? "--";
+      document.getElementById("stat-host-total").textContent = data.host_total_hits ?? "--";
+      document.getElementById("stat-log-hits").textContent = data.log_window_hits ?? data.total_hits ?? "--";
+      document.getElementById("stat-suppressed-hits").textContent = data.suppressed_hits ?? "--";
+      document.getElementById("stat-today-hits").textContent = data.hits_today ?? "--";
+      document.getElementById("stat-last-24h").textContent = data.hits_last_24h ?? "--";
+      document.getElementById("stat-ips").textContent = data.unique_ips ?? "--";
+      document.getElementById("stat-host").textContent = data.host ?? "--";
+      document.getElementById("stat-generated").textContent = fmtTime(data.generated_at);
+      document.getElementById("stat-ext-hits").textContent = data.external_hits ?? "--";
+      document.getElementById("stat-ext-ips").textContent = data.external_unique_ips ?? "--";
+      document.getElementById("visitors-window-start").textContent = fmtDateTime(analytics24h.window_start);
+      document.getElementById("visitors-window-end").textContent = fmtDateTime(analytics24h.window_end);
+      document.getElementById("visitors-all-ips").textContent = analytics24h.unique_ips_all ?? "--";
+      document.getElementById("visitors-external-ips").textContent = analytics24h.unique_ips_external ?? "--";
+      document.getElementById("visitors-page-ips").textContent = analytics24h.unique_page_visitors ?? "--";
+      document.getElementById("visitors-api-ips").textContent = analytics24h.unique_api_visitors ?? "--";
+      document.getElementById("visitors-human-ips").textContent = analytics24h.unique_human_like_page_visitors ?? "--";
+      document.getElementById("visitors-public-human-ips").textContent = analytics24h.unique_public_human_like_page_visitors ?? "--";
+      document.getElementById("visitors-bot-ips").textContent = analytics24h.unique_bot_page_visitors ?? "--";
+      document.getElementById("window-start").textContent = fmtDateTime(data.log_window_start);
+      document.getElementById("window-end").textContent = fmtDateTime(data.log_window_end);
+      document.getElementById("window-host-hits").textContent = data.current_window_host_hits ?? data.window?.host_hits ?? "--";
+      document.getElementById("window-visible-hits").textContent = data.log_window_hits ?? data.window?.visible_hits ?? "--";
+      document.getElementById("window-suppressed-hits").textContent = data.window_suppressed_hits ?? data.window?.suppressed_hits ?? "--";
+      document.getElementById("system-reboot-at").textContent = fmtDateTime(data.restart_timestamps?.system_reboot_at);
+      document.getElementById("caddy-started-at").textContent = fmtDateTime(data.restart_timestamps?.caddy_started_at);
+      document.getElementById("recovered-checkpoint-at").textContent = fmtDateTime(data.recovery?.checkpoint_at);
+      renderRows(data.top_paths || [], document.getElementById("top-paths"), "path");
+      renderRows(data.top_external_paths || [], document.getElementById("top-external-paths"), "path");
+      renderRows(analytics24h.top_nonbot_page_paths || [], document.getElementById("top-nonbot-page-paths"), "path");
+      renderRows(analytics24h.top_bot_page_paths || [], document.getElementById("top-bot-page-paths"), "path");
+      renderRows(data.source_types || [], document.getElementById("source-types"), "label");
+      renderRows(data.status_codes || [], document.getElementById("status-codes"), "code");
+      renderRows(data.query_tags || [], document.getElementById("query-tags"), "label");
+      renderRows(data.suppressed_breakdown || [], document.getElementById("suppressed-breakdown"), "path");
+      renderRows(data.top_ips || [], document.getElementById("top-ips"), "ip");
+      renderRows(data.daily_hits || [], document.getElementById("daily-hits"), "date");
+      renderVisitorEntries(analytics24h.top_human_like_visitors || [], document.getElementById("human-visitors"));
+      renderNarrative(data);
+      renderScreenplayLog(data);
+      renderKeyValueRows(sensorSnapshot.readouts || [], document.getElementById("sensor-readouts"));
+      document.getElementById("sensor-meta").textContent =
+        sensorSnapshot.ha_error
+          ? `MasterBot telemetry mirror unavailable: ${sensorSnapshot.ha_error}`
+          : `MasterBot telemetry mirror · collected ${fmtDateTime(sensorSnapshot.collected_at)}`;
+
+      const recent = document.getElementById("recent-requests");
+      recent.innerHTML = "";
+      (data.recent_requests || []).slice(-8).reverse().forEach((entry) => {
+        const el = document.createElement("div");
+        el.className = "entry";
+        el.innerHTML = `<strong>${entry.method || "GET"} ${entry.uri}</strong><div>${fmtDateTime(entry.timestamp_iso)} · ${entry.client_ip || "unknown source"} · ${entry.status ?? "--"} · ${entry.source_type || "unknown"}</div>`;
+        recent.appendChild(el);
+      });
+
+      const restarts = document.getElementById("restart-events");
+      restarts.innerHTML = "";
+      (data.restart_timestamps?.recent_events || []).slice(0, 8).forEach((entry) => {
+        const el = document.createElement("div");
+        el.className = "entry";
+        el.innerHTML = `<strong>${entry.kind || "event"}</strong><div>${fmtDateTime(entry.timestamp_iso)}${entry.detail ? ` · ${entry.detail}` : ""}</div>`;
+        restarts.appendChild(el);
+      });
+      if (!restarts.children.length) {
+        restarts.innerHTML = '<div class="entry"><strong>No restarts recorded yet</strong><div>Persistent state will populate this after the next observed transition.</div></div>';
+      }
+
+      const recovery = document.getElementById("recovery-notes");
+      recovery.innerHTML = "";
+      if (data.recovery?.seed_applied) {
+        const el = document.createElement("div");
+        el.className = "entry";
+        el.innerHTML = `<strong>Recovered baseline active</strong><div>${fmtDateTime(data.recovery.checkpoint_at)}${data.recovery.reason ? ` · ${data.recovery.reason}` : ""}</div>`;
+        recovery.appendChild(el);
+      } else {
+        recovery.innerHTML = '<div class="entry"><strong>No recovered baseline</strong><div>This monitor is running entirely from persistent live state.</div></div>';
+      }
+      })();
+      try {
+        return await metricsRequest;
+      } finally {
+        metricsRequest = null;
+      }
+    }
+
+    document.getElementById("refresh-btn").addEventListener("click", () => {
+      loadMetrics().catch(() => {});
+    });
+
+    if (window.top === window.self) {
+      document.body.classList.add("standalone");
+    }
+
+    loadMetrics().catch(() => {
+      document.getElementById("stat-generated").textContent = "unavailable";
+    });
+    setInterval(() => {
+      if (document.hidden) return;
+      loadMetrics().catch(() => {});
+    }, 30000);
+  </script>
+</body>
+</html>

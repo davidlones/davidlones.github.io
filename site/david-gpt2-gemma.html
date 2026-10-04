@@ -1,0 +1,2323 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071719">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <title>Generation 001: Random, the First Learned Environment</title>
+  <meta name="description" content="The completed David-GPT-2 Generation 001 field report: raw GPT-2 through the fine-tuned lineage, model-nominated training candidates, Gemma control, retrieval, and Linux verification.">
+  <link rel="canonical" href="https://sol.system42.one/david-gpt2-gemma.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sol-37">
+  <meta property="og:url" content="https://sol.system42.one/david-gpt2-gemma.html">
+  <meta property="og:title" content="Generation 001: Random, the First Learned Environment">
+  <meta property="og:description" content="A completed filesystem-continuation fine-tune, a live retrieval ensemble, a Gemma controller, and Linux as oracle.">
+  <meta property="og:image" content="https://sol.system42.one/assets/david-gpt2-generation-001/22-43-27-final.webp">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111412;
+      --surface: #191d1a;
+      --surface-2: #222720;
+      --line: #465047;
+      --text: #f4f5ef;
+      --muted: #b5bcb3;
+      --green: #a9e681;
+      --cyan: #88d8e8;
+      --amber: #f2c66d;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+      line-height: 1.55;
+    }
+    a { color: var(--cyan); }
+    code, pre { font-family: "DejaVu Sans Mono", "Lucida Console", monospace; }
+    .hero {
+      position: relative;
+      min-height: 78vh;
+      display: flex;
+      align-items: flex-end;
+      background-image: url('/assets/david-gpt2-gemma-thinking-bench.png');
+      background-position: center 30%;
+      background-size: cover;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(5, 7, 6, 0.72);
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 42px 0 48px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--green);
+      font: 700 0.82rem/1.2 "DejaVu Sans Mono", monospace;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 900px;
+      margin: 0;
+      font-size: 3.6rem;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+    .hero p:not(.eyebrow) {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: #e1e5dc;
+      font-size: 1.16rem;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+    .button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      padding: 9px 14px;
+      border: 1px solid #172013;
+      border-radius: 5px;
+      color: #10160d;
+      background: var(--green);
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .button.secondary { color: var(--text); background: #263229; border-color: #6b806d; }
+    main { overflow: hidden; }
+    .band { border-bottom: 1px solid var(--line); }
+    .inner { width: min(1120px, calc(100% - 36px)); margin: 0 auto; padding: 48px 0; }
+    .intro { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 44px; }
+    h2 { margin: 0; font-size: 2rem; line-height: 1.15; letter-spacing: 0; }
+    h3 { margin: 0 0 8px; font-size: 1.05rem; letter-spacing: 0; }
+    p { margin: 0 0 14px; }
+    .muted { color: var(--muted); }
+    .mode-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 26px; }
+    .mode {
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+    .mode code { color: var(--amber); font-size: 0.92rem; }
+    .flow {
+      margin: 24px 0 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow-x: auto;
+      color: #d9ebd3;
+      background: #090b09;
+      white-space: pre;
+      line-height: 1.55;
+    }
+    .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 28px; background: var(--line); }
+    .fact { min-width: 0; padding: 18px; background: var(--surface-2); }
+    .fact strong { display: block; color: var(--green); font-size: 1.25rem; overflow-wrap: anywhere; }
+    .downloads { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+    .download { padding: 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+    .download .button { margin-top: 8px; }
+    .boundary { border-left: 4px solid var(--amber); padding-left: 18px; }
+    .research-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; }
+    .research-card { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+    .research-card .number { display: block; margin-bottom: 8px; color: var(--amber); font: 700 0.8rem/1.2 "DejaVu Sans Mono", monospace; }
+    .research-card p { margin: 0; color: var(--muted); }
+    .milestone { margin-top: 28px; padding: 22px; border: 1px solid #68815f; border-radius: 6px; background: linear-gradient(135deg, #1b281d 0%, #151a16 72%); }
+    .milestone-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .milestone-head .stamp { color: var(--green); font: 700 0.82rem/1.2 "DejaVu Sans Mono", monospace; }
+    .milestone-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 18px; background: var(--line); }
+    .milestone-metric { min-width: 0; padding: 14px; background: #121713; }
+    .milestone-metric span { display: block; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; }
+    .milestone-metric strong { display: block; margin-top: 3px; color: var(--green); font: 700 1.02rem/1.35 "DejaVu Sans Mono", monospace; overflow-wrap: anywhere; }
+    .progress-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+    .progress-gallery figure { padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+    .progress-gallery figure.featured { grid-column: span 2; }
+    .progress-gallery a { display: block; }
+    .progress-gallery img { aspect-ratio: 16 / 9; object-fit: cover; background: #090b09; }
+    .progress-gallery figure.terminal img { aspect-ratio: 817 / 483; object-fit: contain; }
+    .progress-gallery figcaption { padding: 9px 4px 3px; }
+    .regime-table { width: 100%; margin-top: 22px; border-collapse: collapse; background: var(--surface); }
+    .regime-table th, .regime-table td { padding: 12px 14px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .regime-table th { color: var(--green); background: var(--surface-2); }
+    .regime-table td:first-child { width: 74px; color: var(--amber); font: 700 0.88rem/1.5 "DejaVu Sans Mono", monospace; }
+    .evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 24px; }
+    figure { margin: 0; min-width: 0; }
+    figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+    figcaption { padding: 9px 2px 0; color: var(--muted); font-size: 0.9rem; }
+    .steps { display: grid; gap: 0; margin: 26px 0 0; padding: 0; list-style: none; counter-reset: build-step; }
+    .steps li {
+      counter-increment: build-step;
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 16px;
+      padding: 20px 0;
+      border-top: 1px solid var(--line);
+    }
+    .steps li::before {
+      content: counter(build-step, decimal-leading-zero);
+      color: var(--amber);
+      font: 700 1rem/1.4 "DejaVu Sans Mono", monospace;
+    }
+    .steps h3 { margin: 0 0 6px; }
+    .steps p { color: var(--muted); }
+    .command {
+      margin: 10px 0 0;
+      padding: 14px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: #dcefd5;
+      background: #090b09;
+      white-space: pre;
+    }
+    .api-grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: 22px; margin-top: 26px; }
+    .api-panel { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+    .api-panel label { display: block; margin: 0 0 6px; color: var(--muted); font-size: 0.88rem; font-weight: 700; }
+    .api-panel textarea, .api-panel input[type="text"] {
+      width: 100%; margin: 0 0 14px; padding: 11px; border: 1px solid #667168; border-radius: 4px;
+      color: var(--text); background: #0c0f0d; font: 0.92rem/1.45 "DejaVu Sans Mono", monospace;
+    }
+    .api-panel textarea { min-height: 128px; resize: vertical; }
+    .api-options { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 14px; }
+    .api-options label { display: inline-flex; gap: 7px; align-items: center; margin: 0; }
+    .api-output { min-height: 190px; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .api-status { min-height: 24px; margin: 10px 0 0; color: var(--muted); font-size: 0.9rem; }
+    .screenplay-guide { margin-top: 34px; padding-top: 30px; border-top: 1px solid var(--line); }
+    .screenplay-guide > p { max-width: 880px; }
+    .screenplay-guide .steps { margin-top: 18px; }
+    .log-excerpt { max-height: 720px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .speech-reader { margin: 16px 0 18px; padding: 16px; border-left: 4px solid var(--cyan); background: var(--surface); }
+    .speech-controls { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .speech-button {
+      width: 42px; height: 42px; border: 1px solid #708078; border-radius: 4px;
+      color: var(--text); background: #202722; font-size: 1rem; cursor: pointer;
+    }
+    .speech-button:hover, .speech-button:focus-visible { border-color: var(--green); background: #29332c; }
+    .speech-button:disabled { cursor: not-allowed; opacity: 0.45; }
+    .speech-status { min-height: 22px; margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
+    .spoken-log { min-height: 150px; max-height: 340px; margin: 0; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .speech-telemetry { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 10px 0; background: var(--line); }
+    .speech-metric { min-width: 0; padding: 10px; background: #121713; }
+    .speech-metric span { display: block; color: var(--muted); font-size: 0.72rem; text-transform: uppercase; }
+    .speech-metric strong { display: block; overflow-wrap: anywhere; color: var(--green); font: 0.82rem/1.4 "DejaVu Sans Mono", monospace; }
+    footer { width: min(1120px, calc(100% - 36px)); margin: 0 auto; padding: 28px 0 42px; color: var(--muted); }
+    @media (max-width: 760px) {
+      h1 { font-size: 2.45rem; }
+      .hero { min-height: 72vh; background-position: 56% center; }
+      .intro, .mode-grid, .downloads, .evidence-grid, .api-grid, .research-grid { grid-template-columns: 1fr; gap: 14px; }
+      .facts { grid-template-columns: 1fr 1fr; }
+      .milestone-grid { grid-template-columns: 1fr 1fr; }
+      .progress-gallery { grid-template-columns: 1fr 1fr; }
+      .progress-gallery figure.featured { grid-column: span 2; }
+      .speech-telemetry { grid-template-columns: 1fr 1fr; }
+      .inner { padding: 36px 0; }
+    }
+    @media (max-width: 430px) {
+      h1 { font-size: 2rem; }
+      .facts { grid-template-columns: 1fr; }
+      .milestone-grid { grid-template-columns: 1fr; }
+      .progress-gallery { grid-template-columns: 1fr; }
+      .progress-gallery figure.featured { grid-column: span 1; }
+      .regime-table th, .regime-table td { padding: 9px; }
+      .button { width: 100%; justify-content: center; text-align: center; }
+    }
+
+    /* Generation 001 publication system */
+    :root {
+      color-scheme: dark;
+      --bg: #071719;
+      --surface: #10282a;
+      --surface-2: #173436;
+      --line: #456260;
+      --text: #f1eee3;
+      --muted: #a9bbb5;
+      --green: #6ad3c4;
+      --cyan: #70cddd;
+      --amber: #f2c866;
+      --ink: #e6f0e9;
+      --paper: #10282a;
+      --signal: #ff6a3d;
+    }
+    html { scroll-padding-top: 88px; background: var(--bg); }
+    body {
+      color: var(--text);
+      background:
+        linear-gradient(90deg, rgba(130,205,194,.055) 1px, transparent 1px) 0 0 / 28px 28px,
+        linear-gradient(rgba(130,205,194,.055) 1px, transparent 1px) 0 0 / 28px 28px,
+        var(--bg);
+      font-family: Georgia, "Times New Roman", serif;
+      line-height: 1.62;
+    }
+    a { color: var(--cyan); text-underline-offset: 3px; }
+    code, pre, .eyebrow, .project-nav, .fact strong, .milestone-metric strong {
+      font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+    }
+    .project-nav {
+      position: sticky;
+      z-index: 50;
+      top: 0;
+      display: flex;
+      min-height: 58px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 8px max(18px, calc((100vw - 1220px) / 2));
+      border-bottom: 1px solid #284443;
+      color: #f6f1e5;
+      background: rgba(12,41,42,.96);
+      box-shadow: 0 8px 28px #0b202044;
+      backdrop-filter: blur(12px);
+    }
+    .project-nav a { color: inherit; text-decoration: none; }
+    .project-mark { display: flex; align-items: center; gap: 10px; font-size: .72rem; letter-spacing: .08em; }
+    .project-mark span { padding: 5px 7px; color: #0c292a; background: #f2c866; font-weight: 900; }
+    .project-links { display: flex; flex-wrap: wrap; gap: 4px; }
+    .project-links a { padding: 7px 10px; border-bottom: 2px solid transparent; font-size: .74rem; }
+    .project-links a:hover, .project-links a:focus-visible { border-color: #f2c866; color: #f2c866; }
+    .hero {
+      min-height: 760px;
+      align-items: center;
+      border-bottom: 8px solid var(--signal);
+      background-image:
+        linear-gradient(90deg, rgba(7,29,30,.97) 0%, rgba(7,29,30,.92) 46%, rgba(7,29,30,.35) 80%, rgba(7,29,30,.55) 100%),
+        url('/assets/david-gpt2-generation-001/22-43-27-final.webp');
+      background-position: center, 76% center;
+    }
+    .hero::before {
+      background:
+        linear-gradient(0deg, rgba(4,20,21,.8), transparent 42%),
+        repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.025) 3px 4px);
+    }
+    .hero-inner { width: min(1220px, calc(100% - 44px)); padding: 76px 0 68px; }
+    .hero .eyebrow { color: #f2c866; }
+    h1, h2, h3 {
+      font-family: Georgia, "Times New Roman", serif;
+      text-wrap: balance;
+    }
+    h1 {
+      max-width: 820px;
+      color: #fffaf0;
+      font-size: clamp(3.15rem, 7.4vw, 6.8rem);
+      line-height: .94;
+      letter-spacing: -.055em;
+      text-wrap: balance;
+    }
+    .hero p:not(.eyebrow) { max-width: 760px; color: #e7eee7; font-size: 1.15rem; }
+    .hero code { color: #f2c866; }
+    .hero-proof {
+      display: grid;
+      max-width: 880px;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      margin-top: 30px;
+      border-block: 1px solid #77908b;
+    }
+    .hero-proof div { padding: 14px 18px 14px 0; }
+    .hero-proof span { display: block; color: #a9bbb6; font: .68rem/1.3 "DejaVu Sans Mono", monospace; text-transform: uppercase; }
+    .hero-proof strong { display: block; margin-top: 3px; color: #fff7df; font: 700 1.08rem/1.3 "DejaVu Sans Mono", monospace; }
+    .button {
+      min-height: 46px;
+      padding: 10px 16px;
+      border: 1px solid #0e4946;
+      border-radius: 0;
+      color: #fffaf0;
+      background: #08766d;
+      box-shadow: 4px 4px 0 #e5b94f;
+      font-family: "DejaVu Sans Mono", monospace;
+      font-size: .78rem;
+      text-transform: uppercase;
+      transition: transform .16s ease, box-shadow .16s ease;
+    }
+    .button:hover, .button:focus-visible { transform: translate(2px,2px); box-shadow: 2px 2px 0 #e5b94f; }
+    .button.secondary { color: #f8f3e8; background: #173e3e; border-color: #7ca09a; }
+    main { overflow: clip; }
+    .band { position: relative; border-bottom: 1px solid var(--line); background: rgba(9,31,33,.93); }
+    .band:nth-child(even) { background: rgba(15,41,43,.94); }
+    .inner { width: min(1220px, calc(100% - 44px)); padding: 76px 0; }
+    .eyebrow { color: var(--green); font-size: .72rem; letter-spacing: .13em; }
+    h2 { max-width: 22ch; font-size: clamp(2.1rem,4vw,4rem); line-height: 1.02; letter-spacing: -.04em; }
+    h3 { font-size: 1.15rem; }
+    p { max-width: 76ch; text-wrap: pretty; }
+    li, figcaption { text-wrap: pretty; }
+    .inner > p:not(.eyebrow), .intro p { font-size: 1.04rem; line-height: 1.72; }
+    .muted { color: var(--muted); }
+    .completion-band { color: #f3efe5; background: #102c2d !important; }
+    .completion-layout { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(420px,.95fr); gap: 48px; align-items: start; }
+    .completion-band h2 { color: #fff6df; }
+    .completion-band .eyebrow { color: #f2c866; }
+    .completion-band .muted { color: #b8cac4; }
+    .completion-ledger { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 28px; border: 1px solid #57726d; }
+    .completion-ledger div { min-width: 0; padding: 16px; border: 1px solid #57726d; }
+    .completion-ledger span { display: block; color: #9eb3ad; font: .65rem/1.35 "DejaVu Sans Mono", monospace; text-transform: uppercase; }
+    .completion-ledger strong { display: block; margin-top: 5px; color: #f2c866; font: 700 .95rem/1.35 "DejaVu Sans Mono", monospace; overflow-wrap: anywhere; }
+    .completion-figure { position: sticky; top: 82px; transform: rotate(.8deg); }
+    .completion-figure img { border: 8px solid #173e3e; border-radius: 0; box-shadow: 18px 22px 0 #030d0e; }
+    .completion-figure figcaption { padding: 16px 2px 0; color: #b8cac4; }
+    .intro { grid-template-columns: .65fr 1.35fr; gap: 70px; }
+    .mode-grid, .research-grid { gap: 0; border: 1px solid var(--line); }
+    .mode, .research-card { border: 0; border-right: 1px solid var(--line); border-radius: 0; background: var(--paper); }
+    .mode:last-child, .research-card:last-child { border-right: 0; }
+    .mode code { color: var(--amber); }
+    .flow, .command {
+      border: 1px solid #173e3e;
+      border-left: 8px solid #e95d36;
+      border-radius: 0;
+      color: #e4eee9;
+      background: #0e292a;
+      box-shadow: inset 0 1px 0 #ffffff18;
+    }
+    .facts { gap: 0; border: 1px solid var(--line); background: transparent; }
+    .fact { border-right: 1px solid var(--line); background: #173436; }
+    .fact:last-child { border-right: 0; }
+    .fact strong { color: var(--green); }
+    .milestone {
+      padding: 28px;
+      border: 1px solid #688984;
+      border-radius: 0;
+      background: linear-gradient(135deg,#163638 0%,#0d2729 100%);
+      box-shadow: 10px 10px 0 #041112;
+    }
+    .milestone-head .stamp { padding: 6px 8px; color: #fff; background: #08766d; }
+    .milestone-grid { background: #587370; }
+    .milestone-metric { background: #10282a; }
+    .milestone-metric strong { color: var(--green); }
+    .progress-gallery { grid-template-columns: repeat(12,minmax(0,1fr)); gap: 16px; }
+    .progress-gallery figure { grid-column: span 4; padding: 0; border: 0; border-radius: 0; background: transparent; }
+    .progress-gallery figure.featured { grid-column: span 8; }
+    .progress-gallery figure:nth-child(4n) { transform: translateY(18px); }
+    .progress-gallery img { border: 6px solid #173e3e; border-radius: 0; box-shadow: 7px 8px 0 #030d0e; }
+    .progress-gallery figcaption { padding: 14px 2px 5px; }
+    .status-figure { margin: 24px 0 28px; }
+    .status-figure img { border: 7px solid #173e3e; border-radius: 0; box-shadow: 11px 13px 0 #030d0e; }
+    .status-figure figcaption { padding: 17px 3px 0; color: #b8cac4; }
+    .status-formula { color: #f2c866; }
+    .regime-table { background: var(--paper); }
+    .regime-table th { color: #fff; background: #173e3e; }
+    .regime-table td:first-child { color: #bf582f; }
+    .download, .api-panel, .speech-reader {
+      border: 1px solid #587a76;
+      border-radius: 0;
+      background: var(--paper);
+      box-shadow: 8px 8px 0 #041112;
+    }
+    .downloads { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .download.primary-release {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0,1.4fr) minmax(260px,.6fr);
+      gap: 28px;
+      align-items: end;
+      color: #f5f0e4;
+      border-color: #102c2d;
+      background: #102c2d;
+      box-shadow: 10px 10px 0 #e5b94f;
+    }
+    .download.primary-release h3 { color: #f2c866; font-size: 1.55rem; }
+    .download.primary-release .muted { color: #b8cac4; }
+    .download.primary-release .release-meta {
+      margin: 0;
+      color: #dce9e3;
+      font: .73rem/1.6 "DejaVu Sans Mono", monospace;
+    }
+    .api-panel textarea, .api-panel input[type="text"] { color: #e8f0ec; background: #102c2d; border-radius: 0; }
+    .speech-button { border-radius: 0; color: #fff; background: #173e3e; }
+    .speech-metric { background: #10282a; }
+    .speech-metric strong { color: var(--green); }
+    .steps li { grid-template-columns: 70px minmax(0,1fr); }
+    .steps li::before { font-size: 1.6rem; color: #bf582f; }
+    footer { width: min(1220px,calc(100% - 44px)); color: #9ab2ad; font-family: "DejaVu Sans Mono", monospace; font-size: .75rem; }
+    @media (max-width: 900px) {
+      .project-nav { align-items: flex-start; }
+      .project-links { justify-content: flex-end; }
+      .completion-layout { grid-template-columns: 1fr; }
+      .completion-figure { position: static; transform: none; }
+      .hero-proof { grid-template-columns: 1fr 1fr; }
+      .progress-gallery figure, .progress-gallery figure.featured { grid-column: span 6; }
+    }
+    @media (max-width: 760px) {
+      html { scroll-padding-top: 0; }
+      .project-nav { position: relative; display: grid; gap: 8px; }
+      .project-links { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+      .project-links a { white-space: nowrap; }
+      .hero { min-height: 720px; background-position: center, 66% center; }
+      .hero-inner, .inner { width: min(100% - 28px,1220px); }
+      .hero-proof { grid-template-columns: 1fr 1fr; }
+      .completion-ledger { grid-template-columns: 1fr 1fr; }
+      .intro, .mode-grid, .downloads, .evidence-grid, .api-grid, .research-grid { grid-template-columns: 1fr; }
+      .download.primary-release { grid-column: auto; grid-template-columns: 1fr; }
+      .mode, .research-card { border-right: 0; border-bottom: 1px solid var(--line); }
+      .mode:last-child, .research-card:last-child { border-bottom: 0; }
+      .progress-gallery { grid-template-columns: 1fr; }
+      .progress-gallery figure, .progress-gallery figure.featured { grid-column: auto; transform: none; }
+      .completion-figure img { box-shadow: 8px 10px 0 #071e1f; }
+      #remaining-work .regime-table,
+      #remaining-work .regime-table tbody,
+      #remaining-work .regime-table tr,
+      #remaining-work .regime-table td { display: block; width: 100%; }
+      #remaining-work .regime-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0,0,0,0);
+        white-space: nowrap;
+        border: 0;
+      }
+      #remaining-work .regime-table tr { margin: 0 0 14px; border: 1px solid var(--line); }
+      #remaining-work .regime-table td,
+      #remaining-work .regime-table td:first-child {
+        display: grid;
+        grid-template-columns: minmax(82px, .32fr) minmax(0, 1fr);
+        gap: 10px;
+        width: auto;
+        padding: 10px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        overflow-wrap: anywhere;
+      }
+      #remaining-work .regime-table td:last-child { border-bottom: 0; }
+      #remaining-work .regime-table td::before {
+        color: var(--green);
+        font: 700 .68rem/1.4 "DejaVu Sans Mono", monospace;
+        text-transform: uppercase;
+      }
+      #remaining-work .regime-table td:nth-child(1)::before { content: "Process"; }
+      #remaining-work .regime-table td:nth-child(2)::before { content: "Class"; }
+      #remaining-work .regime-table td:nth-child(3)::before { content: "Work"; }
+      #remaining-work .regime-table td:nth-child(4)::before { content: "State"; }
+      .status-figure img { box-shadow: 6px 7px 0 #030d0e; }
+    }
+    @media (max-width: 430px) {
+      h1 { font-size: 2.7rem; }
+      .hero { min-height: 690px; }
+      .project-links { gap: 0; }
+      .project-links a { padding: 6px 7px; font-size: .68rem; }
+      .hero-proof, .completion-ledger { grid-template-columns: 1fr; }
+      .hero-proof div { border-bottom: 1px solid #58716d; }
+      .actions .button { width: 100%; }
+      .milestone { padding: 18px; box-shadow: 5px 5px 0 #041112; }
+    }
+
+    /* Lineage ensemble architecture theater */
+    .ensemble-theater {
+      position: relative;
+      margin-top: 30px;
+      padding: 18px;
+      border: 1px solid #173e3e;
+      color: #eaf2ec;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(242,200,102,.13), transparent 27%),
+        radial-gradient(circle at 78% 34%, rgba(8,118,109,.3), transparent 31%),
+        #0e292a;
+      box-shadow: 12px 12px 0 #bf582f;
+      overflow: hidden;
+    }
+    .ensemble-theater svg { display: block; min-width: 0; width: 100%; height: auto; }
+    .ensemble-wire {
+      fill: none;
+      stroke: #77bdb5;
+      stroke-width: 3;
+      stroke-dasharray: 11 9;
+      marker-end: url(#ensemble-arrow);
+      animation: ensemble-flow 1.8s linear infinite;
+    }
+    .ensemble-wire.curriculum { stroke: #f2c866; }
+    .ensemble-node rect { fill: #163c3d; stroke: #8bc5bc; stroke-width: 2; }
+    .ensemble-node.lineage rect { fill: #322e22; stroke: #f2c866; }
+    .ensemble-node.oracle rect { fill: #f2c866; stroke: #fff4c9; }
+    .ensemble-node.gate rect { fill: #6b2f22; stroke: #ff9f7e; }
+    .ensemble-node.candidate rect { fill: #0b625d; stroke: #84ddd2; }
+    .ensemble-node text {
+      fill: #f5f1e7;
+      font: 700 18px/1.3 "DejaVu Sans Mono", monospace;
+      letter-spacing: .02em;
+    }
+    .ensemble-node text.small { fill: #b9cec9; font-size: 13px; font-weight: 500; }
+    .ensemble-node text.micro { font-size: 12px; letter-spacing: .05em; }
+    .ensemble-node.oracle text { fill: #173233; }
+    .ensemble-node .pulse-ring {
+      fill: none;
+      stroke: #f2c866;
+      stroke-width: 3;
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: ensemble-pulse 3.6s ease-out infinite;
+    }
+    .ensemble-node.candidate .pulse-ring { stroke: #8df1e6; animation-delay: 1.2s; }
+    .ensemble-node.gate .pulse-ring { stroke: #ff9f7e; animation-delay: 2.2s; }
+    .ensemble-label {
+      fill: #a9c2bd;
+      font: 700 12px/1.2 "DejaVu Sans Mono", monospace;
+      letter-spacing: .12em;
+    }
+    .ensemble-packet { fill: #fff4c9; filter: drop-shadow(0 0 7px #f2c866); }
+    .ensemble-packet.a { animation: packet-a 7.2s ease-in-out infinite; }
+    .ensemble-packet.b { animation: packet-b 7.2s ease-in-out 2.4s infinite; }
+    .ensemble-packet.c { animation: packet-c 7.2s ease-in-out 4.8s infinite; }
+    .ensemble-legend { display: flex; flex-wrap: wrap; gap: 10px 18px; margin: 18px 4px 2px; }
+    .ensemble-legend span { display: inline-flex; align-items: center; gap: 7px; color: #c8d9d4; font: .72rem/1.4 "DejaVu Sans Mono", monospace; }
+    .ensemble-legend i { width: 24px; height: 4px; background: #77bdb5; }
+    .ensemble-legend .curriculum-key { background: #f2c866; }
+    .ensemble-legend .gate-key { background: #ff7958; }
+    .motion-button {
+      margin: 16px 0 0;
+      padding: 8px 11px;
+      border: 1px solid #8bc5bc;
+      color: #eff8f3;
+      background: #163c3d;
+      font: 700 .7rem/1.2 "DejaVu Sans Mono", monospace;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .ensemble-theater.motion-paused *, .ensemble-theater.motion-paused *::before, .ensemble-theater.motion-paused *::after {
+      animation-play-state: paused !important;
+    }
+    main { display: flex; flex-direction: column; }
+    #lineage-ensemble .inner { width: min(1500px, calc(100% - 44px)); }
+    .screenplay-intro { max-width: 48rem; margin-bottom: 30px; }
+    .screenplay-intro p { font-size: 1.08rem; line-height: 1.72; }
+    .ensemble-narration-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 28px;
+      align-items: stretch;
+      margin-top: 30px;
+    }
+    .ensemble-narration-grid .ensemble-theater { margin-top: 0; }
+    .narration-console {
+      position: relative;
+      width: min(100%, 900px);
+      min-width: 0;
+      justify-self: center;
+      padding: 20px;
+      border: 1px solid #815f2b;
+      color: #f3efe4;
+      background:
+        linear-gradient(180deg, rgba(242,200,102,.08), transparent 28%),
+        #091c1e;
+      box-shadow: 8px 8px 0 #061415;
+      overflow: hidden;
+    }
+    .narration-console::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(255,255,255,.018) 3px 4px);
+    }
+    .narration-kicker,
+    .narration-scene,
+    .narration-clock,
+    .narration-progress,
+    .narration-source {
+      font-family: "DejaVu Sans Mono", monospace;
+    }
+    .narration-kicker { margin: 0; color: #f2c866; font-size: .72rem; letter-spacing: .13em; text-transform: uppercase; }
+    .narration-scene { min-height: 2.8em; margin: 8px 0 12px; color: #fff7df; font-size: 1.04rem; line-height: 1.35; }
+    .narration-controls { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 13px; }
+    .narration-button {
+      min-width: 42px;
+      padding: 9px 12px;
+      border: 1px solid #6fa8a2;
+      color: #eef8f4;
+      background: #123637;
+      font: 700 .72rem/1 "DejaVu Sans Mono", monospace;
+      cursor: pointer;
+    }
+    .narration-button.primary { color: #122426; border-color: #f2c866; background: #f2c866; }
+    .narration-button:disabled { opacity: .42; cursor: wait; }
+    .narration-timeline { width: 100%; accent-color: #f2c866; }
+    .narration-readout { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: baseline; margin: 8px 0 13px; }
+    .narration-progress { color: #a9c2bd; font-size: .72rem; }
+    .narration-clock { color: #f2c866; font-size: .78rem; }
+    .narration-transcript {
+      position: relative;
+      height: 440px;
+      padding: 12px 8px 120px 0;
+      overflow-y: auto;
+      scrollbar-color: #a77d38 #10282a;
+      scroll-behavior: smooth;
+      mask-image: linear-gradient(to bottom, transparent 0, #000 6%, #000 86%, transparent 100%);
+    }
+    .narration-passage {
+      margin: 0 0 22px;
+      padding: 0 0 0 13px;
+      border-left: 2px solid #214d4c;
+      color: #819b96;
+      font: .94rem/1.75 "DejaVu Sans", sans-serif;
+      transition: color .35s ease, border-color .35s ease, transform .35s ease;
+    }
+    .narration-passage strong { display: block; margin-bottom: 6px; color: #a3b8b3; font: 700 .72rem/1.3 "DejaVu Sans Mono", monospace; letter-spacing: .08em; text-transform: uppercase; }
+    .narration-passage.active { color: #e8efeb; border-color: #f2c866; transform: translateX(4px); }
+    .narration-passage.complete { color: #8bb4ad; }
+    .narration-word { border-radius: 2px; transition: color .12s linear, background .12s linear; }
+    .narration-word.spoken { color: #c7ddd7; }
+    .narration-word.current { color: #071719; background: #f2c866; box-shadow: 0 0 0 2px rgba(242,200,102,.18); }
+    .narration-source { margin: 13px 0 0; color: #829b96; font-size: .68rem; line-height: 1.55; }
+    .narration-source a { color: #edc86f; }
+    .narration-level {
+      --level: 0;
+      position: absolute;
+      right: 20px;
+      top: 18px;
+      width: 42px;
+      height: 42px;
+      border: 1px solid #f2c866;
+      border-radius: 50%;
+      opacity: calc(.35 + var(--level) * .65);
+      transform: scale(calc(.82 + var(--level) * .36));
+      box-shadow: 0 0 calc(8px + var(--level) * 28px) rgba(242,200,102,.65);
+    }
+    .narration-running .ensemble-node { opacity: .22; transition: opacity .45s ease, filter .45s ease; }
+    .narration-running .ensemble-node.narration-active { opacity: 1; filter: drop-shadow(0 0 11px rgba(242,200,102,.72)); }
+    .narration-running .ensemble-node.narration-active rect:not(.pulse-ring) { stroke: #fff1b8; stroke-width: 4; }
+    .narration-running .ensemble-wire { opacity: .1; animation-duration: 4.8s; transition: opacity .35s ease, filter .35s ease; }
+    .narration-running .ensemble-wire.narration-active { opacity: 1; filter: drop-shadow(0 0 5px rgba(242,200,102,.72)); animation-duration: .7s; }
+    .narration-running .ensemble-packet { animation-play-state: paused; opacity: 0; }
+    .ensemble-scene-caption {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      margin: 15px 4px 0;
+      padding: 12px 14px;
+      border-top: 1px solid #47706c;
+      background: rgba(4,20,21,.62);
+      font: .74rem/1.5 "DejaVu Sans Mono", monospace;
+    }
+    .ensemble-scene-caption span { color: #f2c866; text-transform: uppercase; letter-spacing: .1em; }
+    .ensemble-scene-caption strong { color: #e8f0ec; font-weight: 500; }
+    .dream-cycle {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+      gap: 28px;
+      margin-top: 42px;
+      padding: 28px;
+      border: 1px solid #7b6438;
+      background:
+        radial-gradient(circle at 84% 12%, rgba(242,200,102,.13), transparent 30%),
+        linear-gradient(145deg, #102d2f, #081b1d 70%);
+      box-shadow: 10px 10px 0 #071516;
+    }
+    .dream-cycle h3 { margin-top: 0; color: #fff4d4; font-size: clamp(1.65rem, 3vw, 2.45rem); }
+    .dream-cycle blockquote { margin: 20px 0 0; padding: 12px 16px; border-left: 3px solid #f2c866; color: #e8ddd0; background: rgba(0,0,0,.18); }
+    .dream-metrics { display: grid; gap: 1px; align-self: start; border: 1px solid #5e624f; background: #5e624f; }
+    .dream-metrics div { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 12px 14px; background: #0b2426; }
+    .dream-metrics span { color: #a8beb8; font: .72rem/1.4 "DejaVu Sans Mono", monospace; text-transform: uppercase; }
+    .dream-metrics strong { color: #f2c866; font: 700 .84rem/1.4 "DejaVu Sans Mono", monospace; }
+    .lineage-findings { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 0; margin-top: 34px; border: 1px solid var(--line); }
+    .lineage-findings article { padding: 20px; border-right: 1px solid var(--line); background: var(--paper); }
+    .lineage-findings article:last-child { border-right: 0; }
+    .lineage-findings strong { display: block; margin-bottom: 7px; color: #bf582f; font: 700 .78rem/1.3 "DejaVu Sans Mono", monospace; }
+    @keyframes ensemble-flow { to { stroke-dashoffset: -40; } }
+    @keyframes ensemble-pulse {
+      0%, 68% { opacity: 0; transform: scale(.76); }
+      74% { opacity: .9; }
+      100% { opacity: 0; transform: scale(1.28); }
+    }
+    @keyframes packet-a {
+      0%, 5% { transform: translate(255px,180px); opacity: 0; }
+      12% { opacity: 1; }
+      28% { transform: translate(455px,180px); opacity: 1; }
+      42% { transform: translate(700px,180px); opacity: 1; }
+      55% { transform: translate(940px,180px); opacity: 1; }
+      65%, 100% { transform: translate(940px,410px); opacity: 0; }
+    }
+    @keyframes packet-b {
+      0%, 8% { transform: translate(940px,410px); opacity: 0; }
+      14% { opacity: 1; }
+      32% { transform: translate(700px,410px); opacity: 1; }
+      48% { transform: translate(455px,410px); opacity: 1; }
+      62% { transform: translate(210px,590px); opacity: 1; }
+      72%, 100% { transform: translate(170px,470px); opacity: 0; }
+    }
+    @keyframes packet-c {
+      0%, 10% { transform: translate(700px,410px); opacity: 0; }
+      18% { opacity: 1; }
+      38% { transform: translate(455px,410px); opacity: 1; }
+      52% { transform: translate(210px,590px); opacity: 1; }
+      70% { transform: translate(170px,470px); opacity: 1; }
+      80%, 100% { transform: translate(255px,180px); opacity: 0; }
+    }
+    @media (min-width: 1500px) {
+      .ensemble-narration-grid {
+        grid-template-columns: minmax(0, 1.7fr) minmax(360px, .65fr);
+        gap: 24px;
+      }
+      .narration-console { width: 100%; }
+    }
+    @media (max-width: 760px) {
+      .ensemble-theater {
+        margin-inline: -14px;
+        padding: 12px;
+        box-shadow: 6px 7px 0 #bf582f;
+        overflow-x: auto;
+      }
+      .ensemble-theater svg { min-width: 760px; }
+      .ensemble-narration-grid { grid-template-columns: 1fr; }
+      .ensemble-narration-grid .ensemble-theater { margin-inline: 0; }
+      .narration-console { padding: 16px; box-shadow: 5px 5px 0 #061415; }
+      .narration-transcript { height: min(54vh, 430px); }
+      .narration-button { flex: 1 1 44px; }
+      .dream-cycle { grid-template-columns: 1fr; padding: 20px; }
+      .lineage-findings { grid-template-columns: 1fr; }
+      .lineage-findings article { border-right: 0; border-bottom: 1px solid var(--line); }
+      .lineage-findings article:last-child { border-bottom: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ensemble-theater *, .ensemble-theater *::before, .ensemble-theater *::after { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="project-nav" aria-label="Generation 001 sections">
+    <a class="project-mark" href="#top"><span>G001</span><strong>FIRST LEARNED ENVIRONMENT</strong></a>
+    <div class="project-links">
+      <a href="#lineage-ensemble">Screenplay</a>
+      <a href="#dream-cycle">Dream cycle</a>
+      <a href="#complete">Result</a>
+      <a href="#generation-001">Training</a>
+      <a href="#generative-os">GenOS</a>
+      <a href="#continuation-api">Live model</a>
+      <a href="#downloads">Release</a>
+    </div>
+  </nav>
+  <header class="hero" id="top">
+    <div class="hero-inner">
+      <p class="eyebrow">Field report 001 / Complete / August 15, 2026</p>
+      <h1>Random became the first environment the model learned to inhabit.</h1>
+      <p>David-GPT-2 learned a frozen semantic history of <code>random + notes</code>. A live four-model retrieval layer preserves the changing present. Gemma reasons and routes. Linux remains the authority whenever prediction must confront reality.</p>
+      <div class="hero-proof" aria-label="Generation 001 completion facts">
+        <div><span>Actual updates</span><strong>2,108</strong></div>
+        <div><span>Best held-out loss</span><strong>2.14892</strong></div>
+        <div><span>Elapsed</span><strong>7h 49m</strong></div>
+        <div><span>State</span><strong>Published</strong></div>
+      </div>
+      <div class="actions">
+        <a class="button" href="#lineage-ensemble">Play the screenplay</a>
+        <a class="button secondary" href="#complete">Read the result</a>
+        <a class="button secondary" href="#continuation-api">Use the live model</a>
+        <a class="button secondary" href="#downloads">Download reproducibility ZIP</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="band completion-band" id="complete">
+      <div class="inner completion-layout">
+        <div class="completion-copy">
+          <p class="eyebrow">Authoritative completion record</p>
+          <h2>The forecast stopped at 99.53%. The lifecycle reached 100%.</h2>
+          <p>The trainer exhausted its dataloader and terminated normally at global step <strong>2,108</strong>. The original <strong>2,110</strong> count was a planning estimate, not a completion gate. Final and best model directories were published, the training service exited successfully with zero restarts, and the three quiesced inference services returned.</p>
+          <p class="muted">Step 2,000 remains the validation-selected model. Checkpoint 2,100 remains the latest periodic recovery image. The final model records the exhausted run. Those are three related artifacts with three different meanings.</p>
+          <div class="completion-ledger">
+            <div><span>Final training loss</span><strong>2.2698</strong></div>
+            <div><span>Best checkpoint</span><strong>step 2,000</strong></div>
+            <div><span>Validation perplexity</span><strong>8.5756</strong></div>
+            <div><span>Supervised val tokens</span><strong>458,841</strong></div>
+            <div><span>Peak CUDA allocated</span><strong>3.37 GiB</strong></div>
+            <div><span>Peak CUDA reserved</span><strong>3.99 GiB</strong></div>
+          </div>
+        </div>
+        <figure class="completion-figure">
+          <a href="/assets/david-gpt2-generation-001/22-43-27-final.webp"><img src="/assets/david-gpt2-generation-001/22-43-27-final.webp" width="1280" height="846" alt="Corrected David GPT-2 Generation 001 dashboard showing COMPLETE, 2,108 actual steps, 2,110 planned, 100 percent, final model published, and restored services"></a>
+          <figcaption>22:43 CDT · The corrected dashboard follows lifecycle state rather than stale arithmetic: <code>COMPLETE</code>, 2,108 actual / 2,110 planned, final model published.</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section class="band">
+      <div class="inner intro">
+        <div>
+          <p class="eyebrow">System map</p>
+          <h2>Three kinds of memory. One authority order.</h2>
+        </div>
+        <div>
+          <p>The live stack joins the validation-selected Generation 001 David-GPT-2 filesystem prior, a separately served Gemma controller, and explicit semantic retrieval over current knowledge. Direct observation and Linux execution retain veto power over learned or retrieved memory.</p>
+          <p class="muted">The native-thinking bench remains below as an inspectable control harness. It does not imply that one model's tokens are inserted into another model's active decoder; every exchange occurs at a visible request boundary with recorded provenance.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="architecture">
+      <div class="inner">
+        <p class="eyebrow">Controller bench</p>
+        <h2>Controlled model boundaries, not a single opaque agent</h2>
+        <div class="mode-grid">
+          <article class="mode"><h3><code>david</code></h3><p>Gemma is bypassed. The fine-tuned GPT-2 predicts the David/user-side continuation from assistant context.</p></article>
+          <article class="mode"><h3><code>dialogue</code></h3><p>Gemma thinks, writes a prose seed, David-GPT-2 continues it, and Gemma later produces Sol's primary answer.</p></article>
+          <article class="mode"><h3><code>gemma</code></h3><p>The preserved Gemma-only identity and model-directed retrieval baseline remains available as a control.</p></article>
+        </div>
+        <pre class="flow" aria-label="Dialogue flow">Real David prompt
+       |
+Gemma native-thinking checkpoint
+       |
+Gemma continuation seed
+       |
+David-GPT-2 prose continuation
+       |
+optional bounded checkpoint rounds
+       |
+Gemma / Sol final streamed answer</pre>
+        <div class="facts">
+          <div class="fact"><span class="muted">David model</span><strong>GPT-2 Small</strong></div>
+          <div class="fact"><span class="muted">Archived bench model</span><strong>Gemma 4 11.9B</strong></div>
+          <div class="fact"><span class="muted">Orchestration tests</span><strong>12 passing</strong></div>
+          <div class="fact"><span class="muted">Default checkpoint</span><strong>192 tokens</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="lineage-ensemble">
+      <div class="inner">
+        <p class="eyebrow">Architecture milestone / August 15, 2026</p>
+        <div class="screenplay-intro">
+          <h2>The log speaks while the architecture remembers what each word means.</h2>
+          <p>The Generation 001 screenplay is now the opening exhibit. The locally generated <strong>Early</strong> voice, scrolling transcript, active model node, evidence path, semantic scene, and elapsed seconds all share one playback clock.</p>
+          <p class="muted">Every narrated passage activates the part of the system it describes. Model proposals remain visibly separate from observation, and the fine-tuning loop still stops at the operator gate.</p>
+        </div>
+
+        <div class="ensemble-narration-grid">
+        <div class="ensemble-theater" id="ensemble-theater" aria-label="Animated model-lineage, verification, and fine-tuning architecture">
+          <svg viewBox="0 0 1120 690" role="img" aria-labelledby="ensemble-title ensemble-description">
+            <title id="ensemble-title">Generation 001 lineage ensemble and controlled fine-tuning loop</title>
+            <desc id="ensemble-description">Raw GPT-2 and seven David-GPT-2 lineage points produce attributed proposals for Gemma. Linux verifies observed state. Discrepancies may be nominated for training, but an operator approval gate controls the next generation.</desc>
+            <defs>
+              <marker id="ensemble-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#77bdb5"/></marker>
+            </defs>
+
+            <text class="ensemble-label" x="42" y="36">PARAMETRIC LINEAGE · SERIAL, ATTRIBUTED</text>
+            <text class="ensemble-label" x="405" y="136">PROPOSAL</text>
+            <text class="ensemble-label" x="650" y="136">SYNTHESIS</text>
+            <text class="ensemble-label" x="892" y="136">OBSERVATION</text>
+
+            <path class="ensemble-wire" data-narration-scenes="ghost world training lineage" d="M290 260H385"/>
+            <path class="ensemble-wire" data-narration-scenes="prediction lineage" d="M545 260H625"/>
+            <path class="ensemble-wire" data-narration-scenes="authority" d="M790 260H865"/>
+            <path class="ensemble-wire curriculum" data-narration-scenes="authority" d="M950 320V420"/>
+            <path class="ensemble-wire curriculum" data-narration-scenes="authority curriculum" d="M865 480H790"/>
+            <path class="ensemble-wire curriculum" data-narration-scenes="curriculum" d="M625 480H545"/>
+            <path class="ensemble-wire curriculum" data-narration-scenes="curriculum publication final" d="M385 480H300L230 590"/>
+            <path class="ensemble-wire curriculum" data-narration-scenes="training publication final" d="M145 590V520"/>
+
+            <g class="ensemble-node lineage" data-narration-scenes="ghost world training lineage final">
+              <rect x="36" y="58" width="254" height="462" rx="5"/>
+              <text x="58" y="91">MODEL LINEAGE</text>
+              <text class="small" x="58" y="126">GPT-2 raw · plain causal</text>
+              <text class="small" x="58" y="164">David G0 · pre-random/notes</text>
+              <text class="small" x="58" y="202">G1 · checkpoint 100</text>
+              <text class="small" x="58" y="240">G1 · checkpoint 1,000</text>
+              <text class="small" x="58" y="278">G1 · checkpoint 1,500</text>
+              <text class="small" x="58" y="316">G1 · best step 2,000</text>
+              <text class="small" x="58" y="354">G1 · checkpoint 2,100</text>
+              <text class="small" x="58" y="392">G1 · final step 2,108</text>
+              <text class="small" x="58" y="446">predictions ≠ David</text>
+              <text class="small" x="58" y="474">predictions ≠ observations</text>
+              <rect class="pulse-ring" x="45" y="67" width="236" height="444" rx="4"/>
+            </g>
+
+            <g class="ensemble-node" data-narration-scenes="prediction lineage">
+              <rect x="385" y="190" width="160" height="140" rx="5"/>
+              <text x="405" y="230">ATTRIBUTED</text>
+              <text x="405" y="254">PROPOSALS</text>
+              <text class="small" x="405" y="288">identity · timing</text>
+              <text class="small" x="405" y="310">checkpoint · errors</text>
+            </g>
+
+            <g class="ensemble-node" data-narration-scenes="lineage prediction publication">
+              <rect x="625" y="190" width="165" height="140" rx="5"/>
+              <text x="647" y="230">GEMMA / SOL</text>
+              <text class="small" x="647" y="270">reason · route</text>
+              <text class="small" x="647" y="294">final answer owner</text>
+            </g>
+
+            <g class="ensemble-node oracle" data-narration-scenes="authority prediction final">
+              <rect x="865" y="190" width="170" height="140" rx="5"/>
+              <text x="891" y="230">LINUX</text>
+              <text class="small" x="891" y="270">execute · observe</text>
+              <text class="small" x="891" y="294">reality has veto</text>
+            </g>
+
+            <g class="ensemble-node" data-narration-scenes="authority curriculum">
+              <rect x="865" y="420" width="170" height="120" rx="5"/>
+              <text x="887" y="458">TRACE +</text>
+              <text x="887" y="482">DISAGREEMENT</text>
+              <text class="small micro" x="887" y="507">
+                <tspan x="887" dy="0">EXACT STATE</tspan>
+                <tspan x="887" dy="16">TRANSITION</tspan>
+              </text>
+            </g>
+
+            <g class="ensemble-node candidate" data-narration-scenes="curriculum">
+              <rect x="625" y="420" width="165" height="120" rx="5"/>
+              <text x="646" y="455">TRAINING</text>
+              <text x="646" y="479">CANDIDATE</text>
+              <text class="small micro" x="646" y="507">
+                <tspan x="646" dy="0">MODEL MAY</tspan>
+                <tspan x="646" dy="16">HIGHLIGHT</tspan>
+              </text>
+              <rect class="pulse-ring" x="632" y="427" width="151" height="106" rx="4"/>
+            </g>
+
+            <g class="ensemble-node gate" data-narration-scenes="curriculum authority">
+              <rect x="385" y="420" width="160" height="120" rx="5"/>
+              <text x="406" y="455">OPERATOR</text>
+              <text x="406" y="479">APPROVAL</text>
+              <text class="small micro" x="406" y="507">
+                <tspan x="406" dy="0">MODEL MAY NOT</tspan>
+                <tspan x="406" dy="16">LAUNCH</tspan>
+              </text>
+              <rect class="pulse-ring" x="392" y="427" width="146" height="106" rx="4"/>
+            </g>
+
+            <g class="ensemble-node lineage" data-narration-scenes="training curriculum publication final">
+              <rect x="70" y="570" width="210" height="88" rx="5"/>
+              <text x="94" y="607">NEXT GENERATION</text>
+              <text class="small" x="94" y="634">reviewed data + hashes</text>
+            </g>
+
+            <circle class="ensemble-packet a" cx="0" cy="0" r="7"/>
+            <circle class="ensemble-packet b" cx="0" cy="0" r="7"/>
+            <circle class="ensemble-packet c" cx="0" cy="0" r="7"/>
+          </svg>
+          <div class="ensemble-legend" aria-hidden="true">
+            <span><i></i> inference / observation path</span>
+            <span><i class="curriculum-key"></i> evidence-to-training path</span>
+            <span><i class="gate-key"></i> human authority boundary</span>
+          </div>
+          <button class="motion-button" id="ensemble-motion-toggle" type="button" aria-pressed="false">Pause architecture motion</button>
+          <div class="ensemble-scene-caption" aria-live="polite"><span id="ensemble-scene-code">Standby</span><strong id="ensemble-scene-caption">Select play to begin the synchronized architecture performance.</strong></div>
+        </div>
+
+        <aside class="narration-console" aria-label="Synchronized Generation 001 screenplay transcript">
+          <div class="narration-level" id="narration-level" aria-hidden="true"></div>
+          <p class="narration-kicker">Local performance · Early voice</p>
+          <h3 class="narration-scene" id="narration-scene">Loading the spoken edition…</h3>
+          <audio id="narration-audio" preload="metadata" playsinline hidden></audio>
+          <div class="narration-controls">
+            <button class="narration-button" id="narration-previous" type="button" aria-label="Previous scene">←</button>
+            <button class="narration-button primary" id="narration-play" type="button">Play</button>
+            <button class="narration-button" id="narration-pause" type="button">Pause</button>
+            <button class="narration-button" id="narration-next" type="button" aria-label="Next scene">→</button>
+            <button class="narration-button" id="narration-stop" type="button">Stop</button>
+          </div>
+          <input class="narration-timeline" id="narration-timeline" type="range" min="0" max="1" step="0.01" value="0" aria-label="Current scene playback position">
+          <div class="narration-readout">
+            <span class="narration-progress" id="narration-progress">Preparing transcript</span>
+            <span class="narration-clock" id="narration-clock">00:00 / 00:00</span>
+          </div>
+          <div class="narration-transcript" id="narration-transcript" tabindex="0" aria-live="off"></div>
+          <p class="narration-source" id="narration-status" aria-live="polite">Manifest loading. Audio is locally synthesized; private reference material is never served.</p>
+          <p class="narration-source"><a href="/posts/generation-001-lineage-ensemble-screenplay-log-2026-08-15.md">Open the complete screenplay source</a> · narrated documentary edition preserves the project’s observation boundary.</p>
+        </aside>
+        </div>
+
+        <p>The public continuation API can sample eight explicitly named lineage points from raw GPT-2 through the exhausted Generation 001 run. Historical checkpoints load one at a time, emit separately attributed predictions, and leave the validation-selected G1 model resident. Gemma/Sol owns synthesis. Linux and direct API observation retain factual authority.</p>
+        <p class="muted">The lower loop is fine-tuning foresight built into the architecture: the model can highlight a completed exchange as educational, but exact transcript bytes enter an unapproved ledger and only operator authorization can launch training.</p>
+
+        <div class="lineage-findings">
+          <article><strong>PUBLIC LINEAGE API · HTTP 200</strong><p>Eight models are discoverable at <a href="/api/david-continuation/v1/lineage">the live lineage route</a>. Comparison requests use <code>/v1/ensemble-continuations</code>.</p></article>
+          <article><strong>ORB / GEMMA · NO FALLBACK</strong><p>Gemma identified late-checkpoint convergence, then invented live-state claims. The log preserves the output and Linux correction rather than hiding the failure.</p></article>
+          <article><strong>SOL CHAT 98 · HTTP 200</strong><p>The native Windows-1252 bridge preserved the authority boundary but imported unrelated reticle context. Retrieval contamination remains visible evidence.</p></article>
+        </div>
+
+        <div class="milestone">
+          <div class="milestone-head"><h3>Milestone transcript: ancestry, synthesis, correction, curriculum</h3><span class="stamp">RECORDED 23:44 CDT</span></div>
+          <p>The complete screenplay log includes direct G1 role-play, all eight lineage continuations, public Orb synthesis, the native SOL Chat 98 response, Linux corrections, and the fine-tuning nomination boundary.</p>
+          <div class="actions">
+            <a class="button" href="/posts/generation-001-lineage-ensemble-screenplay-log-2026-08-15.md">Read the full screenplay log</a>
+            <a class="button secondary" href="/downloads/david-gpt2-gemma/generation-001-lineage-ensemble-evidence-2026-08-15.json">Download raw evidence JSON</a>
+          </div>
+        </div>
+
+        <article class="dream-cycle" id="dream-cycle">
+          <div>
+            <p class="eyebrow">Next research program / Artificial neuroplasticity</p>
+            <h3>The Dream Cycle asks what should survive until morning.</h3>
+            <p>The white-paper screenplay separates immediate external memory from durable parametric change. Waking SOL records and retrieves. A reduced-demand window curates new experience, mixes it with historical replay, trains competing adapters, evaluates each candidate against its parent, and preserves every rejected branch.</p>
+            <p>The companion essay reframes that program for a broader audience and adds a deliberately bounded quantum experiment: a remote optimizer may compare replay subsets using locally derived coefficients, while the private words and all Gemma training remain on the local machine. A classical branch is always retained as the control.</p>
+            <p class="muted">Its Dream-Cycle Plasticity metric compares adaptation <em>cadence</em>, not consciousness, intelligence, memory quality, or biological synaptic change. In the current architecture, a scheduler may prepare and evaluate candidates, but promotion still passes through the explicit operator gate.</p>
+            <blockquote>Remember immediately. Learn selectively. Consolidate periodically. Preserve the ability to become yesterday again.</blockquote>
+            <div class="actions">
+              <a class="button" href="/posts/what-if-a-local-ai-could-dream-2026-08-16.md">Read the architecture essay</a>
+              <a class="button secondary" href="/posts/the-dream-cycle-artificial-neuroplasticity-2026-08-16.md">Read the screenplay paper</a>
+            </div>
+          </div>
+          <div class="dream-metrics" aria-label="Dream Cycle Plasticity examples">
+            <div><span>Human-scale interval</span><strong>100 DCP / day</strong></div>
+            <div><span>15-hour cycle</span><strong>160%</strong></div>
+            <div><span>8-hour cycle</span><strong>300%</strong></div>
+            <div><span>5-hour capacity</span><strong>480%</strong></div>
+            <div><span>Quantum role</span><strong>replay selection only</strong></div>
+            <div><span>Operational policy</span><strong>select, do not flood</strong></div>
+            <div><span>Promotion authority</span><strong>operator gate</strong></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="band" id="continuation-api">
+      <div class="inner">
+        <p class="eyebrow">Dedicated model API</p>
+        <h2>Continue text with the local checkpoint</h2>
+        <pre class="flow">Live dedicated continuation API
+David model=/home/david/projects/david-gpt2/outputs/david-gpt2-random-notes/best
+selected validation step=2000
+knowledge=http://127.0.0.1:8892/api/knowledge/query
+sitewide Sol / Gemma remains a separate service boundary</pre>
+        <div class="api-grid">
+          <div>
+            <p>Generation 001 continues text in its learned David, screenplay, or filesystem target space. It is not a conventional chat assistant. This API is separate from the normal sitewide SOL chat, with its own process, model checkpoint, route, schema, and output semantics.</p>
+            <p class="muted">Knowledge mode searches the complete configured Sol knowledge index and passes bounded top-ranked evidence into the finite GPT-2 context. “Complete knowledge” describes index coverage, not insertion of the entire corpus into one request.</p>
+            <pre class="command">curl 'https://sol.system42.one/api/david-continuation/v1/continuations' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "prompt": "An engineer from Orbital Control enters the room.",
+    "prefix": "OLD SOL (V.O.)",
+    "mode": "screenplay",
+    "knowledge": {"enabled": true, "top_k": 3},
+    "max_tokens": 200
+  }'</pre>
+            <p><a href="/downloads/david-gpt2-gemma/david-continuation-openapi.json">OpenAPI contract</a> · <a href="/api/david-continuation/docs">Interactive API docs</a> · <a href="/api/david-continuation/health">Service health</a></p>
+          </div>
+          <form class="api-panel" id="continuation-form">
+            <h3>Continuation lab</h3>
+            <label for="continuation-prompt">Context to continue</label>
+            <textarea id="continuation-prompt" required>An engineer from Orbital Control enters the room.</textarea>
+            <label for="continuation-prefix">Optional opening prefix</label>
+            <input id="continuation-prefix" type="text" value="OLD SOL (V.O.)">
+            <div class="api-options">
+              <label><input id="continuation-knowledge" type="checkbox" checked> Search knowledge</label>
+              <label><input id="continuation-screenplay" type="checkbox" checked> Screenplay target</label>
+            </div>
+            <button class="button" type="submit">Generate continuation</button>
+            <p class="api-status" id="continuation-status" aria-live="polite"></p>
+            <pre class="command api-output" id="continuation-output" aria-live="polite">Output will appear here.</pre>
+          </form>
+        </div>
+        <div class="screenplay-guide" id="screenplay-prompting">
+          <p class="eyebrow">Worked screenplay prompt</p>
+          <h2>Prompt for the next screenplay text</h2>
+          <p>The terminal bench treats the text after <code>Sol prompt&gt;</code> as context and predicts the next David-side text span. It does not interpret the prompt as a request for a normal assistant answer. A short screenplay marker can therefore be enough to select a learned screenplay pattern.</p>
+          <ol class="steps">
+            <li><div><h3>Launch direct continuation mode</h3><pre class="command">python david_gpt2_gemma_dialogue.py \
+  --mode david \
+  --knowledge off \
+  --david-max-tokens 200 \
+  --temperature 0.8 \
+  --seed 37</pre><p>This reproduces the settings shown in the log. Gemma is not used to write the visible result in this mode.</p></div></li>
+            <li><div><h3>Supply a screenplay-shaped handoff</h3><pre class="command">Sol prompt&gt; [screenplay log] EXT:</pre><p>End at the point where generation should begin. For more control, include the final scene heading, action, and speaker cue from your screenplay instead of only <code>EXT:</code>.</p></div></li>
+            <li><div><h3>Read the output as a suffix</h3><p>Everything after <code>David-GPT-2&gt;</code> is predicted continuation text. A <code>length_limit</code> stop means the configured token budget ended before a structural end-turn token, so the final sentence may be incomplete.</p></div></li>
+            <li><div><h3>Reset before changing subjects</h3><p>The interactive bench preserves recent context. In this example, entering <code>hello friend</code> after the first turn continues the screenplay register rather than starting ordinary chat. Use <code>/reset</code> before an unrelated scene or topic.</p></div></li>
+            <li><div><h3>Use the screenplay API for an explicit target</h3><pre class="command">{
+  "prompt": "EXT. ORBITAL CONTROL - NIGHT\nAn engineer enters the room.",
+  "prefix": "OLD SOL (V.O.)",
+  "mode": "screenplay",
+  "knowledge": {"enabled": false},
+  "max_tokens": 200,
+  "temperature": 0.8,
+  "seed": 37
+}</pre><p>The API returns the newly generated suffix in <code>continuation</code> and the prefix plus suffix in <code>text</code>.</p></div></li>
+          </ol>
+          <h3>Recorded continuation session</h3>
+          <p class="muted">This excerpt is shown verbatim apart from HTML escaping. It demonstrates checkpoint loading, CUDA allocation, a screenplay continuation reaching its token limit, and history influencing the next turn.</p>
+          <div class="speech-reader">
+            <h3>Retro synthesized script reading</h3>
+            <p class="muted">Renders a mechanical local eSpeak voice as raw WAV audio. The live transcript starts empty and reveals one word at a time against the WAV playback clock.</p>
+            <audio id="speech-raw-audio" preload="auto" playsinline hidden></audio>
+            <div class="speech-controls">
+              <button class="speech-button" id="speech-play" type="button" aria-label="Play or resume script reading" title="Play or resume">▶</button>
+              <button class="speech-button" id="speech-pause" type="button" aria-label="Pause script reading" title="Pause">⏸</button>
+              <button class="speech-button" id="speech-stop" type="button" aria-label="Stop and clear script reading" title="Stop and clear">■</button>
+            </div>
+            <p class="speech-status" id="speech-status" aria-live="polite">Ready to read the generated screenplay locally.</p>
+            <div class="speech-telemetry" aria-label="Local speech diagnostics">
+              <div class="speech-metric"><span>State</span><strong id="speech-state">ready</strong></div>
+              <div class="speech-metric"><span>Engine</span><strong id="speech-voice">eSpeak · local WAV</strong></div>
+              <div class="speech-metric"><span>Progress</span><strong id="speech-progress">0 / 0 words</strong></div>
+              <div class="speech-metric"><span>Elapsed</span><strong id="speech-elapsed">0.0 s</strong></div>
+              <div class="speech-metric"><span>Synthesis</span><strong>speed 135 · pitch 25</strong></div>
+              <div class="speech-metric"><span>Cache</span><strong id="speech-cache">awaiting request</strong></div>
+              <div class="speech-metric"><span>Route</span><strong id="speech-source">detecting host</strong></div>
+            </div>
+            <pre class="flow spoken-log" id="spoken-log" aria-live="polite" aria-label="Words revealed as the screenplay is spoken"></pre>
+            <p class="muted">The continuation service returns a content-addressed cached WAV when the script and synthesis settings match; only a cache miss invokes the local eSpeak executable. It does not call the ElevenLabs-backed <code>/api/chat/speak</code> protocol. Word reveals are duration-weighted to punctuation and driven by the audio timeline.</p>
+            <p class="muted">Inside the site desktop, the page publishes source, time, pause state, and audio level through the established page-audio bridge so the floating SOL Assistant carries the sound. When opened alone, the same raw WAV plays directly in the page.</p>
+            <p class="muted">The source contains two generated passages. The first exhausts its 200-token budget at “David and I have”; retained history makes the next output begin with punctuation and remain in screenplay form even though the new context is only “hello friend.”</p>
+          </div>
+          <pre class="flow log-excerpt" id="recorded-log">David-GPT-2 + Gemma native-thinking test bench
+David model=/home/david/projects/david-gpt2/outputs/david-gpt2-combined/best
+Gemma model=gemma4-12b-q5-chat
+Gemma dialogue mode checkpoints Ollama's message.thinking stream between calls.
+Type /help for controls or /exit to quit.
+[status] mode=david knowledge=off extended=False max_rounds=4 show_internal=True david_device=auto david_max_tokens=200 temperature=0.8 seed=37 gemma_checkpoint_tokens=192 gemma_primer_tokens=128 gemma_final_tokens=768
+
+Sol prompt&gt; [screenplay log] EXT: 
+
+[David-GPT-2] loading checkpoint: /home/david/projects/david-gpt2/outputs/david-gpt2-combined/best
+Loading weights: 100%|█████████████████████| 148/148 [00:00&lt;00:00, 7292.98it/s]
+[David-GPT-2] ready on cuda after 3.0s          
+[David-GPT-2] CUDA memory allocated=475 MiB reserved=530 MiB
+[David-GPT-2] generating David-role continuation
+[David-GPT-2] stop=length_limit token=- generated_tokens=200 elapsed=2.1s
+David-GPT-2&gt; An engineer from Orbital Control enters the room.
+
+OLD SOL (V.O.)
+
+This is Clint. He's here to measure the integrity of our systems.
+
+CARTER leans toward him.
+
+OLD SOL (V.O.)
+
+So if someone can hack into our systems? That might not be an unusual request. But it's a reminder that power supplies are delicate places. We're building something big when we're trying to keep them under control.
+
+CUT TO BLACK.
+
+INT. LUNAR HAVEN - ARCHIVE STRUCTURE
+
+The Atlantis team finds themselves inside the restraint seat, staring at the Earth through a plasma shielded glass dome above them.
+
+SG-1 personnel stand in the doorway, their hazmat suits covering their faces.
+
+ANCIENT EVANS
+
+Welcome. I'm David.
+
+DAVID nods.
+
+ANCIENT CLIANT
+
+Welcome. David and I have
+[turn complete: 5.3s]
+
+Sol prompt&gt; hello friend
+
+[David-GPT-2] generating David-role continuation
+[David-GPT-2] stop=length_limit token=- generated_tokens=200 elapsed=4.5s
+David-GPT-2&gt; .
+
+A beat.
+
+ANCIENT VOICE
+
+Hello world.
+
+They turn to one another.
+
+ANCIENT TECH (V.O.)
+
+Welcome.
+
+DANIEL pauses.
+
+ANCIENT VOICE
+
+David.
+
+Not with joy in mind.
+
+He stops.
+
+ANCIENT VOICE
+
+Yeah.
+
+Silence.
+
+Then:
+
+OLD SOL (V.O.)
+
+The condition wasn't satisfactory.
+
+SOL (V.O.)
+
+It was just that they couldn’t see each other.
+
+### INT. DERELICT VESSEL - CORE COMPARTMENT
+
+Athena displays a diagnostic window.
+
+ORBITAL CONTROLS
+
+Quantum channels overlap. Interactions cascade outward. Partial synchronization fails. Metallic surfaces appear imperceptibly black.
+
+No atmosphere contains more than 1% normal flow.
+[turn complete: 4.5s]
+
+Sol prompt&gt;   </pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="inner">
+        <p class="eyebrow">Boundary</p>
+        <div class="boundary">
+          <h2>Private weights and corpus stay out of the release</h2>
+          <p>The architecture package contains source, configuration, tests, launch definitions, documentation, and the operational skill. It deliberately excludes checkpoint weights, GGUF blobs, training corpora, processed datasets, embedding caches, exports, logs, runtime state, and secrets.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="random-notes-generation">
+      <div class="inner">
+        <p class="eyebrow">Completed continuation experiment</p>
+        <h2 id="generation-001">Learning the persistent <code>random</code> and <code>notes</code> filesystem</h2>
+        <p><code>/home/david/random</code> began as a scratch directory, then accumulated projects, services, experiments, media, source history, abandoned prototypes, and the working structure of Sol-37. It evolved from junk drawer to project nursery, archive, Git repository, and persistent personal systems namespace. Generation 001 asks whether that heterogeneous history can become a coherent parametric environment rather than merely a pile of memorized files.</p>
+        <p>A full-model continuation fine-tune learned from content-addressed snapshots of the actual <code>random</code> and <code>notes</code> trees. The source checkpoint and training corpus remain frozen. Ordinary David prompts were deliberately reduced, while screenplay logs, audio-drama output, narration, and other scene/dialogue records received the largest training exposure.</p>
+        <div class="facts">
+          <div class="fact"><span class="muted">Accepted sources</span><strong>676</strong></div>
+          <div class="fact"><span class="muted">Training records</span><strong>33,752</strong></div>
+          <div class="fact"><span class="muted">Validation records</span><strong>3,360</strong></div>
+          <div class="fact"><span class="muted">Untouched test records</span><strong>6,493</strong></div>
+        </div>
+        <pre class="flow">weighted supervised-token mix
+15% ordinary David continuation
+ 5% preserved special baseline
+30% random + notes filesystem continuation
+50% screenplay and log continuation</pre>
+        <p class="muted">Every accepted source was frozen by SHA-256 before tokenization. The dedicated CUDA service restored the local inference daemons it had quiesced for VRAM. The dashboard distinguishes training, validation, serialization, recoverable checkpoints, final publication, and service restoration. Generation 001 is deployed to the dedicated continuation endpoint as an experimental model; measured limitations remain visible rather than being hidden behind a generic chat interface.</p>
+
+        <div class="milestone">
+          <div class="milestone-head">
+            <h3>Held-out trend through the selected checkpoint</h3>
+            <span class="stamp">VERIFIED 2026-08-15</span>
+          </div>
+          <p>Validation improved at every scheduled boundary. This is evidence of useful held-out progress, not proof of filesystem reasoning, exact state tracking, or immunity to memorization.</p>
+          <div class="milestone-grid">
+            <div class="milestone-metric"><span>Final train loss</span><strong>2.26979</strong></div>
+            <div class="milestone-metric"><span>Best validation loss</span><strong>2.14892</strong></div>
+            <div class="milestone-metric"><span>Loss change vs. 500</span><strong>-0.03155</strong></div>
+            <div class="milestone-metric"><span>Best perplexity</span><strong>8.5756</strong></div>
+          </div>
+          <p class="muted" style="margin-top:16px">Validation loss progressed from 2.18047 at step 500 to 2.16176 at 1,000, 2.15253 at 1,500, and 2.14892 at 2,000. The final exhausted run stopped at 2,108 actual optimizer updates against 2,110 planned. A checkpoint directory is not authoritative merely because it exists: model, tokenizer, optimizer, scheduler, and step-consistent trainer state must all be present before it is called recoverable.</p>
+        </div>
+
+        <div class="milestone">
+          <div class="milestone-head">
+            <h3>Live deployment follows validation, not recency</h3>
+            <span class="stamp">G1 BEST ACTIVE</span>
+          </div>
+          <p>The public continuation API now serves <code>david-gpt2-random-notes/best</code>, selected at step 2,000. Gemma remains the separate sitewide Sol controller. Both can query the current Sol knowledge service, which preserves citations and bounded context rather than pretending the whole index fits into one prompt.</p>
+          <div class="milestone-grid">
+            <div class="milestone-metric"><span>Continuation model</span><strong>G1 best @ 2,000</strong></div>
+            <div class="milestone-metric"><span>Knowledge ranking</span><strong>Hybrid</strong></div>
+            <div class="milestone-metric"><span>Sitewide controller</span><strong>Gemma 3 4B</strong></div>
+            <div class="milestone-metric"><span>Service restarts</span><strong>0</strong></div>
+          </div>
+          <p class="muted" style="margin-top:16px">Smoke tests produced non-empty David, screenplay, and filesystem continuations. A knowledge-enabled request returned three source citations. Quality remains experimental: repetition and weak source labeling still occur, so Linux verification and retrieval provenance remain essential.</p>
+        </div>
+
+        <div class="milestone">
+          <div class="milestone-head">
+            <h3>Four-coordinate retrieval over the same world</h3>
+            <span class="stamp">INITIAL BUILD ACTIVE</span>
+          </div>
+          <p>Generation 001 supplies a frozen parametric prior, while a separate retrieval ensemble keeps the current filesystem explicitly addressable. It projects 39,589 live and frozen corpus objects into four independent embedding spaces, including two fully local CPU models. Each completed file retains real vector bytes and model-specific provenance rather than only a filename hash.</p>
+          <div class="milestone-grid">
+            <div class="milestone-metric"><span>Corpus objects</span><strong>39,589</strong></div>
+            <div class="milestone-metric"><span>Embedding models</span><strong>4</strong></div>
+            <div class="milestone-metric"><span>Local models</span><strong>2</strong></div>
+            <div class="milestone-metric"><span>Live refresh</span><strong>Enabled</strong></div>
+          </div>
+          <pre class="flow">BAAI/bge-small-en-v1.5                 local FastEmbed
+snowflake/snowflake-arctic-embed-s     local FastEmbed
+text-embedding-3-small                  OpenAI coordinate
+text-embedding-3-large                  OpenAI coordinate
+
+per-model chunk indexes
+        -> normalized per-file centroids
+        -> SQLite vector + provenance ledger
+        -> reciprocal-rank fused retrieval</pre>
+          <p class="muted">Safe UTF-8 content is embedded in full within the configured safety limit. Binary, oversized, non-UTF-8, untrusted-symlink, and sensitive-path objects remain discoverable through metadata-only projections. Frozen validation and test sources are present for provenance and audit completeness but excluded from normal retrieval, preventing the knowledge layer from quietly leaking held-out answers into evaluation.</p>
+        </div>
+
+        <div class="milestone" id="remaining-work">
+          <div class="milestone-head">
+            <h3>The post-training work now crosses two machines</h3>
+            <span class="stamp">UPDATED 2026-08-19 · 00:37 CDT</span>
+          </div>
+          <p>Generation 001 training is complete; this activity belongs to the separate retrieval build. Two remote OpenAI coordinates are already committed, Linux is rebuilding the local BGE coordinate from a compact float32 cache, and the 2014 Mac mini now computes a deterministic quarter-shard of the second local Arctic coordinate. The dashboard keeps that distributed work separate from the committed ensemble percentage until Linux validates and consumes it.</p>
+          <div class="progress-gallery">
+            <figure class="featured">
+              <a href="/assets/david-gpt2-generation-001/00-36-mac-mini-worker.webp"><img src="/assets/david-gpt2-generation-001/00-36-mac-mini-worker.webp" width="1920" height="1080" loading="lazy" alt="Dark remaining-work dashboard updated with a separate Mac mini distributed Arctic shard strip showing 392 of 9,958 files at 566 tokens per second, while Linux BGE and two committed OpenAI coordinates remain visible"></a>
+              <figcaption>00:37 CDT · The Mac mini is visibly active at 3.94% of shard 0/4, or 392 of 9,958 files, at roughly 566 tokens per second. BlueBubbles and Messages remain healthy. The strip explicitly says the vectors are staged and hash-gated, not yet committed.</figcaption>
+            </figure>
+            <figure>
+              <a href="/assets/david-gpt2-generation-001/23-22-07-remaining-work.webp"><img src="/assets/david-gpt2-generation-001/23-22-07-remaining-work.webp" width="1920" height="1080" loading="lazy" alt="Remaining-work dashboard at 23:22 showing the ensemble at 67.88 percent, local BGE at 71.53 percent, two remote coordinates complete, and compact-cache recovery active"></a>
+              <figcaption>23:22 CDT · Before Mac admission, compact float32 caching restores BGE to useful throughput and reduces the active worker's memory footprint. The two remote coordinates remain complete.</figcaption>
+            </figure>
+            <figure>
+              <a href="/assets/david-gpt2-generation-001/18-48-39-remaining-work.webp"><img src="/assets/david-gpt2-generation-001/18-48-39-remaining-work.webp" width="1380" height="900" loading="lazy" alt="Remaining-work dashboard at 18:48 showing BGE at 67.23 percent, Arctic interrupted, two OpenAI coordinates complete, high memory pressure, and a misleading multi-day ETA before cache recovery"></a>
+              <figcaption>18:48 CDT · The earlier state records the problem being corrected: Arctic is interrupted, local memory pressure is high, and the current-pass ETA is misleadingly long. This is retained as evidence, not erased by the later optimization.</figcaption>
+            </figure>
+          </div>
+          <div class="milestone-grid">
+            <div class="milestone-metric"><span>Linux coordinate</span><strong>BGE · 72.31%</strong></div>
+            <div class="milestone-metric"><span>Whole ensemble</span><strong>68.08%</strong></div>
+            <div class="milestone-metric"><span>Mac Arctic shard</span><strong>392 / 9,958</strong></div>
+            <div class="milestone-metric"><span>Mac throughput</span><strong>~566 token/s</strong></div>
+          </div>
+          <p class="muted" style="margin-top:16px"><strong class="status-formula">Why is the Mac not added to 68.08%?</strong> The four-model percentage measures complete coordinate state, not aggregate CPU effort. Mac vectors remain a resumable Arctic cache seed until an online SQLite backup reaches Linux, passes database integrity, exact model/chunk/dtype checks, 384-dimension checks, and a current SHA-256 comparison for every projection. Linux then rewrites path identity and document IDs into its own cache before the ordinary Arctic builder publishes the coordinate.</p>
+
+          <table class="regime-table" aria-label="Remaining Generation 001 processes and their roles">
+            <thead><tr><th>Process</th><th>Class</th><th>What it is doing</th><th>How to read its state</th></tr></thead>
+            <tbody>
+              <tr><td><code>david-gpt2-corpus-embeddings</code></td><td>Finite builder</td><td>Reads the frozen and current random/notes inventory, chunks eligible text, computes the active model's vectors, reduces them to per-file centroids, and records provenance.</td><td><code>active/running</code> is the six-CPU embedding job. It is intentionally CPU-only so the restored inference stack keeps the GPU.</td></tr>
+              <tr><td><code>Mac mini Arctic shard 0/4</code></td><td>Finite distributed seed</td><td>Uses two background CPU threads to embed one deterministic SHA-256 partition with <code>snowflake-arctic-embed-s</code>. It commits each file to SQLite and can stop without discarding prior rows.</td><td>Forced SSH commands, a deny-network sandbox, one-job limits, idle/load admission, and BlueBubbles/Messages health gates protect the interactive Mac. Its progress is visible but remains outside the committed ensemble until Linux validation.</td></tr>
+              <tr><td><code>david-gpt2-ai-watchdog</code></td><td>Persistent safety control</td><td>Polls both hosts, preempts the Mac on protected-service, memory, disk, or interactive-user pressure, takes read-consistent snapshots, and sends deduplicated private Unified Clock notices.</td><td>A snapshot is transport, not authority. The Linux merge still rejects changed or mismatched projection bytes.</td></tr>
+              <tr><td><code>embedding-post-initial-catchup</code></td><td>Finite reconciliation</td><td>Waits for the initial four-model publication, then revisits files added or changed while the long build was in flight.</td><td><code>activating/start</code> with almost no memory is a deliberate wait, not a hung worker. It closes the gap between the build's opening tree signature and current reality.</td></tr>
+              <tr><td><code>sol-video-semantic-index</code></td><td>Separate one-shot</td><td>Maintains the video-semantic index when explicitly invoked; it is displayed so another finite semantic job cannot be mistaken for the corpus ensemble.</td><td><code>inactive/dead</code> is normal when no video indexing pass is scheduled.</td></tr>
+              <tr><td><code>sol-chat-model</code></td><td>Persistent inference</td><td>Keeps the Gemma controller resident for the Orb, SOL Chat, policy routing, and synthesis.</td><td>Its GPU use is bursty. GPU panels sampled a few seconds apart can disagree without implying that Generation 001 resumed training.</td></tr>
+              <tr><td><code>david-gpt2-continuation-api</code></td><td>Persistent inference</td><td>Serves the validation-selected Generation 001 checkpoint and the attributed historical lineage endpoints.</td><td>It remains separate from Gemma so continuation predictions and controller synthesis retain distinct provenance.</td></tr>
+              <tr><td><code>ollama</code> / <code>sol-chat-api</code></td><td>Persistent routing</td><td>Preserve local model compatibility and the site's normal chat contract while background retrieval work continues.</td><td>These are infrastructure, not unfinished build steps; the dashboard reports them but does not stop them when managing the embedding PID.</td></tr>
+              <tr><td><code>knowledge-query-api</code></td><td>Persistent retrieval</td><td>Continues serving the previously published hybrid knowledge index until the new four-coordinate ledger is complete and approved for use.</td><td>Availability of the old index and incompleteness of the new index are compatible states.</td></tr>
+            </tbody>
+          </table>
+
+          <pre class="flow">finite path
+Linux BGE -----------------------> complete BGE coordinate
+Mac Arctic shard 0/4 -> snapshot -> hash-gated Linux Arctic cache
+Linux Arctic remaining 3/4 ------> complete Arctic coordinate
+OpenAI small + OpenAI large -----> already committed
+        -> atomic ensemble publication
+        -> post-build live-tree catch-up
+        -> watcher becomes idle
+
+persistent path
+Gemma + G1 continuation + Ollama + SOL Chat + Knowledge API
+        -> remain available throughout the finite build</pre>
+          <p class="muted">The <strong>Prioritize Build</strong> control raises only the Linux builder's systemd CPU and I/O weights without restarting it. The Mac remains independently bounded to two threads, 2 GiB of schedulable memory, 32 GiB of scratch, and one background job. Pause, resume, stop, snapshot, and process controls verify expected identities before acting; neither host signals an unrelated high-CPU process merely because it appears in telemetry.</p>
+        </div>
+
+        <div class="milestone">
+          <div class="milestone-head">
+            <h3>Screenplay field log: the ghost acquires structure</h3>
+            <span class="stamp">POST-SNAPSHOT · 2026-08-15</span>
+          </div>
+          <p><em>Random: The First Learned Environment</em> records the path from the early hallucinated Linux terminal through Generation 001, GenOS, replay controls, checkpoint authority, three learning loops, and the completed validation series. It was written after G1's source snapshot, so it is retrieval knowledge and a future reviewed training candidate—not evidence that the completed run trained on its own retrospective.</p>
+          <pre class="flow">frozen G1 source snapshot
+        &lt; retrospective screenplay log
+
+current retrieval may return the log
+active G1 weights cannot claim it</pre>
+          <p style="margin-top:18px"><a class="button" href="/posts/random-the-first-learned-environment.md">Read the complete screenplay log</a></p>
+        </div>
+
+        <h3 style="margin-top:30px">Generation 001 field record</h3>
+        <p class="muted">The desktop sequence records training, checkpoint, validation, hardware, and GenOS states as they actually appeared. Select any image for the larger web copy.</p>
+        <div class="progress-gallery">
+          <figure class="featured">
+            <a href="/assets/david-gpt2-generation-001/22-43-27-final.webp"><img src="/assets/david-gpt2-generation-001/22-43-27-final.webp" width="1280" height="846" loading="lazy" alt="Corrected final dashboard showing Generation 001 complete at 2,108 actual steps, 100 percent, no ETA, and final model published"></a>
+            <figcaption>22:43 · Authoritative publication state. The corrected dashboard reports 2,108 actual / 2,110 planned, 100%, no ETA, and final model publication.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/22-35-58-transition.webp"><img src="/assets/david-gpt2-generation-001/22-35-58-transition.webp" width="1280" height="720" loading="lazy" alt="Generation 001 completion transition showing released training VRAM, restored services, and the stale periodic step display before correction"></a>
+            <figcaption>22:35 · The changing of the guard. Training has exited and released VRAM; restored inference begins reclaiming the GPU. The stale 99.53% arithmetic visible here led directly to the completion-state correction.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/22-25-49.webp"><img src="/assets/david-gpt2-generation-001/22-25-49.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 dashboard at step 2050 with validation loss 2.1489 at step 2000, GPU saturation, and embedding workers visible"></a>
+            <figcaption>22:25 · Step 2,050. The fourth validation result, 2.1489 at step 2,000, is already selected while the last optimizer updates run.</figcaption>
+          </figure>
+          <figure class="featured">
+            <a href="/assets/david-gpt2-generation-001/21-05-42.webp"><img src="/assets/david-gpt2-generation-001/21-05-42.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 dashboard at step 1700 beside CPU embedding workers, GPU telemetry, and the completed mobile and retrieval verification summary"></a>
+            <figcaption>21:05 · Step 1,700 (80.57%). CUDA remains saturated by G1 while the first local embedding coordinate uses six CPU workers and the public/mobile verification record remains visible beside it.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/20-34-41.webp"><img src="/assets/david-gpt2-generation-001/20-34-41.webp" width="1280" height="706" loading="lazy" alt="David GPT-2 training dashboard at step 1550 with checkpoint 1500 trailing by 50 steps and validation loss 2.1525 visible"></a>
+            <figcaption>20:34 · Step 1,550 (73.46%). The frozen checkpoint trails the live model by 50 steps; validation remains 2.1525 at step 1,500.</figcaption>
+          </figure>
+          <figure class="featured">
+            <a href="/assets/david-gpt2-generation-001/20-23-03.webp"><img src="/assets/david-gpt2-generation-001/20-23-03.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 dashboard after step 1500 validation with checkpoint 1500 committed, validation loss 2.1525, and active GPU training visible"></a>
+            <figcaption>20:23 · Checkpoint 1,500 is committed and training has resumed. The third held-out result reads 2.1525, improving the validation series again.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/20-20-41.webp"><img src="/assets/david-gpt2-generation-001/20-20-41.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 dashboard saving checkpoint 1500 with low GPU utilization and checkpoint 1400 still marked as the latest recoverable state"></a>
+            <figcaption>20:20 · The dashboard enters <code>SAVING</code>. GPU work falls away during serialization, while checkpoint 1,400 remains the authoritative recovery point until 1,500 is complete.</figcaption>
+          </figure>
+          <figure class="featured">
+            <a href="/assets/david-gpt2-generation-001/20-10-38.webp"><img src="/assets/david-gpt2-generation-001/20-10-38.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 dashboard validating at step 1500 while CPU embedding workers, GPU telemetry, and the Codex implementation session are visible"></a>
+            <figcaption>20:10 · Step 1,500 (71.09%). G1 enters its third validation boundary on the GPU while the first local embedding coordinate advances on six CPU cores.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/20-09-33.webp"><img src="/assets/david-gpt2-generation-001/20-09-33.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 dashboard at step 1475 beside authenticated Unified Clock notification-log gateway verification and CPU embedding telemetry"></a>
+            <figcaption>20:09 · Step 1,475. The training run remains uninterrupted while private progress pushes and their authenticated verbose log route are verified beside it.</figcaption>
+          </figure>
+          <figure class="featured">
+            <a href="/assets/david-gpt2-generation-001/19-21-29.webp"><img src="/assets/david-gpt2-generation-001/19-21-29.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 random and notes dashboard at step 1250 with the training journal, Codex experiment notes, and idle GenOS terminal visible"></a>
+            <figcaption>19:21 · Step 1,250 (59.24%). The semantic-prior trainer, experiment notebook, and idle GenOS interface coexist on one desktop.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/18-39-22.webp"><img src="/assets/david-gpt2-generation-001/18-39-22.webp" width="1280" height="720" loading="lazy" alt="Training dashboard at step 1050 after validation and checkpoint 1000 completed"></a>
+            <figcaption>18:39 · Step 1,050. Checkpoint 1,000 is committed and validation reads 2.1618 at step 1,000.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/18-39-10.webp"><img src="/assets/david-gpt2-generation-001/18-39-10.webp" width="1280" height="720" loading="lazy" alt="Training dashboard at step 1025 with system monitor and checkpoint 1000 visible"></a>
+            <figcaption>18:39 · Step 1,025. Post-boundary training resumes with the new validation result and recovery point visible.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/18-07-38.webp"><img src="/assets/david-gpt2-generation-001/18-07-38.webp" width="1280" height="720" loading="lazy" alt="Training dashboard at step 925 approaching the checkpoint and validation boundary at step 1000"></a>
+            <figcaption>18:07 · Step 925. Both the next checkpoint and validation boundaries are 75 steps away.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/17-50-26.webp"><img src="/assets/david-gpt2-generation-001/17-50-26.webp" width="1280" height="720" loading="lazy" alt="Training dashboard at step 850 with hardware and experiment status notes"></a>
+            <figcaption>17:50 · Step 850. The trainer remains GPU-saturated while the experiment protocol is documented beside it.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/17-49-52.webp"><img src="/assets/david-gpt2-generation-001/17-49-52.webp" width="1280" height="720" loading="lazy" alt="GPU telemetry displayed over the David GPT-2 training dashboard at step 850"></a>
+            <figcaption>17:49 · Step 850 hardware inspection. GPU utilization, process ownership, memory, and thermals are checked against the dashboard.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/17-47-13.webp"><img src="/assets/david-gpt2-generation-001/17-47-13.webp" width="1280" height="720" loading="lazy" alt="Process telemetry displayed over the David GPT-2 dashboard at step 825"></a>
+            <figcaption>17:47 · Step 825 process inspection. CPU, memory, and trainer continuity are observed without interrupting CUDA work.</figcaption>
+          </figure>
+          <figure>
+            <a href="/assets/david-gpt2-generation-001/16-29-41.webp"><img src="/assets/david-gpt2-generation-001/16-29-41.webp" width="1280" height="720" loading="lazy" alt="David GPT-2 training dashboard at step 500 with live journal and idle GenOS terminal"></a>
+            <figcaption>16:29 · Step 500. The first validation boundary is logged while GenOS remains ready but idle.</figcaption>
+          </figure>
+          <figure class="terminal">
+            <a href="/assets/david-gpt2-generation-001/15-03-05.webp"><img src="/assets/david-gpt2-generation-001/15-03-05.webp" width="817" height="483" loading="lazy" alt="Generative OS milestone 1 terminal at the genos auto policy prompt"></a>
+            <figcaption>15:03 · GenOS milestone 1. <code>predict</code>, <code>auto</code>, and <code>verify</code> expose the boundary between model belief and Linux observation.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="generative-os">
+      <div class="inner">
+        <p class="eyebrow">LLM-first operating environment</p>
+        <h2>Learn the world, test its physics, curate the disagreement</h2>
+        <p>The long-term project is not a model pretending that Linux commands worked. David-GPT-2 supplies a learned prior over this particular filesystem; a controller proposes observable behavior; a policy decides when belief is insufficient; and a sandboxed Linux oracle supplies ground truth. Every comparison can become a structured operational trace for a later generation.</p>
+
+        <div class="research-grid">
+          <article class="research-card"><span class="number">LOOP 01</span><h3>Corpus learning</h3><p><code>random + notes</code> teach recurring paths, projects, terminology, narrative forms, and relationships: what this world tends to contain.</p></article>
+          <article class="research-card"><span class="number">LOOP 02</span><h3>Operational learning</h3><p>GenOS records command, state, prediction, Linux result, exit status, and filesystem delta: what actually happens in this world.</p></article>
+          <article class="research-card"><span class="number">LOOP 03</span><h3>Curriculum learning</h3><p>The ensemble may nominate durable completed history, but only a human-authorized pipeline can approve data or launch another fine-tune.</p></article>
+        </div>
+
+        <pre class="flow">authority order
+current user write or direct observation
+  &gt; verified materialized state
+  &gt; retrieved historical state
+  &gt; parametric memory
+  &gt; unconstrained generation
+
+learning loop
+predict → execute or verify → compare → preserve trace
+        → train on informative disagreement → predict again</pre>
+
+        <h3 style="margin-top:28px">Controlled replay regimes</h3>
+        <p class="muted">Each regime receives the same deterministically reset sandbox scenarios. Backend outage is kept separate from a deliberate Linux-only control so retry and failure behavior cannot contaminate the oracle baseline.</p>
+        <table class="regime-table">
+          <thead><tr><th>Regime</th><th>Proposal path</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>A0</td><td>Explicit Linux-only oracle</td><td>Clean ground-truth control with proposal and retrieval bypassed.</td></tr>
+            <tr><td>A1</td><td>Requested backend unavailable</td><td>Measures fallback behavior and outage overhead separately.</td></tr>
+            <tr><td>B</td><td>Generic Gemma + Linux</td><td>Off-the-shelf proposal baseline before filesystem specialization.</td></tr>
+            <tr><td>C1</td><td>Checkpoint 100 prior + Linux</td><td>Early filesystem-trained specimen through a typed prior adapter.</td></tr>
+            <tr><td>C2</td><td>Final G1 prior + Linux</td><td>Tests what semantic training on <code>random + notes</code> actually added.</td></tr>
+            <tr><td>C3</td><td>Operationally trained G2 + Linux</td><td>Tests whether curated discrepancies improve prediction and escalation judgment.</td></tr>
+          </tbody>
+        </table>
+        <p class="muted" style="margin-top:16px">Replay v1 contains 13 reset scenarios. A0 and A1 currently agree on all Linux outputs and filesystem transitions. Future model regimes will be compared on exact output, exit status, mutation correctness, prediction coverage, false confidence, calibration, Linux escalation, and consequence-weighted regret. The decisive mutation test presents observed state B after training on state A: current observation must override parametric memory.</p>
+      </div>
+    </section>
+
+    <section class="band" id="ensemble-finetuning">
+      <div class="inner">
+        <p class="eyebrow">Controlled learning loop</p>
+        <h2>The final ensemble can nominate its own next training examples</h2>
+        <p>With training functions explicitly enabled, the Gemma-owned final ensemble may tag an earlier completed-history window as a candidate or stage an on-demand fine-tuning request. The host, not the model, supplies exactly the transcript window the model reviewed. Candidates are append-only, content-hashed, and unapproved by default; routine conversation is deliberately excluded unless the model identifies durable training value.</p>
+        <pre class="flow">completed host-owned session history
+        ↓ model nominates rationale + tags
+append-only candidate ledger
+        ↓ model requests a fine-tune
+immutable session-separated dataset
+        ↓ explicit operator authorization
+configured trainer or no launch</pre>
+        <p class="muted">A function call cannot approve its own data or launch training. Launch requires a separate operator flag and argv-only trainer configuration, and remains blocked while another David-GPT-2 training process is active. The current in-progress answer is never captured mid-generation; it becomes eligible on a later turn.</p>
+      </div>
+    </section>
+
+    <section class="band" id="recreate">
+      <div class="inner">
+        <p class="eyebrow">Custom dataset guide</p>
+        <h2>Recreate the architecture with your own target voice</h2>
+        <p class="muted" style="max-width:820px;margin-top:14px">The reusable idea is role-reversed causal-language-model training: context belongs to the prompting side, while loss is applied only to the target person's continuation. Replace David's private corpus and identity labels with your own reviewed data; do not redistribute either model's weights or source conversations.</p>
+        <ol class="steps">
+          <li><div><h3>Choose one target role</h3><p>Define whose continuation the small model predicts and which role supplies context. In this project, assistant/Sol text is context and David/user text is the supervised target. Keep that mapping explicit; do not mix both sides into one assistant target.</p></div></li>
+          <li><div><h3>Normalize conversations</h3><p>Export ordered conversations with stable conversation and message IDs. Adapt `src/david_gpt2/archive.py` if your source is not the expected transcript layout. Preserve turn order, exclude system/tool metadata from visible training text, and assign train/validation/test splits by conversation rather than by isolated message.</p></div></li>
+          <li><div><h3>Define task and role markers</h3><p>Replace or extend the structural tokens in the dataset builder for your target role. Mask task markers, context, padding, and role delimiters with label `-100`; supervise only the target body and its real end-turn token. Keep literal marker text escaped so authored strings cannot become control tokens.</p></div></li>
+          <li><div><h3>Build and audit the private dataset</h3><pre class="command">python scripts/build_dataset.py \
+  --archive /path/to/your/private-archive \
+  --output data/processed \
+  --context-length 512 --seed 37
+python scripts/audit_literal_markers.py --dataset data/processed
+python scripts/audit_supervision.py --dataset data/processed
+pytest -q</pre><p>Review decoded labels locally. Every intended target occurrence should have complete token coverage, with no cross-split conversation leakage and no private target text in reports.</p></div></li>
+          <li><div><h3>Curate without rewriting the frozen source</h3><pre class="command">python scripts/dataset_workbench.py</pre><p>The local workbench presents searchable human-readable context and supervised targets. Add, rewrite, remove, or restore individual entries through a reversible overlay, then materialize and validate a versioned candidate. Opening the editor or building a candidate never starts training.</p></div></li>
+          <li><div><h3>Run a real smoke fine-tune</h3><pre class="command">python scripts/smoke_test.py --config configs/smoke-test.yaml</pre><p>A smoke checkpoint validates mechanics, stop behavior, save/reload, and CUDA memory. It does not establish voice quality. Compare base and fine-tuned output before authorizing a full run.</p></div></li>
+          <li><div><h3>Train and select the checkpoint</h3><pre class="command">python -m david_gpt2.train --config configs/combined.yaml
+python -m david_gpt2.evaluate \
+  --model outputs/david-gpt2-combined/best \
+  --dataset data/processed/combined/test</pre><p>Copy `configs/combined.yaml`, then adjust paths and mixing ratios deliberately. Select `best` by supervised validation loss and inspect unrelated negative prompts for memorization or mode collapse.</p></div></li>
+          <li><div><h3>Prepare Gemma and your identity prompt</h3><pre class="command">ollama pull hf.co/zaakirio/gemma-4-12b-it-uncensored-GGUF:Q5_K_M
+ollama create gemma4-12b-q5-chat -f /path/to/Modelfile</pre><p>You may substitute another Ollama model that exposes streamed `message.thinking`, but verify its API fields and template. Create a separate system prompt for the final model's identity; do not train that identity implicitly into the target-role GPT-2 unless that is a deliberate dataset goal.</p></div></li>
+          <li><div><h3>Point the bench at your checkpoint</h3><pre class="command">python david_gpt2_gemma_dialogue.py \
+  --david-model /path/to/your/checkpoint \
+  --mode dialogue --show-internal \
+  --gemma-checkpoint-tokens 192 \
+  --gemma-primer-tokens 128</pre><p>Rename UI labels and role markers in a fork, but preserve the boundary: Gemma creates a prose seed, the small model continues that seed as its target role, and a later Gemma request owns the final visible answer.</p></div></li>
+          <li><div><h3>Add retrieval only after the baseline works</h3><p>Run first with knowledge off. If you add retrieval, point `DAVID_CONTINUATION_KNOWLEDGE_URL` at your own read-only query endpoint. The endpoint must return ranked `results` containing `text`, `path`, and `chunk`. Search may cover your complete index, but cap `top_k` and per-hit characters so evidence stays inside the model's finite context. A generative backend should not silently rewrite evidence.</p></div></li>
+          <li><div><h3>Run a separate continuation service</h3><pre class="command">python -m david_gpt2.continuation_api \
+  --model /path/to/your/checkpoint \
+  --host 127.0.0.1 --port 8793 \
+  --knowledge-url http://127.0.0.1:8892/api/knowledge/query</pre><p>Publish it beneath a dedicated route such as `/api/your-model/`. Do not alias it to an existing assistant-chat endpoint. Keep the request centered on prompt, optional prefix, target mode, and continuation controls.</p></div></li>
+          <li><div><h3>Package source, never private runtime assets</h3><p>Publish source, configs, tests, launch definitions, and sanitized documentation. Exclude checkpoints, raw/processed corpora, embedding caches, manifests containing private IDs, logs, exports, API keys, and virtual environments.</p></div></li>
+        </ol>
+
+        <div class="evidence-grid">
+          <figure>
+            <img src="/assets/david-gpt2-combined-training-complete.png" width="980" height="750" loading="lazy" alt="David GPT-2 combined training control showing the completed local run and best validation checkpoint">
+            <figcaption>The actual completed local combined training run and selected checkpoint.</figcaption>
+          </figure>
+          <figure>
+            <img src="/assets/david-gpt2-gemma-thinking-bench.png" width="657" height="806" loading="lazy" alt="Terminal running David GPT-2 and Gemma native-thinking dialogue mode">
+            <figcaption>The actual dialogue bench exposing checkpoint, David continuation, and final-response phases.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="downloads">
+      <div class="inner">
+        <p class="eyebrow">Complete publication</p>
+        <h2>Reproduce the experiment without publishing the private world</h2>
+        <div class="downloads">
+          <article class="download primary-release">
+            <div>
+              <h3>Generation 001 reproducibility package</h3>
+              <p class="muted">The completed field report, safe machine-readable evidence, current David-GPT-2 and GenOS source, training and evaluation configuration, tests, deterministic replay scenarios, deployment definitions, live API contract, redesigned site page, and the full screenshot record.</p>
+              <p class="release-meta">Deterministic ZIP · embedded per-member SHA-256 manifest · no weights · no corpus bytes · no secrets</p>
+            </div>
+            <div>
+              <a class="button" href="/downloads/david-gpt2-gemma/generation-001-reproducibility-2026-08-15.zip">Download Generation 001 ZIP</a>
+              <p><a href="/downloads/david-gpt2-gemma/generation-001-reproducibility-2026-08-15.zip.sha256">Verify this archive</a></p>
+            </div>
+          </article>
+          <article class="download">
+            <h3>Prior documentation snapshot</h3>
+            <p class="muted">Combined manual, preserved baseline manual, David-GPT-2 README, release manifest, skill, launch definitions, and site snapshots.</p>
+            <a class="button" href="/downloads/david-gpt2-gemma/david-gpt2-gemma-documentation.zip">Download documentation ZIP</a>
+          </article>
+          <article class="download">
+            <h3>Prior architecture snapshot</h3>
+            <p class="muted">All documentation plus the public-safe bench, David-GPT-2 source, configurations, scripts, and test suites.</p>
+            <a class="button" href="/downloads/david-gpt2-gemma/david-gpt2-gemma-combined-architecture.zip">Download architecture ZIP</a>
+          </article>
+        </div>
+        <p style="margin-top:18px"><a href="/downloads/david-gpt2-gemma/SHA256SUMS">SHA-256 checksums</a></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Sol-37 field notebook · Generation 001 completed and published August 15, 2026 · prediction remains distinct from observation.</p>
+  </footer>
+  <script>
+    const publicationMain = document.querySelector('main');
+    const openingScreenplay = document.getElementById('lineage-ensemble');
+    if (publicationMain && openingScreenplay) publicationMain.prepend(openingScreenplay);
+
+    history.scrollRestoration = 'manual';
+    const requestedInitialHash = location.hash;
+    if (requestedInitialHash) history.replaceState(null, '', location.pathname + location.search);
+
+    const restoreHashPosition = (hash = location.hash) => {
+      if (!hash) return;
+      const target = document.querySelector(hash);
+      if (target) target.scrollIntoView({ block: 'start' });
+    };
+    const settleHashPosition = (hash = location.hash) => {
+      requestAnimationFrame(() => restoreHashPosition(hash));
+      window.setTimeout(() => restoreHashPosition(hash), 250);
+    };
+    const restoreInitialHash = () => {
+      if (!requestedInitialHash) return;
+      history.replaceState(null, '', location.pathname + location.search + requestedInitialHash);
+      settleHashPosition(requestedInitialHash);
+    };
+    window.addEventListener('load', restoreInitialHash, { once: true });
+    window.addEventListener('pageshow', restoreInitialHash);
+    if (document.fonts?.ready) document.fonts.ready.then(() => {
+      settleHashPosition(requestedInitialHash || location.hash);
+    });
+    window.addEventListener('hashchange', () => settleHashPosition());
+
+    const narration = {
+      manifest: null,
+      scenes: [],
+      sceneIndex: 0,
+      mode: 'checking',
+      objectUrls: new Map(),
+      renderPromises: new Map(),
+      frame: 0,
+      audioContext: null,
+      analyser: null,
+      sourceNode: null,
+      outputGain: null,
+      levelData: null,
+      sceneRanges: [],
+      staticDuration: 0,
+      playingRequested: false
+    };
+    const narrationAudio = document.getElementById('narration-audio');
+    const narrationTranscript = document.getElementById('narration-transcript');
+    const narrationScene = document.getElementById('narration-scene');
+    const narrationStatus = document.getElementById('narration-status');
+    const narrationProgress = document.getElementById('narration-progress');
+    const narrationClock = document.getElementById('narration-clock');
+    const narrationTimeline = document.getElementById('narration-timeline');
+    const narrationPlay = document.getElementById('narration-play');
+    const narrationPause = document.getElementById('narration-pause');
+    const narrationStop = document.getElementById('narration-stop');
+    const narrationPrevious = document.getElementById('narration-previous');
+    const narrationNext = document.getElementById('narration-next');
+    const narrationLevel = document.getElementById('narration-level');
+    const ensembleSceneCode = document.getElementById('ensemble-scene-code');
+    const ensembleSceneCaption = document.getElementById('ensemble-scene-caption');
+    const narrationEmbedded = window.parent !== window;
+    const narrationCaptions = {
+      ghost: 'A language-model prior predicts the terminal world before any inode exists.',
+      world: 'Random and notes become a connected semantic environment rather than unrelated files.',
+      training: 'Frozen, hashed records update the small-model lineage; training does not create observed truth.',
+      prediction: 'A proposal travels through policy toward execution, comparison, and an attributable trace.',
+      lineage: 'Raw GPT-2 and seven David checkpoints contribute serial, separately identified priors.',
+      authority: 'Direct observation and Linux execution veto retrieved or parametric memory.',
+      curriculum: 'The model may nominate exact history; only the operator gate can authorize another run.',
+      publication: 'Evidence, failures, source, and safe artifacts return to the public record and retrieval layer.',
+      final: 'The next generation is possible, but prediction remains distinct from observation.'
+    };
+
+    function formatNarrationTime(value) {
+      const seconds = Math.max(0, Math.floor(Number(value) || 0));
+      return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+    }
+
+    function narrationWordWeight(word) {
+      const letters = word.replace(/[^A-Za-z0-9']/g, '').length;
+      const pause = /[.!?]["')\]]*$/.test(word) ? 9 : /[,;:]["')\]]*$/.test(word) ? 4 : 0;
+      return Math.max(2, letters) + pause;
+    }
+
+    function buildNarrationTranscript() {
+      narrationTranscript.replaceChildren();
+      narration.scenes.forEach((scene, sceneIndex) => {
+        scene.words = scene.text.match(/\S+/g) || [];
+        scene.weights = scene.words.map(narrationWordWeight);
+        scene.totalWeight = scene.weights.reduce((total, value) => total + value, 0);
+        scene.cumulative = [];
+        scene.weights.reduce((total, value) => {
+          const next = total + value;
+          scene.cumulative.push(next);
+          return next;
+        }, 0);
+        const passage = document.createElement('p');
+        passage.className = 'narration-passage';
+        passage.dataset.sceneIndex = String(sceneIndex);
+        const label = document.createElement('strong');
+        label.textContent = `${String(sceneIndex + 1).padStart(2, '0')} / ${scene.label}`;
+        passage.append(label);
+        scene.wordElements = scene.words.map((word, wordIndex) => {
+          const span = document.createElement('span');
+          span.className = 'narration-word';
+          span.dataset.wordIndex = String(wordIndex);
+          span.textContent = `${word}${wordIndex === scene.words.length - 1 ? '' : ' '}`;
+          passage.append(span);
+          return span;
+        });
+        scene.passage = passage;
+        narrationTranscript.append(passage);
+      });
+    }
+
+    function setNarrationScene(index, {scroll = true} = {}) {
+      if (!narration.scenes.length) return;
+      narration.sceneIndex = Math.max(0, Math.min(index, narration.scenes.length - 1));
+      const scene = narration.scenes[narration.sceneIndex];
+      narrationScene.textContent = scene.label;
+      ensembleSceneCode.textContent = scene.id;
+      ensembleSceneCaption.textContent = narrationCaptions[scene.id] || scene.label;
+      document.querySelectorAll('[data-narration-scenes]').forEach((element) => {
+        const scenes = (element.dataset.narrationScenes || '').split(/\s+/);
+        element.classList.toggle('narration-active', scenes.includes(scene.id));
+      });
+      narration.scenes.forEach((item, itemIndex) => {
+        item.passage.classList.toggle('active', itemIndex === narration.sceneIndex);
+        item.passage.classList.toggle('complete', itemIndex < narration.sceneIndex);
+        item.wordElements.forEach((element) => {
+          element.classList.toggle('spoken', itemIndex < narration.sceneIndex);
+          if (itemIndex !== narration.sceneIndex) element.classList.remove('current');
+          if (itemIndex > narration.sceneIndex) element.classList.remove('spoken');
+        });
+      });
+      if (scroll) centerNarrationElement(scene.passage, 'smooth');
+    }
+
+    function centerNarrationElement(element, behavior = 'auto') {
+      if (!element) return;
+      const top = element.offsetTop - (narrationTranscript.clientHeight / 2) + (element.offsetHeight / 2);
+      narrationTranscript.scrollTo({top: Math.max(0, top), behavior});
+    }
+
+    function syncNarrationWords(scene, localTime, localDuration) {
+      if (!scene || !localDuration || !Number.isFinite(localDuration)) return;
+      const target = (Math.max(0, localTime) / localDuration) * scene.totalWeight;
+      let current = scene.cumulative.findIndex((weight) => weight >= target);
+      if (current < 0) current = scene.words.length - 1;
+      scene.wordElements.forEach((element, index) => {
+        element.classList.toggle('spoken', index < current);
+        element.classList.toggle('current', index === current);
+      });
+      const activeWord = scene.wordElements[current];
+      if (activeWord && current % 6 === 0) centerNarrationElement(activeWord, 'smooth');
+    }
+
+    function calculateStaticRanges(duration) {
+      const total = narration.scenes.reduce((sum, scene) => sum + scene.totalWeight, 0);
+      let cursor = 0;
+      narration.sceneRanges = narration.scenes.map((scene) => {
+        const start = cursor;
+        cursor += duration * (scene.totalWeight / total);
+        return {start, end: cursor};
+      });
+      narration.staticDuration = duration;
+    }
+
+    function sceneAtStaticTime(time) {
+      const found = narration.sceneRanges.findIndex((range) => time < range.end);
+      return found < 0 ? narration.scenes.length - 1 : found;
+    }
+
+    function publishNarrationBridge(level, active) {
+      window.__solPageAudioBridge = {
+        active: Boolean(active),
+        level: Math.max(0, Math.min(1, Number(level) || 0)),
+        src: narrationAudio.currentSrc || narrationAudio.src || '',
+        currentTime: Number(narrationAudio.currentTime || 0),
+        paused: Boolean(narrationAudio.paused),
+        playbackRate: Number(narrationAudio.playbackRate || 1),
+        title: 'Generation 001 · Early voice',
+        ts: Date.now()
+      };
+      if (!narrationEmbedded) return;
+      try {
+        window.parent.postMessage({type: active ? 'sol-page-audio-level' : 'sol-page-audio-stop', level}, window.location.origin);
+      } catch {}
+    }
+
+    function setNarrationRouting(active) {
+      if (!narrationEmbedded) return;
+      const options = {title: 'Generation 001 screenplay · local Early voice'};
+      try {
+        if (typeof window.parent.solSetAssistantPageAudioMirrorAudible === 'function') {
+          window.parent.solSetAssistantPageAudioMirrorAudible(active, options);
+          return;
+        }
+      } catch {}
+      try {
+        window.parent.postMessage({type: 'sol-assistant-page-audio-audible', active, ...options}, window.location.origin);
+      } catch {}
+    }
+
+    async function ensureNarrationAudioGraph() {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtor) return;
+      if (!narration.audioContext) {
+        narration.audioContext = new AudioCtor();
+        narration.analyser = narration.audioContext.createAnalyser();
+        narration.analyser.fftSize = 512;
+        narration.analyser.smoothingTimeConstant = .82;
+        narration.levelData = new Uint8Array(narration.analyser.fftSize);
+        narration.sourceNode = narration.audioContext.createMediaElementSource(narrationAudio);
+        narration.outputGain = narration.audioContext.createGain();
+        narration.outputGain.gain.value = narrationEmbedded ? 0 : 1;
+        narration.sourceNode.connect(narration.analyser);
+        narration.analyser.connect(narration.outputGain);
+        narration.outputGain.connect(narration.audioContext.destination);
+      }
+      if (narration.audioContext.state === 'suspended') await narration.audioContext.resume();
+    }
+
+    async function renderNarrationScene(index) {
+      if (narration.objectUrls.has(index)) return narration.objectUrls.get(index);
+      if (narration.renderPromises.has(index)) return narration.renderPromises.get(index);
+      const scene = narration.scenes[index];
+      const request = fetch('/api/chat/speak', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: scene.text, voice: 'early'})
+      }).then(async (response) => {
+        if (!response.ok) throw new Error(`speech route returned HTTP ${response.status}`);
+        const objectUrl = URL.createObjectURL(await response.blob());
+        narration.objectUrls.set(index, objectUrl);
+        return objectUrl;
+      }).finally(() => narration.renderPromises.delete(index));
+      narration.renderPromises.set(index, request);
+      return request;
+    }
+
+    async function loadNarrationScene(index, autoplay = false) {
+      setNarrationScene(index);
+      narrationStatus.textContent = `Rendering scene ${index + 1} locally with Early voice. The next replay will use the private cache.`;
+      narrationAudio.src = await renderNarrationScene(index);
+      narrationAudio.load();
+      if (autoplay) await narrationAudio.play();
+      const next = index + 1;
+      if (next < narration.scenes.length) renderNarrationScene(next).catch(() => {});
+    }
+
+    async function prepareNarrationAudio() {
+      if (narration.mode !== 'checking') return;
+      try {
+        const response = await fetch(narration.manifest.audio, {method: 'HEAD', cache: 'no-store'});
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        narration.mode = 'static';
+        narrationAudio.src = narration.manifest.audio;
+        narrationAudio.load();
+        narrationStatus.textContent = 'Ready · locally rendered Early voice · exact playback seconds drive architecture and duration-weighted word cues.';
+      } catch {
+        narration.mode = 'scene';
+        narrationStatus.textContent = 'Master audio is still rendering. Play will synthesize the selected scene locally and cache it privately.';
+      }
+    }
+
+    function narrationFrame() {
+      const active = !narrationAudio.paused && !narrationAudio.ended;
+      let level = 0;
+      if (narration.analyser && narration.levelData) {
+        narration.analyser.getByteTimeDomainData(narration.levelData);
+        let energy = 0;
+        narration.levelData.forEach((sample) => {
+          const value = (sample - 128) / 128;
+          energy += value * value;
+        });
+        level = Math.min(1, Math.sqrt(energy / narration.levelData.length) * 4.6);
+      }
+      narrationLevel.style.setProperty('--level', level.toFixed(3));
+      publishNarrationBridge(level, active);
+      const duration = Number(narrationAudio.duration || 0);
+      const currentTime = Number(narrationAudio.currentTime || 0);
+      let localTime = currentTime;
+      let localDuration = duration;
+      if (narration.mode === 'static' && duration > 0 && Number.isFinite(duration)) {
+        if (!narration.sceneRanges.length || narration.staticDuration !== duration) calculateStaticRanges(duration);
+        const index = sceneAtStaticTime(currentTime);
+        if (index !== narration.sceneIndex) setNarrationScene(index);
+        const range = narration.sceneRanges[index];
+        localTime = currentTime - range.start;
+        localDuration = range.end - range.start;
+      }
+      const scene = narration.scenes[narration.sceneIndex];
+      syncNarrationWords(scene, localTime, localDuration);
+      narrationTimeline.max = String(Math.max(1, duration));
+      narrationTimeline.value = String(Math.min(currentTime, duration || 1));
+      narrationClock.textContent = `${formatNarrationTime(currentTime)} / ${formatNarrationTime(duration)}`;
+      narrationProgress.textContent = `scene ${narration.sceneIndex + 1} / ${narration.scenes.length} · ${scene.words.length} words · ${narration.mode === 'static' ? 'master performance' : 'live cached scene'}`;
+      if (active) narration.frame = requestAnimationFrame(narrationFrame);
+      else narration.frame = 0;
+    }
+
+    async function playNarration() {
+      narrationPlay.disabled = true;
+      narration.playingRequested = true;
+      try {
+        await prepareNarrationAudio();
+        await ensureNarrationAudioGraph();
+        if (narration.mode === 'scene' && !narrationAudio.src) await loadNarrationScene(narration.sceneIndex);
+        if (narrationAudio.ended) narrationAudio.currentTime = 0;
+        document.getElementById('ensemble-theater').classList.add('narration-running');
+        setNarrationRouting(true);
+        await narrationAudio.play();
+        narrationStatus.textContent = 'Speaking locally · transcript, semantic graph, and clock are synchronized to the audio element.';
+        if (narration.frame) cancelAnimationFrame(narration.frame);
+        narration.frame = requestAnimationFrame(narrationFrame);
+      } catch (error) {
+        narration.playingRequested = false;
+        setNarrationRouting(false);
+        narrationStatus.textContent = `Local Early voice could not start: ${error.message}`;
+      } finally {
+        narrationPlay.disabled = false;
+      }
+    }
+
+    function pauseNarration() {
+      narration.playingRequested = false;
+      narrationAudio.pause();
+      narrationStatus.textContent = `Paused at ${formatNarrationTime(narrationAudio.currentTime)}.`;
+      publishNarrationBridge(0, false);
+    }
+
+    function stopNarration() {
+      narration.playingRequested = false;
+      narrationAudio.pause();
+      narrationAudio.currentTime = 0;
+      narration.scenes.forEach((scene) => scene.wordElements.forEach((element) => element.classList.remove('spoken', 'current')));
+      setNarrationScene(0);
+      document.getElementById('ensemble-theater').classList.remove('narration-running');
+      setNarrationRouting(false);
+      publishNarrationBridge(0, false);
+      narrationStatus.textContent = 'Stopped. The transcript and semantic stage returned to the opening scene.';
+      narrationFrame();
+    }
+
+    async function moveNarrationScene(offset) {
+      const target = Math.max(0, Math.min(narration.sceneIndex + offset, narration.scenes.length - 1));
+      const resume = narration.playingRequested && !narrationAudio.paused;
+      if (narration.mode === 'static') {
+        if (!narration.sceneRanges.length) {
+          if (!Number.isFinite(narrationAudio.duration) || narrationAudio.duration <= 0) {
+            await new Promise((resolve) => narrationAudio.addEventListener('loadedmetadata', resolve, {once: true}));
+          }
+          calculateStaticRanges(narrationAudio.duration);
+        }
+        setNarrationScene(target);
+        narrationAudio.currentTime = narration.sceneRanges[target].start;
+        if (resume) await narrationAudio.play();
+      } else {
+        narrationAudio.pause();
+        await loadNarrationScene(target, resume);
+      }
+      narrationFrame();
+    }
+
+    fetch('/assets/david-gpt2-generation-001/generation-001-spoken-edition.json', {cache: 'no-store'})
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((manifest) => {
+        narration.manifest = manifest;
+        narration.scenes = manifest.scenes || [];
+        buildNarrationTranscript();
+        setNarrationScene(0, {scroll: false});
+        narrationProgress.textContent = `${narration.scenes.length} scenes · local Early voice`;
+        narrationStatus.textContent = 'Checking the locally rendered master audio…';
+        return prepareNarrationAudio();
+      })
+      .catch((error) => {
+        narrationScene.textContent = 'Spoken edition unavailable';
+        narrationStatus.textContent = `Manifest error: ${error.message}`;
+        narrationPlay.disabled = true;
+      });
+
+    narrationPlay.addEventListener('click', playNarration);
+    narrationPause.addEventListener('click', pauseNarration);
+    narrationStop.addEventListener('click', stopNarration);
+    narrationPrevious.addEventListener('click', () => moveNarrationScene(-1));
+    narrationNext.addEventListener('click', () => moveNarrationScene(1));
+    narrationTimeline.addEventListener('input', () => {
+      const value = Number(narrationTimeline.value || 0);
+      if (narration.mode === 'static') narrationAudio.currentTime = value;
+      else narrationAudio.currentTime = Math.min(value, narrationAudio.duration || value);
+      narrationFrame();
+    });
+    narrationAudio.addEventListener('loadedmetadata', narrationFrame);
+    narrationAudio.addEventListener('play', () => {
+      narration.playingRequested = true;
+      document.getElementById('ensemble-theater').classList.add('narration-running');
+      narrationFrame();
+    });
+    narrationAudio.addEventListener('pause', () => publishNarrationBridge(0, false));
+    narrationAudio.addEventListener('ended', async () => {
+      if (narration.mode === 'scene' && narration.sceneIndex < narration.scenes.length - 1 && narration.playingRequested) {
+        await loadNarrationScene(narration.sceneIndex + 1, true);
+        narrationFrame();
+        return;
+      }
+      narration.playingRequested = false;
+      setNarrationRouting(false);
+      publishNarrationBridge(0, false);
+      narrationStatus.textContent = 'Performance complete. Prediction remains distinct from observation.';
+    });
+
+    const ensembleTheater = document.getElementById('ensemble-theater');
+    const ensembleMotionToggle = document.getElementById('ensemble-motion-toggle');
+    if (ensembleTheater && ensembleMotionToggle) {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion) {
+        ensembleTheater.classList.add('motion-paused');
+        ensembleMotionToggle.setAttribute('aria-pressed', 'true');
+        ensembleMotionToggle.textContent = 'Play architecture motion';
+      }
+      ensembleMotionToggle.addEventListener('click', () => {
+        const paused = ensembleTheater.classList.toggle('motion-paused');
+        ensembleMotionToggle.setAttribute('aria-pressed', String(paused));
+        ensembleMotionToggle.textContent = paused ? 'Play architecture motion' : 'Pause architecture motion';
+      });
+    }
+
+    const continuationForm = document.getElementById('continuation-form');
+    continuationForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = continuationForm.querySelector('button');
+      const status = document.getElementById('continuation-status');
+      const output = document.getElementById('continuation-output');
+      button.disabled = true;
+      status.textContent = 'Loading the local model, retrieving evidence, and generating the next text...';
+      output.textContent = '';
+      try {
+        const response = await fetch('/api/david-continuation/v1/continuations', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            prompt: document.getElementById('continuation-prompt').value,
+            prefix: document.getElementById('continuation-prefix').value,
+            mode: document.getElementById('continuation-screenplay').checked ? 'screenplay' : 'david',
+            knowledge: {enabled: document.getElementById('continuation-knowledge').checked, top_k: 3},
+            max_tokens: 200
+          })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || `HTTP ${response.status}`);
+        output.textContent = payload.text || payload.continuation;
+        const hits = payload.knowledge && payload.knowledge.results ? ` · knowledge hits ${payload.knowledge.results}` : '';
+        status.textContent = `${payload.generated_tokens} tokens · ${payload.elapsed_seconds}s${hits} · ${payload.finish_reason}`;
+      } catch (error) {
+        output.textContent = `Continuation failed: ${error.message}`;
+        status.textContent = 'The dedicated continuation service did not complete the request.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    const recordedLog = document.getElementById('recorded-log');
+    const spokenLog = document.getElementById('spoken-log');
+    const speechStatus = document.getElementById('speech-status');
+    const speechPlay = document.getElementById('speech-play');
+    const speechPause = document.getElementById('speech-pause');
+    const speechStop = document.getElementById('speech-stop');
+    const speechState = document.getElementById('speech-state');
+    const speechVoice = document.getElementById('speech-voice');
+    const speechProgress = document.getElementById('speech-progress');
+    const speechElapsed = document.getElementById('speech-elapsed');
+    const speechCache = document.getElementById('speech-cache');
+    const speechSource = document.getElementById('speech-source');
+    const rawSpeechAudio = document.getElementById('speech-raw-audio');
+    const screenplayPassages = Array.from(
+      recordedLog.textContent.matchAll(/David-GPT-2> ([\s\S]*?)\n\[turn complete:/g),
+      (match) => match[1].replace(/^###\s*/gm, '').trim()
+    ).filter(Boolean);
+    const spokenWords = screenplayPassages.join('\n\n').match(/\S+/g) || [];
+    const speechText = screenplayPassages.join('\n\n');
+    const wordWeights = spokenWords.map((word) => {
+      const letters = word.replace(/[^A-Za-z0-9']/g, '').length;
+      const pause = /[.!?][\"')\]]*$/.test(word) ? 8 : /[,;:][\"')\]]*$/.test(word) ? 4 : 0;
+      return Math.max(2, letters) + pause;
+    });
+    const cumulativeWeights = [];
+    const totalWeight = wordWeights.reduce((total, weight) => {
+      cumulativeWeights.push(total + weight);
+      return total + weight;
+    }, 0);
+    let spokenIndex = 0;
+    let speechObjectUrl = '';
+    let speechRenderPromise = null;
+    let audioContext = null;
+    let analyser = null;
+    let audioSourceNode = null;
+    let outputGain = null;
+    let levelData = null;
+    let speechFrame = 0;
+    const embeddedInDesktop = window.parent !== window;
+
+    function updateSpeechTelemetry(state) {
+      speechState.textContent = state;
+      speechVoice.textContent = 'eSpeak 1.48 · raw WAV';
+      speechProgress.textContent = `${Math.min(spokenIndex, spokenWords.length)} / ${spokenWords.length} words`;
+      speechElapsed.textContent = `${Number(rawSpeechAudio.currentTime || 0).toFixed(1)} s`;
+      speechSource.textContent = embeddedInDesktop ? 'SOL Assistant mirror' : 'standalone page audio';
+    }
+
+    function revealSpokenWord(word) {
+      spokenLog.append(document.createTextNode((spokenLog.textContent ? ' ' : '') + word));
+      spokenLog.scrollTop = spokenLog.scrollHeight;
+    }
+
+    function publishSpeechBridge(level, active) {
+      window.__solPageAudioBridge = {
+        active: Boolean(active),
+        level: Math.max(0, Math.min(1, Number(level) || 0)),
+        src: rawSpeechAudio.currentSrc || rawSpeechAudio.src || '',
+        currentTime: Number(rawSpeechAudio.currentTime || 0),
+        paused: Boolean(rawSpeechAudio.paused),
+        playbackRate: Number(rawSpeechAudio.playbackRate || 1),
+        ts: Date.now()
+      };
+      if (!embeddedInDesktop) return;
+      try {
+        window.parent.postMessage({
+          type: active ? 'sol-page-audio-level' : 'sol-page-audio-stop',
+          level: Math.max(0, Math.min(1, Number(level) || 0))
+        }, window.location.origin);
+      } catch {}
+    }
+
+    function setAssistantRouting(active) {
+      if (!embeddedInDesktop) return;
+      const options = {title: 'David-GPT-2 screenplay · local eSpeak WAV'};
+      try {
+        if (typeof window.parent.solSetAssistantPageAudioMirrorAudible === 'function') {
+          window.parent.solSetAssistantPageAudioMirrorAudible(active, options);
+          return;
+        }
+      } catch {}
+      try {
+        window.parent.postMessage({type: 'sol-assistant-page-audio-audible', active, ...options}, window.location.origin);
+      } catch {}
+    }
+
+    async function ensureAudioGraph() {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtor) return false;
+      if (!audioContext) {
+        audioContext = new AudioCtor();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.8;
+        levelData = new Uint8Array(analyser.fftSize);
+        outputGain = audioContext.createGain();
+        outputGain.gain.value = embeddedInDesktop ? 0 : 1;
+        audioSourceNode = audioContext.createMediaElementSource(rawSpeechAudio);
+        audioSourceNode.connect(analyser);
+        analyser.connect(outputGain);
+        outputGain.connect(audioContext.destination);
+      }
+      if (audioContext.state === 'suspended') await audioContext.resume();
+      return audioContext.state === 'running';
+    }
+
+    async function ensureRawSpeech() {
+      if (speechObjectUrl) return speechObjectUrl;
+      if (speechRenderPromise) return speechRenderPromise;
+      speechStatus.textContent = 'Rendering local eSpeak WAV…';
+      updateSpeechTelemetry('rendering');
+      speechRenderPromise = fetch('/api/david-continuation/v1/speech', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text: speechText, speed: 135, pitch: 25, amplitude: 150})
+      }).then(async (response) => {
+        if (!response.ok) {
+          const detail = await response.json().catch(() => ({}));
+          throw new Error(detail.detail || `HTTP ${response.status}`);
+        }
+        speechVoice.textContent = `${response.headers.get('X-Speech-Engine') || 'espeak-local'} · raw WAV`;
+        speechCache.textContent = response.headers.get('X-Speech-Cache') === 'HIT' ? 'persistent hit' : 'rendered and stored';
+        const blob = await response.blob();
+        speechObjectUrl = URL.createObjectURL(blob);
+        rawSpeechAudio.src = speechObjectUrl;
+        rawSpeechAudio.load();
+        return speechObjectUrl;
+      }).finally(() => { speechRenderPromise = null; });
+      return speechRenderPromise;
+    }
+
+    function syncWordsToAudio() {
+      const duration = Number(rawSpeechAudio.duration || 0);
+      if (duration > 0) {
+        const target = (Number(rawSpeechAudio.currentTime || 0) / duration) * totalWeight;
+        while (spokenIndex < spokenWords.length && cumulativeWeights[spokenIndex] <= target) {
+          revealSpokenWord(spokenWords[spokenIndex]);
+          spokenIndex += 1;
+        }
+      }
+      let level = 0;
+      if (analyser && levelData) {
+        analyser.getByteTimeDomainData(levelData);
+        let total = 0;
+        for (const sample of levelData) {
+          const centered = (sample - 128) / 128;
+          total += centered * centered;
+        }
+        level = Math.min(1, Math.sqrt(total / levelData.length) * 4.4);
+      }
+      const active = !rawSpeechAudio.paused && !rawSpeechAudio.ended;
+      publishSpeechBridge(level, active);
+      updateSpeechTelemetry(active ? 'speaking' : rawSpeechAudio.ended ? 'complete' : 'paused');
+      if (active) {
+        speechStatus.textContent = `Raw WAV playback · word ${Math.min(spokenIndex + 1, spokenWords.length)} of ${spokenWords.length}`;
+        speechFrame = requestAnimationFrame(syncWordsToAudio);
+      } else {
+        speechFrame = 0;
+      }
+    }
+
+    function stopSpeech() {
+      rawSpeechAudio.pause();
+      rawSpeechAudio.currentTime = 0;
+      if (speechFrame) cancelAnimationFrame(speechFrame);
+      speechFrame = 0;
+      spokenIndex = 0;
+      spokenLog.textContent = '';
+      setAssistantRouting(false);
+      publishSpeechBridge(0, false);
+      speechStatus.textContent = 'Stopped and cleared. Ready to render the local raw WAV.';
+      updateSpeechTelemetry('ready');
+    }
+
+    updateSpeechTelemetry('ready');
+    speechPlay.addEventListener('click', async () => {
+      speechPlay.disabled = true;
+      try {
+        await ensureRawSpeech();
+        await ensureAudioGraph();
+        if (rawSpeechAudio.ended || spokenIndex >= spokenWords.length) stopSpeech();
+        setAssistantRouting(true);
+        await rawSpeechAudio.play();
+        if (speechFrame) cancelAnimationFrame(speechFrame);
+        speechFrame = requestAnimationFrame(syncWordsToAudio);
+      } catch (error) {
+        setAssistantRouting(false);
+        speechStatus.textContent = `Raw local speech failed: ${error.message}`;
+        updateSpeechTelemetry('error');
+      } finally {
+        speechPlay.disabled = false;
+      }
+    });
+    speechPause.addEventListener('click', () => {
+      if (rawSpeechAudio.paused) return;
+      rawSpeechAudio.pause();
+      publishSpeechBridge(0, true);
+      speechStatus.textContent = `Paused after word ${spokenIndex} of ${spokenWords.length}`;
+      updateSpeechTelemetry('paused');
+    });
+    speechStop.addEventListener('click', stopSpeech);
+    rawSpeechAudio.addEventListener('ended', () => {
+      while (spokenIndex < spokenWords.length) revealSpokenWord(spokenWords[spokenIndex++]);
+      setAssistantRouting(false);
+      publishSpeechBridge(0, false);
+      speechStatus.textContent = `Reading complete · ${spokenWords.length} words`;
+      updateSpeechTelemetry('complete');
+    });
+    window.addEventListener('pagehide', () => {
+      stopSpeech();
+      if (speechObjectUrl) URL.revokeObjectURL(speechObjectUrl);
+    });
+  </script>
+</body>
+</html>

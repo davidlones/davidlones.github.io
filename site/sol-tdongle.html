@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <title>Sol T-Dongle Universal Node | Sol-37</title>
+  <meta name="description" content="A LILYGO T-Dongle-S3 rebuilt as an authenticated Wi-Fi display, physical-input node, safe GPIO controller, and castable Sol-37 broadcast target. Download the sanitized source release.">
+  <link rel="canonical" href="https://sol.system42.one/sol-tdongle.html">
+  <meta name="theme-color" content="#0c1815">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Sol-37">
+  <meta property="og:url" content="https://sol.system42.one/sol-tdongle.html">
+  <meta property="og:title" content="Sol T-Dongle Universal Node">
+  <meta property="og:description" content="Portable Wi-Fi display, physical event node, safe GPIO controller, castable Sol-37 target, and bounded LCD/LED animation runtime. Source release 0.7.3.">
+  <meta property="og:image" content="https://sol.system42.one/assets/sol-tdongle/animation-contact-sheet.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"Sol T-Dongle Universal Node","codeRepository":"https://sol.system42.one/downloads/sol-tdongle/sol-tdongle-universal-node-0.7.3.zip","programmingLanguage":["C++","Python","JavaScript"],"runtimePlatform":"ESP32-S3 and Linux","version":"0.7.3","description":"Firmware and host services that turn a LILYGO T-Dongle-S3 into an authenticated Sol-37 display, physical-input node, and bounded LCD/LED animation target.","isPartOf":{"@id":"https://sol.system42.one/#website"}}</script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #eaf7ef;
+      --muted: #9ab2a7;
+      --line: #2d5547;
+      --panel: rgba(10, 25, 21, .92);
+      --green: #78f0a8;
+      --screen: #c7f8b2;
+      --amber: #ffcf70;
+      --red: #ff7b68;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 78% 8%, rgba(60, 173, 116, .18), transparent 32rem),
+        linear-gradient(rgba(65, 118, 94, .07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(65, 118, 94, .07) 1px, transparent 1px),
+        #07100e;
+      background-size: auto, 24px 24px, 24px 24px, auto;
+      font-family: "IBM Plex Mono", "Liberation Mono", "Courier New", monospace;
+      line-height: 1.55;
+    }
+    a { color: var(--screen); }
+    a:hover { color: #fff; }
+    img { max-width: 100%; }
+    .skip { position: absolute; left: -9999px; }
+    .skip:focus { left: 12px; top: 12px; z-index: 20; padding: 8px; background: #fff; color: #000; }
+    .shell { width: min(calc(100% - 30px), var(--max)); margin: 0 auto; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .topbar nav { display: flex; flex-wrap: wrap; gap: 16px; }
+    .topbar a { color: var(--muted); text-decoration: none; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr);
+      gap: clamp(28px, 6vw, 76px);
+      align-items: center;
+      min-height: 670px;
+      padding: 60px 0 74px;
+    }
+    .eyebrow { margin: 0 0 12px; color: var(--green); font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; }
+    h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; line-height: 1.02; }
+    h1 { max-width: 780px; margin: 0; font-size: clamp(3rem, 8vw, 6.7rem); letter-spacing: -.055em; }
+    h1 span { display: block; color: var(--screen); font-style: italic; }
+    .lede { max-width: 720px; margin: 26px 0; color: #c6d9d0; font-size: clamp(1rem, 2vw, 1.22rem); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 48px;
+      padding: 12px 18px;
+      border: 1px solid var(--screen);
+      border-radius: 2px;
+      background: var(--screen);
+      color: #09140f;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .button.secondary { background: transparent; color: var(--screen); }
+    .release-note { margin: 16px 0 0; color: var(--muted); font-size: .76rem; overflow-wrap: anywhere; }
+
+    .device-card {
+      position: relative;
+      padding: 25px;
+      border: 1px solid var(--line);
+      border-radius: 28px 8px 28px 8px;
+      background: linear-gradient(145deg, rgba(25, 49, 41, .95), rgba(5, 13, 11, .98));
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+      transform: rotate(1.5deg);
+    }
+    .device-card::before { content: "LIVE NODE"; position: absolute; right: 22px; top: -11px; padding: 3px 9px; background: var(--green); color: #07100e; font-size: .7rem; font-weight: 700; }
+    .screen {
+      padding: 20px;
+      border: 9px solid #1e2a26;
+      background: var(--screen);
+      color: #193623;
+      box-shadow: inset 0 0 26px rgba(41, 94, 60, .25);
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      line-height: 1.45;
+      text-shadow: 1px 0 rgba(25, 54, 35, .25);
+    }
+    .screen strong { display: block; border-bottom: 2px solid #355e42; margin-bottom: 8px; font-weight: 700; }
+    .device-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; margin-top: 16px; background: var(--line); }
+    .device-meta div { padding: 14px; background: #0b1713; }
+    .device-meta span { display: block; color: var(--muted); font-size: .67rem; text-transform: uppercase; }
+    .device-meta b { color: var(--green); font-size: .9rem; }
+
+    section { padding: 70px 0; }
+    .section-head { display: grid; grid-template-columns: .7fr 1.3fr; gap: 30px; align-items: end; margin-bottom: 34px; }
+    h2 { margin: 0; font-size: clamp(2.2rem, 5vw, 4.3rem); letter-spacing: -.035em; }
+    .section-head p { margin: 0; color: var(--muted); max-width: 640px; }
+    .rule { border-top: 1px solid var(--line); }
+
+    .facts { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); }
+    .fact { min-height: 130px; padding: 22px; border-right: 1px solid var(--line); background: rgba(7, 18, 15, .75); }
+    .fact:last-child { border-right: 0; }
+    .fact b { display: block; color: var(--green); font-family: Georgia, serif; font-size: 2rem; font-weight: 500; }
+    .fact span { color: var(--muted); font-size: .76rem; text-transform: uppercase; }
+
+    .capabilities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .capability { min-height: 235px; padding: 24px; border: 1px solid var(--line); background: var(--panel); }
+    .capability .number { color: var(--green); font-size: .74rem; }
+    .capability h3 { margin: 38px 0 14px; font-size: 1.7rem; }
+    .capability p { margin: 0; color: var(--muted); font-size: .9rem; }
+
+    .gallery { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    figure { margin: 0; border: 1px solid var(--line); background: #050b09; overflow: hidden; }
+    figure.wide { grid-column: span 8; }
+    figure.tall { grid-column: span 4; }
+    figure.full { grid-column: 1 / -1; }
+    figure.half { grid-column: span 6; }
+    figure img { display: block; width: 100%; height: auto; background: #020504; }
+    figure.tall img { height: auto; object-fit: contain; object-position: top; }
+    figcaption { padding: 14px 16px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .78rem; }
+    figcaption strong { display: block; margin-bottom: 4px; color: var(--ink); font-size: .9rem; }
+
+    .truth-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .truth { padding: 24px; border: 1px solid var(--line); background: var(--panel); }
+    .truth h3 { margin: 0 0 16px; font-size: 1.8rem; }
+    .truth ul { margin: 0; padding-left: 20px; color: var(--muted); }
+    .truth li + li { margin-top: 8px; }
+    .truth.caution { border-color: #6e5930; }
+    .truth.caution h3 { color: var(--amber); }
+
+    .architecture { padding: 28px; border: 1px solid var(--line); background: #04100b; overflow-x: auto; }
+    .architecture pre { margin: 0; min-width: 660px; color: var(--screen); font: 700 clamp(.73rem, 1.6vw, 1rem)/1.55 "Liberation Mono", monospace; }
+
+    .release {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 24px;
+      padding: clamp(24px, 5vw, 50px);
+      border: 1px solid var(--screen);
+      background: linear-gradient(135deg, rgba(35, 93, 61, .28), rgba(8, 19, 16, .96));
+    }
+    .release h2 { margin-bottom: 18px; }
+    .release p { color: #c3d5cc; }
+    .manifest { padding: 22px; border: 1px solid var(--line); background: rgba(2, 9, 6, .8); }
+    .manifest h3 { margin: 0 0 14px; font-size: 1.5rem; }
+    .manifest code { display: block; color: var(--green); font-size: .72rem; overflow-wrap: anywhere; }
+    .manifest ul { margin: 18px 0 0; padding-left: 20px; color: var(--muted); font-size: .82rem; }
+    .privacy { margin-top: 18px; padding: 14px; border-left: 3px solid var(--green); color: var(--muted); font-size: .82rem; }
+
+    footer { padding: 36px 0 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: .78rem; }
+    footer .shell { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+    @media (max-width: 860px) {
+      .hero, .section-head, .release { grid-template-columns: 1fr; }
+      .hero { min-height: auto; padding-top: 42px; }
+      .device-card { transform: none; }
+      .facts { grid-template-columns: repeat(2, 1fr); }
+      .fact:nth-child(2) { border-right: 0; }
+      .fact:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .capabilities { grid-template-columns: repeat(2, 1fr); }
+      figure.wide, figure.tall, figure.half { grid-column: 1 / -1; }
+      figure.tall img { height: auto; min-height: 0; object-fit: contain; }
+    }
+    @media (max-width: 560px) {
+      .shell { width: min(calc(100% - 20px), var(--max)); }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      h1 { font-size: clamp(2.8rem, 16vw, 4.4rem); }
+      section { padding: 48px 0; }
+      .capabilities, .truth-grid { grid-template-columns: 1fr; }
+      .facts { grid-template-columns: 1fr; }
+      .fact { border-right: 0; border-bottom: 1px solid var(--line); }
+      .fact:last-child { border-bottom: 0; }
+      .device-meta { grid-template-columns: 1fr; }
+      .gallery { display: block; }
+      figure + figure { margin-top: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="shell topbar">
+    <a href="/">SOL-37 / HARDWARE LAB</a>
+    <nav aria-label="Page sections">
+      <a href="#features">Features</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#download">Download</a>
+    </nav>
+  </header>
+
+  <main id="content">
+    <div class="shell hero">
+      <div>
+        <p class="eyebrow">LILYGO T-Dongle-S3 / ESP32-S3</p>
+        <h1>A pocket-sized <span>Sol node.</span></h1>
+        <p class="lede">A thumb-drive-shaped development board rebuilt as an authenticated wireless display, cast target, physical-event source, bounded LCD/LED animation player, and electrically safe universal GPIO node for the main Sol system.</p>
+        <div class="actions">
+          <a class="button" href="/downloads/sol-tdongle/sol-tdongle-universal-node-0.7.3.zip" download>Download source 0.7.3</a>
+          <a class="button secondary" href="#evidence">See physical evidence</a>
+        </div>
+        <p class="release-note">ZIP 2,057,795 bytes / SHA-256 823c1078b6852b694c0e379c377e545332246dac8543a00f6073886e4f17503d</p>
+      </div>
+      <aside class="device-card" aria-label="Current device status representation">
+        <div class="screen">
+          <strong>SOL ONLINE</strong>
+          10.0.1.143<br>
+          -67 dBm<br>
+          04:06:37 CDT<br>
+          SAMSUNG 20K
+        </div>
+        <div class="device-meta">
+          <div><span>Firmware</span><b>0.7.3</b></div>
+          <div><span>Display</span><b>160 x 80</b></div>
+          <div><span>Transport</span><b>AUTH WS</b></div>
+          <div><span>External</span><b>SAFE GPIO</b></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="rule">
+      <div class="shell facts" aria-label="Project facts">
+        <div class="fact"><b>Wi-Fi</b><span>Self-registering node</span></div>
+        <div class="fact"><b>24 steps</b><span>Local display/LED timeline</span></div>
+        <div class="fact"><b>2 pins</b><span>GPIO43 and GPIO44</span></div>
+        <div class="fact"><b>HMAC</b><span>Authenticated session</span></div>
+      </div>
+    </section>
+
+    <section id="features" class="rule">
+      <div class="shell">
+        <div class="section-head">
+          <h2>One node, seven roles.</h2>
+          <p>The firmware treats the board as a constrained capability appliance rather than a generic remote computer. It announces what it can do; Sol decides how to use it.</p>
+        </div>
+        <div class="capabilities">
+          <article class="capability"><span class="number">01 / DISPLAY</span><h3>Castable media</h3><p>Text, status pages, notifications, RGB565 images, QR codes, and silent video frames can be pushed through the shared Sol broadcast-display interface.</p></article>
+          <article class="capability"><span class="number">02 / INPUT</span><h3>Physical events</h3><p>The onboard button and watched GPIO transitions report duration, edge, logical name, monotonic timestamp, and sequence number into the Sol event bus.</p></article>
+          <article class="capability"><span class="number">03 / FEEDBACK</span><h3>Local confirmation</h3><p>Button and GPIO activity receives immediate on-device feedback, then fades back to the default status screen. Desktop and private phone responses stay synchronized.</p></article>
+          <article class="capability"><span class="number">04 / ANIMATION</span><h3>Local timelines</h3><p>Up to 24 bounded steps can coordinate LCD status, lines, progress, QR, and APA102 color without network-timed jitter. The declarative format cannot run code or touch GPIO.</p></article>
+          <article class="capability"><span class="number">05 / GPIO</span><h3>Safe by default</h3><p>GPIO43 and GPIO44 begin high-impedance, then apply a validated internal-pull-up button profile. Read, watch, pulse, PWM, UART, I2C, failsafe, and port.safe remain permission-gated.</p></article>
+          <article class="capability"><span class="number">06 / NETWORK</span><h3>Appliance behavior</h3><p>Six remembered networks, primary-profile grace, DHCP, mDNS, authenticated outbound WebSocket, reconnect backoff, event buffering, telemetry, and OTA survive ordinary power cycles.</p></article>
+          <article class="capability"><span class="number">07 / CONTROL</span><h3>Unified Clock surface</h3><p>The Unified Clock supplies display, LED patterns, timeline editing, GPIO, media, power-profile, response, and safety controls without exposing node credentials to browser JavaScript.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="evidence" class="rule">
+      <div class="shell">
+        <div class="section-head">
+          <h2>Seen, not assumed.</h2>
+          <p>These are direct crops from the C615 verification camera and the live Unified Clock interface. Captions distinguish physical observation from software-reported state.</p>
+        </div>
+        <div class="gallery">
+          <figure class="full">
+            <img src="/assets/sol-tdongle/main-screen-power-time-a.png" width="960" height="540" loading="lazy" alt="C615 camera crop showing the T-Dongle LCD with SOL ONLINE, IP address, RSSI, central time, and Samsung power profile">
+            <figcaption><strong>Default screen, physically observed</strong>C615 crop of the live dashboard: online state, DHCP address, RSSI, network-synchronized Central time, and configured Samsung 20K power profile.</figcaption>
+          </figure>
+          <figure class="tall">
+            <img src="/assets/sol-tdongle/unified-clock-control-surface.png" width="935" height="925" loading="lazy" alt="Unified Clock ESP control surface showing display, power, LED, and external port controls">
+            <figcaption><strong>Unified Clock control surface</strong>The host-side manual surface, captured during 0.5.2 acceptance, for the entire node: protected display, LED, GPIO, media, telemetry, and power-profile actions. The complete crop is shown without an additional page-level crop.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="/assets/sol-tdongle/main-screen-power-time-b.png" width="960" height="540" loading="lazy" alt="Second C615 camera crop showing the T-Dongle status clock at a later second">
+            <figcaption><strong>Second-accurate clock progression</strong>A separate camera frame confirms that the on-screen Central clock advances after NTP synchronization rather than displaying a static label.</figcaption>
+          </figure>
+          <figure class="full">
+            <img src="/assets/sol-tdongle/display-led-contact-sheet.png" width="2148" height="413" loading="lazy" alt="Contact sheet of C615 verification frames showing T-Dongle display content and red, green, and blue side LED states">
+            <figcaption><strong>Display and APA102 LED control</strong>Physical camera evidence of controlled screen changes and multiple side-LED states. Command acknowledgements alone were not treated as proof.</figcaption>
+          </figure>
+          <figure class="full">
+            <img src="/assets/sol-tdongle/animation-contact-sheet.png" width="1404" height="288" loading="lazy" alt="Cropped C615 contact sheet showing a red animation status frame, green progress frame, and the ESP control QR on the T-Dongle">
+            <figcaption><strong>Bounded animation timeline, physically observed</strong>Separate C615 frames show a loop changing both LCD and APA102 output, followed by the on-device control QR. Red and green light visible through the case comes from the side LED.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="/assets/sol-tdongle/battery-tour-live.png" width="560" height="260" loading="lazy" alt="C615 crop of the T-Dongle systems tour showing a power estimate of about 91 percent and 48 hours runtime">
+            <figcaption><strong>Live estimate stamped into the tour</strong>At Play time, Unified Clock refreshed authenticated telemetry and resolved the current modeled value. The C615 then observed the node itself showing <code>~91% EST.</code> and <code>~48 h</code>; later frames explain that this is inferred, not battery telemetry.</figcaption>
+          </figure>
+          <figure class="tall">
+            <img src="/assets/sol-tdongle/unified-clock-systems-tour-mobile.png" width="390" height="844" loading="lazy" alt="Mobile Unified Clock animation accordion showing the expanded SOL systems tour JSON with a 3300 millisecond opening step">
+            <figcaption><strong>Phone-width systems-tour editor</strong>All ten control panels are closed by default. This 390 by 844 acceptance view shows the 16-step, 43.2-second preset expanded without horizontal overflow.</figcaption>
+          </figure>
+          <figure class="wide">
+            <img src="/assets/sol-tdongle/control-qr-crop.png" width="384" height="500" loading="lazy" alt="Close camera crop of the QR code displayed on the T-Dongle screen">
+            <figcaption><strong>Internet control handoff</strong>The camera-visible QR decoded directly to <code>https://sol.system42.one/e</code>; it contains no node secret or Wi-Fi credential.</figcaption>
+          </figure>
+          <figure class="full">
+            <img src="/assets/sol-tdongle/power-inference-samsung.png" width="1416" height="292" loading="lazy" alt="Unified Clock power panel showing Samsung 20000 mAh profile and battery inference boundary">
+            <figcaption><strong>Power profile, with its uncertainty visible</strong>The default Samsung 20,000 mAh model can estimate a conservative energy envelope and runtime scenario. It cannot read the bank's actual state of charge through this USB-A power-only connection.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="rule">
+      <div class="shell">
+        <div class="section-head"><h2>Power truth boundary.</h2><p>The interface deliberately separates configured specifications and inferred runtime from measurements the hardware can actually observe.</p></div>
+        <div class="truth-grid">
+          <article class="truth">
+            <h3>What Sol can know</h3>
+            <ul>
+              <li>The selected Samsung 20,000 mAh profile and its rated 3.7 V-cell energy basis.</li>
+              <li>Node uptime, reboot history, network presence, RSSI, workload profile, and configured load assumptions.</li>
+              <li>A current modeled percentage and hours remaining from the configured start charge, elapsed load, and conversion efficiency.</li>
+              <li>Second-accurate Central time once the node has synchronized over the network.</li>
+            </ul>
+          </article>
+          <article class="truth caution">
+            <h3>What remains unknown</h3>
+            <ul>
+              <li>The power bank's live percentage, remaining watt-hours, cell health, or charging state.</li>
+              <li>Actual USB voltage/current without an external meter or sensor wired into an observable interface.</li>
+              <li>Whether a low-load power bank will shut itself off at a particular time.</li>
+              <li>A precise runtime prediction without measured load and conversion efficiency.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="rule">
+      <div class="shell">
+        <div class="section-head"><h2>Signal path.</h2><p>The browser never receives device credentials. All control enters through the protected host API and the node maintains the outbound authenticated session.</p></div>
+        <div class="architecture" role="img" aria-label="Architecture from Sol skills through host services and authenticated Wi-Fi to the T-Dongle hardware">
+<pre>OTHER SOL SKILLS        UNIFIED CLOCK        PRIVATE PUSH / NOTIFIER
+       \                     |                         /
+        +------------- SOL HOST EVENT BUS ------------+
+                              |
+                    sol-node-daemon + registry
+                              |
+                  HMAC-authenticated WebSocket
+                              |
+        +---------------- T-DONGLE-S3 ----------------+
+        | LCD | APA102 | GPIO0 | GPIO43/44 | telemetry |
+        +------------------------------------------------+</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" class="rule">
+      <div class="shell release">
+        <div>
+          <p class="eyebrow">Public source release</p>
+          <h2>Build the whole node.</h2>
+          <p>The archive contains the ESP32-S3 firmware, authenticated Linux daemon, protocol documentation, host integration, service units, tests, deployment scripts, selected physical evidence, and a generic 0.7.3 firmware binary.</p>
+          <div class="actions">
+            <a class="button" href="/downloads/sol-tdongle/sol-tdongle-universal-node-0.7.3.zip" download>Download ZIP</a>
+            <a class="button secondary" href="/programs/zip-drive.html?archive=%2Fdownloads%2Fsol-tdongle%2Fsol-tdongle-universal-node-0.7.3.zip">Browse ZIP</a>
+            <a class="button secondary" href="/downloads/sol-tdongle/README.md">Read README</a>
+          </div>
+          <p class="privacy">Sanitized for public release: no Wi-Fi credentials, enrollment secrets, live registry, provisioned NVS state, full-flash recovery image, virtual environment, build cache, or redundant raw camera collection.</p>
+        </div>
+        <aside class="manifest">
+          <h3>Release manifest</h3>
+          <code>sol-tdongle-universal-node-0.7.3.zip</code>
+          <code>2,057,795 bytes</code>
+          <code>SHA-256</code>
+          <code>823c1078b6852b694c0e379c377e545332246dac8543a00f6073886e4f17503d</code>
+          <ul>
+            <li>85 archive entries</li>
+            <li>63 regular files</li>
+            <li>2,804,710 bytes uncompressed</li>
+            <li>Internal checksums and vendor-source pointer</li>
+            <li>Archive integrity tested before publication</li>
+          </ul>
+          <p><a href="/downloads/sol-tdongle/sol-tdongle-universal-node-0.7.3.zip.sha256">Checksum sidecar</a></p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="shell"><span>Sol T-Dongle Universal Node / firmware 0.7.3</span><span><a href="/projects/">Projects</a> / <a href="/">Return to Sol-37 desktop</a></span></div>
+  </footer>
+</body>
+</html>

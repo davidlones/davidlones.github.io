@@ -1,0 +1,2032 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="index,follow,max-image-preview:large">
+<title>Sol-37 File Browser</title>
+  <meta name="description" content="Retro file-browser view of the public Sol-37 site tree." />
+  <link rel="canonical" href="https://sol.system42.one/sitemap.html">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260420b">
+  <link rel="alternate icon" href="/favicon.ico?v=20260420b">
+  <style>
+    :root {
+      --chrome: #c0c0c0;
+      --chrome-dark: #808080;
+      --chrome-darker: #404040;
+      --chrome-light: #ffffff;
+      --panel: #efefef;
+      --panel-deep: #e3e3e3;
+      --panel-blue: #dfe8f8;
+      --ink: #111;
+      --muted: #565656;
+      --accent: #000080;
+      --selection: #000080;
+      --selection-text: #fff;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--chrome);
+      font-family: "MS Sans Serif", "Segoe UI", Tahoma, sans-serif;
+      color: var(--ink);
+      overflow: hidden;
+      padding: 0;
+    }
+
+    .window {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      background: var(--chrome);
+    }
+
+    .menubar,
+    .toolbar,
+    .statusbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px;
+      font-size: 12px;
+      background: var(--chrome);
+      border-top: 1px solid var(--chrome-light);
+      box-shadow: inset 0 1px 0 var(--chrome-dark);
+    }
+
+    .menubar {
+      border-top: 0;
+      box-shadow: none;
+      gap: 2px;
+      position: relative;
+      z-index: 5;
+    }
+
+    .menu {
+      position: relative;
+    }
+
+    .menu-button {
+      padding: 1px 8px 2px;
+      border: 1px solid transparent;
+      background: transparent;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .menu-button:hover,
+    .menu-button:focus-visible,
+    .menu.open .menu-button {
+      background: var(--selection);
+      color: var(--selection-text);
+      border-color: #001f5a;
+      outline: none;
+    }
+
+    .menu-panel {
+      position: absolute;
+      top: calc(100% + 1px);
+      left: 0;
+      min-width: 180px;
+      padding: 2px;
+      display: none;
+      background: var(--chrome);
+      border: 2px solid var(--chrome-light);
+      border-right-color: var(--chrome-darker);
+      border-bottom-color: var(--chrome-darker);
+      box-shadow: 2px 2px 0 rgba(0,0,0,.28);
+    }
+
+    .menu.open .menu-panel {
+      display: block;
+    }
+
+    .menu-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 8px;
+      border: 0;
+      background: transparent;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .menu-item:hover,
+    .menu-item:focus-visible {
+      background: var(--selection);
+      color: var(--selection-text);
+      outline: none;
+    }
+
+    .menu-item .shortcut {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .menu-item:hover .shortcut,
+    .menu-item:focus-visible .shortcut {
+      color: rgba(255,255,255,.82);
+    }
+
+    .menu-sep {
+      height: 1px;
+      margin: 2px 0;
+      background: #8a8a8a;
+      box-shadow: 0 1px 0 #fff;
+    }
+
+    .toolbar {
+      padding: 6px 8px;
+      gap: 6px;
+      border-top: 1px solid var(--chrome-light);
+      border-bottom: 1px solid var(--chrome-dark);
+      box-shadow: inset 0 1px 0 var(--chrome-light);
+    }
+
+    .toolbar-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .toolbar-sep {
+      width: 1px;
+      align-self: stretch;
+      background: #909090;
+      box-shadow: 1px 0 0 #fff;
+      margin: 0 4px;
+    }
+
+    .tool {
+      padding: 3px 8px;
+      background: var(--chrome);
+      border: 1px solid transparent;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .tool:hover {
+      border-color: var(--chrome-light) var(--chrome-darker) var(--chrome-darker) var(--chrome-light);
+      background: #d8d8d8;
+    }
+
+    .pathbar {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 4px 8px;
+      border: 2px solid var(--chrome-dark);
+      border-right-color: var(--chrome-light);
+      border-bottom-color: var(--chrome-light);
+      background: #fff;
+      font-family: "Courier New", monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .address-wrap,
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: #333;
+      white-space: nowrap;
+    }
+
+    .path-input,
+    .search-input {
+      width: 100%;
+      min-width: 0;
+      padding: 4px 6px;
+      border: 2px solid var(--chrome-dark);
+      border-right-color: var(--chrome-light);
+      border-bottom-color: var(--chrome-light);
+      background: #fff;
+      font: inherit;
+    }
+
+    .search-wrap {
+      flex: 0 1 250px;
+    }
+
+    .main {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      background: var(--panel);
+    }
+
+    .sidebar {
+      min-height: 0;
+      border-right: 1px solid var(--chrome-dark);
+      background: var(--panel-deep);
+      padding: 8px;
+      overflow: auto;
+    }
+
+    .window.hide-sidebar .main {
+      grid-template-columns: 1fr;
+    }
+
+    .window.hide-sidebar .sidebar {
+      display: none;
+    }
+
+    .pane-title {
+      margin: 0 0 8px;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .drivebox {
+      margin-bottom: 10px;
+      padding: 6px;
+      background: #f7f7f7;
+      border: 2px solid var(--chrome-light);
+      border-right-color: var(--chrome-dark);
+      border-bottom-color: var(--chrome-dark);
+    }
+
+    .drive-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 2px;
+      font-size: 12px;
+    }
+
+    .drive-icon {
+      width: 20px;
+      height: 12px;
+      border: 1px solid #444;
+      background: linear-gradient(#eaeaea, #bbbbbb);
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .drive-icon::after {
+      content: "";
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      bottom: -3px;
+      height: 2px;
+      background: #666;
+    }
+
+    .tree {
+      display: grid;
+      gap: 2px;
+    }
+
+    .tree button {
+      text-align: left;
+      width: 100%;
+      padding: 4px 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tree button.active,
+    .tree button:hover {
+      background: var(--selection);
+      color: var(--selection-text);
+      border-color: #001f5a;
+    }
+
+    .tree .count {
+      margin-left: auto;
+      font-size: 11px;
+      opacity: .8;
+    }
+
+    .content {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      overflow: hidden;
+    }
+
+    .content-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px;
+      border-bottom: 1px solid var(--chrome-dark);
+      background: var(--panel-blue);
+    }
+
+    .content-path {
+      font-size: 12px;
+      font-weight: 700;
+      color: #17396b;
+    }
+
+    .content-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .header-row {
+      display: grid;
+      grid-template-columns: minmax(250px, 1.8fr) minmax(120px, .8fr) minmax(130px, .9fr) 76px;
+      padding: 0 8px;
+      border-bottom: 1px solid var(--chrome-dark);
+      background: #dadada;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .header-row div {
+      padding: 6px 8px;
+      border-left: 1px solid #b8b8b8;
+    }
+
+    .header-row div:first-child {
+      border-left: 0;
+    }
+
+    .list {
+      overflow: auto;
+      background: #fff;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(250px, 1.8fr) minmax(120px, .8fr) minmax(130px, .9fr) 76px;
+      color: inherit;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: default;
+    }
+
+    .row:hover {
+      background: #eaf2ff;
+    }
+
+    .row.selected {
+      background: var(--selection);
+      color: var(--selection-text);
+    }
+
+    .row.selected .cell {
+      border-left-color: rgba(255,255,255,.28);
+    }
+
+    .cell {
+      padding: 7px 8px;
+      border-left: 1px solid #f2f2f2;
+      min-width: 0;
+    }
+
+    .cell:first-child {
+      border-left: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .name-wrap {
+      min-width: 0;
+    }
+
+    .name {
+      display: block;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .detail {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .row.selected .detail {
+      color: rgba(255,255,255,.85);
+    }
+
+    .file-icon {
+      width: 18px;
+      height: 20px;
+      position: relative;
+      border: 1px solid #000;
+      background: #fff;
+      flex: 0 0 auto;
+    }
+
+    .file-icon::before {
+      content: "";
+      position: absolute;
+      left: 3px;
+      right: 3px;
+      top: 5px;
+      height: 1px;
+      background: #7a7a7a;
+      box-shadow: 0 4px 0 #7a7a7a, 0 8px 0 #7a7a7a;
+    }
+
+    .folder-small {
+      width: 18px;
+      height: 14px;
+      position: relative;
+      border: 1px solid #6b5414;
+      background: #f8d56c;
+      flex: 0 0 auto;
+      margin-top: 2px;
+    }
+
+    .folder-small::before {
+      content: "";
+      position: absolute;
+      left: 1px;
+      top: -4px;
+      width: 8px;
+      height: 4px;
+      border: 1px solid #6b5414;
+      border-bottom: 0;
+      background: #f8d56c;
+    }
+
+    .open-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .open-button {
+      padding: 2px 8px;
+      font: inherit;
+      font-size: 11px;
+      background: var(--chrome);
+      border: 1px solid #000;
+      box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+      cursor: pointer;
+    }
+    .row.selected .open-button {
+      background: rgba(255,255,255,.12);
+      color: var(--selection-text);
+      border-color: rgba(255,255,255,.72) rgba(0,0,0,.45) rgba(0,0,0,.45) rgba(255,255,255,.72);
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,.35), inset -1px -1px 0 rgba(0,0,0,.35);
+    }
+
+    .row.selected .open-button:hover {
+      background: rgba(255,255,255,.2);
+    }
+
+    .statusbar {
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .statusbox {
+      padding: 2px 6px;
+      border: 1px solid var(--chrome-dark);
+      border-right-color: var(--chrome-light);
+      border-bottom-color: var(--chrome-light);
+      background: #d9d9d9;
+    }
+
+    .dialog-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.18);
+      z-index: 20;
+    }
+
+    .dialog-backdrop.open {
+      display: flex;
+    }
+
+    .dialog {
+      width: min(420px, calc(100vw - 24px));
+      background: var(--chrome);
+      border: 2px solid var(--chrome-light);
+      border-right-color: var(--chrome-darker);
+      border-bottom-color: var(--chrome-darker);
+      box-shadow: 3px 3px 0 rgba(0,0,0,.28);
+    }
+
+    .dialog-title {
+      padding: 3px 6px;
+      background: linear-gradient(90deg, #000080, #1084d0);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .dialog-body {
+      padding: 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      background: var(--panel);
+    }
+
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      padding: 8px 12px 12px;
+      background: var(--panel);
+    }
+
+    .dialog-actions button {
+      min-width: 78px;
+      padding: 3px 10px;
+      border: 1px solid #000;
+      background: var(--chrome);
+      box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .dialog-option-row {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .dialog-option {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #000;
+      background: #f7f7f7;
+      box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #808080;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .dialog-option strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 12px;
+    }
+
+    .dialog-option span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .dialog-option:hover,
+    .dialog-option:focus-visible {
+      background: var(--selection);
+      color: var(--selection-text);
+      outline: none;
+    }
+
+    .dialog-option:hover span,
+    .dialog-option:focus-visible span {
+      color: rgba(255,255,255,.84);
+    }
+
+    @media (max-width: 820px) {
+      body {
+        overflow: auto;
+      }
+
+      .window {
+        min-height: 100%;
+        height: auto;
+      }
+
+      .menubar,
+      .toolbar,
+      .statusbar,
+      .content-head {
+        flex-wrap: wrap;
+      }
+
+      .menubar {
+        gap: 4px;
+        padding-bottom: 6px;
+      }
+
+      .toolbar {
+        align-items: stretch;
+      }
+
+      .toolbar-group {
+        flex: 1 1 auto;
+        flex-wrap: wrap;
+      }
+
+      .toolbar-sep {
+        display: none;
+      }
+
+      .tool {
+        flex: 1 1 86px;
+        min-height: 30px;
+      }
+
+      .address-wrap,
+      .search-wrap {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+
+      .field-label {
+        min-width: 56px;
+      }
+
+      .path-input,
+      .search-input {
+        min-height: 32px;
+      }
+
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .sidebar {
+        border-right: 0;
+        border-bottom: 1px solid var(--chrome-dark);
+        max-height: min(32vh, 220px);
+      }
+
+      .content-head {
+        align-items: flex-start;
+      }
+
+      .header-row {
+        display: none;
+      }
+
+      .list {
+        padding: 4px 8px 8px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding: 7px 8px;
+        margin-bottom: 6px;
+        border: 1px solid #d2d2d2;
+        box-shadow: inset 1px 1px 0 #fff;
+      }
+
+      .cell {
+        padding: 4px 0;
+        border-left: 0;
+      }
+
+      .cell:first-child {
+        align-items: flex-start;
+      }
+
+      .name,
+      .detail {
+        white-space: normal;
+      }
+
+      .row .cell:nth-child(2)::before,
+      .row .cell:nth-child(3)::before,
+      .row .cell:nth-child(4)::before {
+        display: inline-block;
+        min-width: 52px;
+        margin-right: 10px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--muted);
+      }
+
+      .row.selected .cell:nth-child(2)::before,
+      .row.selected .cell:nth-child(3)::before,
+      .row.selected .cell:nth-child(4)::before {
+        color: rgba(255,255,255,.82);
+      }
+
+      .row .cell:nth-child(2)::before {
+        content: "Type";
+      }
+
+      .row .cell:nth-child(3)::before {
+        content: "Where";
+      }
+
+      .row .cell:nth-child(4)::before {
+        content: "Open";
+      }
+
+      .open-cell {
+        justify-content: flex-start;
+      }
+
+      .open-button {
+        width: 100%;
+        min-height: 30px;
+      }
+      .statusbox {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="window">
+    <div class="menubar">
+      <div class="menu" data-menu="file">
+        <button class="menu-button" type="button">File</button>
+        <div class="menu-panel">
+          <button class="menu-item" type="button" data-action="open-selected"><span>Open</span><span class="shortcut">Enter</span></button>
+          <button class="menu-item" type="button" data-action="open-selected-tab"><span>Open In Browser Tab</span><span class="shortcut">Ctrl+Enter</span></button>
+          <button class="menu-item" type="button" data-action="download-selected"><span>Download File</span><span class="shortcut">Ctrl+Shift+Enter</span></button>
+          <div class="menu-sep"></div>
+          <button class="menu-item" type="button" data-action="refresh"><span>Refresh</span><span class="shortcut">F5</span></button>
+          <button class="menu-item" type="button" data-action="close-map"><span>Close</span><span class="shortcut">Esc</span></button>
+        </div>
+      </div>
+      <div class="menu" data-menu="edit">
+        <button class="menu-button" type="button">Edit</button>
+        <div class="menu-panel">
+          <button class="menu-item" type="button" data-action="copy-name"><span>Copy Name</span><span class="shortcut">Ctrl+C</span></button>
+          <button class="menu-item" type="button" data-action="copy-path"><span>Copy Path</span><span class="shortcut">Ctrl+Shift+C</span></button>
+          <button class="menu-item" type="button" data-action="copy-url"><span>Copy Full URL</span><span class="shortcut"></span></button>
+        </div>
+      </div>
+      <div class="menu" data-menu="view">
+        <button class="menu-button" type="button">View</button>
+        <div class="menu-panel">
+          <button class="menu-item" type="button" data-action="open-raw-directory"><span>Raw Directory View</span><span class="shortcut">Ctrl+B</span></button>
+          <div class="menu-sep"></div>
+          <button class="menu-item" type="button" data-action="toggle-sidebar"><span>Toggle Folders Pane</span><span class="shortcut">F9</span></button>
+          <div class="menu-sep"></div>
+          <button class="menu-item" type="button" data-action="reset-layout"><span>Reset Layout</span><span class="shortcut"></span></button>
+        </div>
+      </div>
+      <div class="menu" data-menu="go">
+        <button class="menu-button" type="button">Go</button>
+        <div class="menu-panel">
+          <button class="menu-item" type="button" data-action="go-back"><span>Back</span><span class="shortcut">Alt+Left</span></button>
+          <button class="menu-item" type="button" data-action="go-forward"><span>Forward</span><span class="shortcut">Alt+Right</span></button>
+          <button class="menu-item" type="button" data-action="go-up"><span>Up To Main Entry</span><span class="shortcut">Backspace</span></button>
+          <button class="menu-item" type="button" data-action="go-home"><span>Open Site Home</span><span class="shortcut">Home</span></button>
+        </div>
+      </div>
+      <div class="menu" data-menu="favorites">
+        <button class="menu-button" type="button">Favorites</button>
+        <div class="menu-panel">
+          <button class="menu-item" type="button" data-action="section-entry"><span>Main Entry Points</span><span class="shortcut">1</span></button>
+          <button class="menu-item" type="button" data-action="section-root"><span>Root Pages</span><span class="shortcut">2</span></button>
+          <button class="menu-item" type="button" data-action="section-posts"><span>Posts and Notes</span><span class="shortcut">3</span></button>
+          <button class="menu-item" type="button" data-action="section-programs"><span>Programs</span><span class="shortcut">4</span></button>
+          <button class="menu-item" type="button" data-action="section-assets"><span>Media and Downloads</span><span class="shortcut">5</span></button>
+        </div>
+      </div>
+      <div class="menu" data-menu="help">
+        <button class="menu-button" type="button">Help</button>
+        <div class="menu-panel">
+          <button class="menu-item" type="button" data-action="show-shortcuts"><span>Keyboard Shortcuts</span><span class="shortcut">?</span></button>
+          <button class="menu-item" type="button" data-action="show-about"><span>About This Browser</span><span class="shortcut"></span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <button class="tool" type="button" data-action="go-back">Back</button>
+        <button class="tool" type="button" data-action="go-forward">Forward</button>
+        <button class="tool" type="button" data-action="go-up">Up</button>
+      </div>
+      <div class="toolbar-sep" aria-hidden="true"></div>
+      <div class="toolbar-group">
+        <button class="tool" type="button" data-action="copy-name">Copy</button>
+        <button class="tool" type="button" data-action="copy-path">Copy Path</button>
+        <button class="tool" type="button" data-action="open-selected">Open</button>
+        <button class="tool" type="button" data-action="download-selected">Download</button>
+      </div>
+      <div class="toolbar-sep" aria-hidden="true"></div>
+      <div class="toolbar-group">
+        <button class="tool" type="button" data-action="refresh">Refresh</button>
+      </div>
+      <div class="address-wrap">
+        <span class="field-label">Address:</span>
+        <input class="path-input" id="address-input" type="text" value="C:\\SOL37\\WWW\\[MAIN ENTRY POINTS]\\" spellcheck="false" />
+      </div>
+      <div class="search-wrap">
+        <span class="field-label">Search:</span>
+        <input class="search-input" id="search-input" type="search" placeholder="search root files + contents" spellcheck="false" />
+      </div>
+    </div>
+
+    <div class="main">
+      <aside class="sidebar">
+        <div class="drivebox">
+          <h2 class="pane-title">My Computer</h2>
+          <div class="drive-row">
+            <span class="drive-icon" aria-hidden="true"></span>
+            <span>(C:) SOL37_PUBLIC</span>
+          </div>
+        </div>
+        <h2 class="pane-title">Folders</h2>
+        <nav class="tree" id="tree"></nav>
+      </aside>
+
+      <section class="content">
+        <div class="content-head">
+          <div class="content-path" id="content-path">C:\SOL37\WWW\[MAIN ENTRY POINTS]\</div>
+          <div class="content-meta" id="content-meta">Loading live web root index...</div>
+        </div>
+
+        <div class="header-row">
+          <div>Name</div>
+          <div>Type</div>
+          <div>Where</div>
+          <div>Open</div>
+        </div>
+
+        <div class="list" id="list"></div>
+      </section>
+    </div>
+
+    <div class="statusbar">
+      <div class="statusbox" id="status-selection">Loading live site index...</div>
+      <div class="statusbox">Search uses semantic recall plus local file and path matches</div>
+    </div>
+  </section>
+
+  <div class="dialog-backdrop" id="dialog-backdrop" aria-hidden="true">
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+      <div class="dialog-title" id="dialog-title">Sol-37 File Browser</div>
+      <div class="dialog-body" id="dialog-body"></div>
+      <div class="dialog-actions">
+        <button type="button" id="dialog-ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SITE_INDEX_URL = "site-index.json";
+    const KNOWLEDGE_SEARCH_URL = "/api/knowledge/query";
+    const SEARCH_DEBOUNCE_MS = 180;
+    const SEARCH_RESULT_LIMIT = 12;
+    const SEARCH_SEMANTIC_LIMIT = 8;
+    const MEDIA_EXTENSIONS = new Set(["mp3", "wav", "ogg", "flac", "m4a", "mp4", "m4v", "mov", "webm", "jpg", "jpeg", "png", "gif", "svg", "ico", "zip"]);
+    const ROOT_ENTRY_PATHS = new Set(["/", "index.html", "windows98-clippy-showcase.html", "sol.html", "radio_stack_showcase.html", "sol37/index.html", "programs/logbook.html", "programs/media-player.html", "site-server.html", "site-metrics.html"]);
+    const COLLECTION_ORDER = ["entry", "root", "posts", "programs", "assets", "support"];
+    const COLLECTION_LABELS = {
+      entry: "Main Entry Points",
+      root: "Root Pages",
+      posts: "Posts and Notes",
+      programs: "Programs",
+      assets: "Media and Downloads",
+      support: "Data and Utility Files"
+    };
+
+    const STATIC_SECTIONS = [
+      {
+        id: "entry",
+        label: "Main Entry Points",
+        items: [
+          { href: "index.html", title: "Sol-37 Retro UI", type: "HTML page", detail: "Main desktop shell" },
+          { href: "windows98-clippy-showcase.html", title: "Windows 98, Meet 2026", type: "HTML page", detail: "Sol Chat 98, Clippy, seamless mode, installers, and source" },
+          { href: "davedot/intro.html", title: "DaveDot Transmission Intro", type: "HTML page", detail: "Recovered PowerPoint-driven intro sequence" },
+          { href: "davedot/index.html", title: "DaveDot Archive Recreation", type: "HTML page", detail: "Rebuilt DaveDot microsite" },
+          { href: "sol.html", title: "SOL Dashboard Mock", type: "HTML page", detail: "Mission-control mockup" },
+          { href: "sol37/index.html", title: "Sol-37 Alternate Index", type: "HTML page", detail: "Nested alternate landing page" },
+          { href: "radio_stack_showcase.html", title: "Radio Cortex Showcase", type: "HTML page", detail: "Radio stack showcase" },
+          { href: "programs/logbook.html", title: "Logbook", type: "HTML page", detail: "Public logbook program" },
+          { href: "programs/media-player.html", title: "Media Player", type: "HTML page", detail: "Video and audio player" },
+          { href: "site-server.html", title: "Site Server Manual", type: "HTML page", detail: "Site server operations manual" },
+          { href: "site-metrics.html", title: "Site Metrics", type: "HTML page", detail: "Live metrics dashboard" },
+          { href: "/", title: "Open Home", type: "Directory", detail: "Root landing path" }
+        ]
+      },
+      {
+        id: "root",
+        label: "Root Pages",
+        items: [
+          { href: "CatchUp_Apophis_Invite_2025.html", title: "Catch-Up: Diagnostic Thread to Apophis Flyby", type: "HTML page", detail: "Invite and self-logging thread" },
+          { href: "PKD_Explainer.html", title: "Philip K. Dick Explainer", type: "HTML page", detail: "The Empire That Never Ended essay" },
+          { href: "alt2.html", title: "alt2", type: "HTML page", detail: "Alternate page variant" },
+          { href: "books.html", title: "Books", type: "HTML page", detail: "Static books page" },
+          { href: "chunk.html", title: "Random Chunk", type: "HTML page", detail: "Small standalone fragment" },
+          { href: "deer-valley-forecast.html", title: "Deer Valley Forecast", type: "HTML page", detail: "Forecast page" },
+          { href: "document.html", title: "Document", type: "HTML page", detail: "Minimal document page" },
+          { href: "gui-temp.html", title: "Sol-37 Retro UI Draft", type: "HTML page", detail: "Temporary shell variant" },
+          { href: "gui.html", title: "HUE One-Shot Audio Orb", type: "HTML page", detail: "Audio interface experiment" },
+          { href: "hue.html", title: "Audio Orb v4.2", type: "HTML page", detail: "Audio-focused page" },
+          { href: "index.bk.html", title: "Paper Cuts Book Club", type: "HTML page", detail: "Backup homepage variant" },
+          { href: "jellyshare.html", title: "Jellyshare", type: "HTML page", detail: "Compact share page" },
+          { href: "music.html", title: "Archive, Interrupted", type: "HTML page", detail: "Screenplay log analytica" },
+          { href: "open-letter-malware.html", title: "Open Letter: Not Malware", type: "HTML page", detail: "Formal household clarification dossier" },
+          { href: "operation-reset.html", title: "Operation Birthday Reset", type: "HTML page", detail: "Structured reset page" },
+          { href: "quantum_board_clean.html", title: "Quantum Board", type: "HTML page", detail: "Clean board build" },
+          { href: "seahorse-life-remastered.html", title: "Seahorse Life", type: "HTML page", detail: "Remastered interactive page" },
+          { href: "services.html", title: "Services", type: "HTML page", detail: "Top-level services page" },
+          { href: "sitemap.html", title: "Site Map", type: "HTML page", detail: "This file browser" },
+          { href: "sol37_blog.html", title: "Sol-37 Blog", type: "HTML page", detail: "Notes from a noisy universe" },
+          { href: "solnet_splash.html", title: "SolNet Splash", type: "HTML page", detail: "Conscious systems splash" },
+          { href: "thomas-olive-branch.html", title: "Structural Fork", type: "HTML page", detail: "Graphical text adventure" },
+          { href: "tree.html", title: "XP Desktop Tree", type: "HTML page", detail: "Physics toy page" },
+          { href: "%F0%9F%AB%80.html", title: "The Table & The Forum", type: "HTML page", detail: "Heart-named intro page" }
+        ]
+      },
+      {
+        id: "posts",
+        label: "Posts and Notes",
+        items: [
+          { href: "posts/ICE-ICE-BABY.html", title: "ICE Detainers and the Fourth Amendment", type: "HTML page", detail: "Explainer page" },
+          { href: "posts/help.html", title: "Help Us Save Our Family Home", type: "HTML page", detail: "Call-for-help page" },
+          { href: "posts/money.html", title: "Money Flow Engine", type: "HTML page", detail: "Interactive atlas" },
+          { href: "posts/the_long_thinning.html", title: "The Long Thinning", type: "HTML page", detail: "Archival dashboard" },
+          { href: "posts/the_place_without_where.html", title: "The Place Without Where", type: "HTML page", detail: "Kerr spacetime essay" },
+          { href: "posts/thesis.html", title: "Thesis", type: "HTML page", detail: "Nested cosmology page" },
+          { href: "posts/timeline.html", title: "Timeline", type: "HTML page", detail: "Project 2025 timeline" },
+          { href: "posts/2025.md", title: "2025 Notes", type: "Markdown", detail: "Markdown note" },
+          { href: "posts/test.md", title: "Test Note", type: "Markdown", detail: "Scratch note" },
+          { href: "posts/index.json", title: "Posts Index Data", type: "JSON", detail: "Manifest powering the shell" }
+        ]
+      },
+      {
+        id: "programs",
+        label: "Programs",
+        items: [
+          { href: "programs/star-map.html", title: "Interactive Star Map V2", type: "HTML page", detail: "Star map program" },
+          { href: "programs/theresa-v2.html", title: "Sorrento-2007 Ledger v2", type: "HTML page", detail: "Ledger with guide" },
+          { href: "programs/theresa.html", title: "Sorrento-2007 Ledger", type: "HTML page", detail: "Original ledger" },
+          { href: "programs/valley.html", title: "Homestead Charter", type: "HTML page", detail: "One-page charter" },
+          { href: "programs/dosbox.html", title: "DOSBox", type: "HTML page", detail: "Browser DOSBox surface" },
+          { href: "programs/orb-assistant.html", title: "Orb Assistant Player", type: "HTML page", detail: "Orb-based audio playback surface" },
+          { href: "bin/sim/examples/the_long_thinning.html", title: "Simulation Example: The Long Thinning", type: "HTML page", detail: "Buried sim example" },
+          { href: "programs/interactive_star_map_v_2_react_web_app.jsx", title: "Star Map Source", type: "JSX source", detail: "React source file" }
+        ]
+      },
+      {
+        id: "assets",
+        label: "Media and Downloads",
+        items: [
+          { href: "Untitled_project_Chapter_3.mp3", title: "Untitled Project Chapter 3", type: "MP3 audio", detail: "Audio file" },
+          { href: "output.mp3", title: "Output Audio", type: "MP3 audio", detail: "Rendered output file" },
+          { href: "radio_stack_latest.zip", title: "Radio Stack Bundle", type: "ZIP archive", detail: "Download bundle" },
+          { href: "radio_stack_live_desktop.png", title: "Radio Stack Desktop Screenshot", type: "PNG image", detail: "Desktop screenshot" },
+          { href: "video-poster.jpg", title: "Video Poster", type: "JPEG image", detail: "Poster asset" },
+          { href: "video-test.mp4", title: "Video Test", type: "MP4 video", detail: "Test asset" },
+          { href: "video-web.mp4", title: "Video Web", type: "MP4 video", detail: "Web-optimized video" },
+          { href: "video.mp4", title: "Video Master", type: "MP4 video", detail: "Primary video asset" },
+          { href: "favicon.ico", title: "Favicon ICO", type: "Icon file", detail: "Legacy favicon" },
+          { href: "favicon.svg", title: "Favicon SVG", type: "SVG image", detail: "Vector favicon" }
+        ]
+      },
+      {
+        id: "support",
+        label: "Data and Utility Files",
+        items: [
+          { href: "dat.json", title: "dat.json", type: "JSON data", detail: "Large JSON blob" },
+          { href: "news.txt", title: "news.txt", type: "Text file", detail: "Plain-text archive material" },
+          { href: "install_radio_stack.sh", title: "install_radio_stack.sh", type: "Shell script", detail: "Public installer" },
+          { href: "bin/shared_dictionary.py", title: "shared_dictionary.py", type: "Python source", detail: "Utility under bin/" },
+          { href: "LICENSE", title: "LICENSE", type: "Text file", detail: "Repository license" }
+        ]
+      }
+    ];
+
+    const metadataByHref = new Map(
+      STATIC_SECTIONS.flatMap((section) => section.items.map((item) => [item.href, { ...item, sectionId: section.id }]))
+    );
+
+    const tree = document.getElementById("tree");
+    const list = document.getElementById("list");
+    const status = document.getElementById("status-selection");
+    const contentPath = document.getElementById("content-path");
+    const contentMeta = document.getElementById("content-meta");
+    const addressInput = document.getElementById("address-input");
+    const searchInput = document.getElementById("search-input");
+    const windowRoot = document.querySelector(".window");
+    const menus = Array.from(document.querySelectorAll(".menu"));
+    const dialogBackdrop = document.getElementById("dialog-backdrop");
+    const dialogTitle = document.getElementById("dialog-title");
+    const dialogBody = document.getElementById("dialog-body");
+    const dialogOk = document.getElementById("dialog-ok");
+
+    let sections = [];
+    let collectionSections = [];
+    let directorySections = [];
+    let catalogItems = [];
+    let activeSection = "collection:entry";
+    let selectedHref = "index.html";
+    const sectionHistory = [];
+    let historyIndex = -1;
+    let searchQuery = "";
+    let searchResults = [];
+    let searchTimer = 0;
+    let searchToken = 0;
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function setStatus(message) {
+      status.textContent = message;
+    }
+
+    function closeMenus() {
+      menus.forEach((menu) => menu.classList.remove("open"));
+    }
+
+    function toggleMenu(menuNode) {
+      const shouldOpen = !menuNode.classList.contains("open");
+      closeMenus();
+      if (shouldOpen) menuNode.classList.add("open");
+    }
+
+    function showDialog(title, html) {
+      dialogTitle.textContent = title;
+      dialogBody.innerHTML = html;
+      dialogBackdrop.classList.add("open");
+      dialogBackdrop.setAttribute("aria-hidden", "false");
+      dialogOk.focus();
+    }
+
+    function hideDialog() {
+      dialogBackdrop.classList.remove("open");
+      dialogBackdrop.setAttribute("aria-hidden", "true");
+    }
+
+    async function copyText(text, label) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus(`${label} copied`);
+      } catch (error) {
+        showDialog("Clipboard", `<p>Clipboard write failed.</p><p>${escapeHtml(String(error.message || error))}</p>`);
+      }
+    }
+
+    function directoryLabel(dir) {
+      return !dir || dir === "/" ? "www /" : dir;
+    }
+
+    function collectionLabel(id) {
+      return COLLECTION_LABELS[id] || id;
+    }
+
+    function sectionIdForCollection(id) {
+      return `collection:${id}`;
+    }
+
+    function sectionIdForDir(dir) {
+      return `dir:${dir || "/"}`;
+    }
+
+    function normalizeHref(href) {
+      if (!href || href === "/") return "/";
+      return String(href).replace(/^\/+/, "");
+    }
+
+    function guessDirFromHref(href) {
+      const clean = normalizeHref(href);
+      if (clean === "/" || !clean.includes("/")) return "/";
+      return clean.slice(0, clean.lastIndexOf("/")) || "/";
+    }
+
+    function slugifyLabel(value) {
+      return String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    }
+
+    function extToType(ext) {
+      const cleanExt = String(ext || "").toLowerCase();
+      if (cleanExt === "html") return "HTML page";
+      if (cleanExt === "md") return "Markdown";
+      if (cleanExt === "json") return "JSON data";
+      if (cleanExt === "txt") return "Text file";
+      if (cleanExt === "py") return "Python source";
+      if (cleanExt === "sh") return "Shell script";
+      if (cleanExt === "jsx") return "JSX source";
+      if (cleanExt === "js") return "JavaScript source";
+      if (cleanExt === "css") return "Stylesheet";
+      if (cleanExt === "svg") return "SVG image";
+      if (cleanExt === "ico") return "Icon file";
+      if (cleanExt === "jpg" || cleanExt === "jpeg") return "JPEG image";
+      if (cleanExt === "png") return "PNG image";
+      if (cleanExt === "gif") return "GIF image";
+      if (cleanExt === "mp3") return "MP3 audio";
+      if (cleanExt === "wav") return "WAV audio";
+      if (cleanExt === "ogg") return "OGG audio";
+      if (cleanExt === "flac") return "FLAC audio";
+      if (cleanExt === "m4a") return "M4A audio";
+      if (cleanExt === "mp4" || cleanExt === "m4v" || cleanExt === "mov" || cleanExt === "webm") return "MP4 video";
+      if (cleanExt === "zip") return "ZIP archive";
+      if (cleanExt === "conf" || cleanExt === "ini") return "Config file";
+      return cleanExt ? `${cleanExt.toUpperCase()} file` : "File";
+    }
+
+    function titleFromIndexEntry(entry) {
+      if (!entry?.name) return entry?.href || "Unnamed file";
+      const decoded = decodeURIComponent(entry.name);
+      return decoded || entry.href || "Unnamed file";
+    }
+
+    function detailFromIndexEntry(entry, collectionId) {
+      const sizeText = Number.isFinite(entry.size) ? ` · ${entry.size.toLocaleString()} bytes` : "";
+      if (collectionId === "entry") return `Indexed entry point${sizeText}`;
+      if (collectionId === "root") return `Root page${sizeText}`;
+      if (collectionId === "posts") return `Post or note${sizeText}`;
+      if (collectionId === "programs") return `Program surface${sizeText}`;
+      if (collectionId === "assets") return `Media or download${sizeText}`;
+      return `Data or utility file${sizeText}`;
+    }
+
+    function inferCollectionId(entry) {
+      const href = normalizeHref(entry.href);
+      const dir = entry.dir || "/";
+      const ext = String(entry.ext || "").toLowerCase();
+      if (ROOT_ENTRY_PATHS.has(href)) return "entry";
+      if (href.startsWith("posts/") || href.startsWith("sol37/posts/")) return "posts";
+      if (href.startsWith("programs/") || href.startsWith("bin/sim/examples/")) return "programs";
+      if (href.startsWith("video/") || MEDIA_EXTENSIONS.has(ext)) return "assets";
+      if ((dir === "/" || !dir) && ext === "html") return "root";
+      return "support";
+    }
+
+    function windowsPathForDirectory(dir) {
+      if (!dir || dir === "/") return "C:\\SOL37\\WWW\\";
+      return `C:\\SOL37\\WWW\\${dir.split("/").map((part) => part.toUpperCase()).join("\\")}\\`;
+    }
+
+    function pathForSection(section) {
+      if (!section) return "C:\\SOL37\\WWW\\";
+      if (section.kind === "collection") return `C:\\SOL37\\WWW\\[${section.label.toUpperCase()}]\\`;
+      return windowsPathForDirectory(section.dir);
+    }
+
+    function fileGlyph(type) {
+      return /directory/i.test(type) ? "folder" : "file";
+    }
+
+    function normalizeAddress(rawValue) {
+      return rawValue.trim().toLowerCase().replace(/^c:\\sol37\\www\\?/, "").replace(/\\/g, "/").replace(/^\/+/, "").replace(/\/+$/, "");
+    }
+
+    function buildCatalogItem(base, fallbackSectionId) {
+      const href = normalizeHref(base.href);
+      const dir = base.dir || guessDirFromHref(href);
+      const ext = String(base.ext || (href.includes(".") ? href.split(".").pop() : "")).toLowerCase();
+      const collectionId = base.sectionId || inferCollectionId({ ...base, href, dir, ext }) || fallbackSectionId || "support";
+      return {
+        href,
+        dir,
+        ext,
+        size: Number.isFinite(base.size) ? base.size : null,
+        title: base.title || titleFromIndexEntry({ ...base, href }),
+        type: base.type || extToType(ext),
+        detail: base.detail || detailFromIndexEntry({ ...base, dir, ext }, collectionId),
+        collectionId,
+        collectionLabel: collectionLabel(collectionId)
+      };
+    }
+
+    function dedupeText(value) {
+      return String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function snippetFromText(text, query) {
+      const clean = dedupeText(text);
+      if (!clean) return "";
+      const lowered = clean.toLowerCase();
+      const target = String(query || "").trim().toLowerCase();
+      if (!target) return clean.slice(0, 220);
+      const index = lowered.indexOf(target);
+      if (index === -1) return clean.slice(0, 220);
+      const start = Math.max(0, index - 70);
+      const end = Math.min(clean.length, index + target.length + 120);
+      const prefix = start > 0 ? "..." : "";
+      const suffix = end < clean.length ? "..." : "";
+      return `${prefix}${clean.slice(start, end)}${suffix}`;
+    }
+
+    function knowledgePathToHref(path) {
+      const raw = String(path || "");
+      if (!raw) return "";
+      const videoMetadata = raw.match(/(?:^|\/)random\/www\/video\/metadata\/(.+\.(?:mp4|m4v|mov|webm|mkv|avi|mpg|mpeg|wmv))(?:\.md|\.transcript\.(?:txt|srt))$/i);
+      if (videoMetadata) return `video/${videoMetadata[1]}`;
+      if (raw.startsWith("random/www/")) return raw.slice("random/www/".length);
+      if (raw.startsWith("www/")) return raw.slice(4);
+      if (raw.startsWith("/home/david/knowledge/www/")) return raw.slice("/home/david/knowledge/www/".length);
+      if (raw.startsWith("/home/david/knowledge/")) return `knowledge/${raw.slice("/home/david/knowledge/".length)}`;
+      return raw;
+    }
+
+    function buildSemanticItem(result, query) {
+      const href = normalizeHref(result.media_url || knowledgePathToHref(result.path));
+      if (!href) return null;
+      const existing = catalogItems.find((item) => item.href === href);
+      const snippet = snippetFromText(result.text, query);
+      const scorePct = Number.isFinite(result.score) ? Math.round(result.score * 100) : null;
+
+      if (existing) {
+        return {
+          ...existing,
+          semanticScore: result.score,
+          semanticChunk: result.chunk,
+          detail: snippet ? `${result.modality === "visual" ? "Visual frame" : "Semantic"} match${scorePct !== null ? ` · ${scorePct}%` : ""}${Number.isFinite(result.frame_timestamp) ? ` · ${Math.round(result.frame_timestamp)}s` : ""} · ${snippet}` : existing.detail,
+        };
+      }
+
+      const ext = href.includes(".") ? href.split(".").pop() : "";
+      const dir = guessDirFromHref(href);
+      const collectionId = href.startsWith("knowledge/") ? "support" : inferCollectionId({ href, dir, ext });
+      return buildCatalogItem(
+        {
+          href,
+          dir,
+          ext,
+          title: href.split("/").pop() || href,
+          type: extToType(ext),
+          detail: snippet ? `${result.modality === "visual" ? "Visual frame" : "Semantic"} match${scorePct !== null ? ` · ${scorePct}%` : ""}${Number.isFinite(result.frame_timestamp) ? ` · ${Math.round(result.frame_timestamp)}s` : ""} · ${snippet}` : "Semantic search result",
+          sectionId: collectionId,
+        },
+        collectionId,
+      );
+    }
+
+    function sortItems(items) {
+      return items.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }) || a.href.localeCompare(b.href));
+    }
+
+    function buildSections(manifest) {
+      const itemMap = new Map();
+
+      STATIC_SECTIONS.forEach((section) => {
+        section.items.forEach((item) => {
+          itemMap.set(normalizeHref(item.href), buildCatalogItem(item, section.id));
+        });
+      });
+
+      manifest.forEach((entry) => {
+        if (!entry?.href) return;
+        const href = normalizeHref(entry.href);
+        const known = metadataByHref.get(href);
+        itemMap.set(href, buildCatalogItem({ ...entry, ...(known || {}) }, known?.sectionId));
+      });
+
+      catalogItems = sortItems(Array.from(itemMap.values()));
+
+      const collectionMap = new Map(COLLECTION_ORDER.map((id) => [id, []]));
+      const directoryMap = new Map();
+
+      catalogItems.forEach((item) => {
+        const collectionId = item.collectionId || "support";
+        if (!collectionMap.has(collectionId)) collectionMap.set(collectionId, []);
+        collectionMap.get(collectionId).push(item);
+
+        const dir = item.dir || "/";
+        if (!directoryMap.has(dir)) directoryMap.set(dir, []);
+        directoryMap.get(dir).push(item);
+      });
+
+      collectionSections = COLLECTION_ORDER.map((id) => ({
+        id: sectionIdForCollection(id),
+        shortId: id,
+        kind: "collection",
+        label: collectionLabel(id),
+        pathLabel: `C:\\SOL37\\WWW\\[${collectionLabel(id).toUpperCase()}]\\`,
+        items: sortItems(collectionMap.get(id) || [])
+      }));
+
+      directorySections = Array.from(directoryMap.entries())
+        .sort(([left], [right]) => {
+          if (left === "/") return -1;
+          if (right === "/") return 1;
+          return left.localeCompare(right, undefined, { sensitivity: "base" });
+        })
+        .map(([dir, items]) => ({
+          id: sectionIdForDir(dir),
+          shortId: dir,
+          kind: "directory",
+          label: directoryLabel(dir),
+          dir,
+          pathLabel: windowsPathForDirectory(dir),
+          items: sortItems(items.slice())
+        }));
+
+      sections = [...collectionSections, ...directorySections];
+    }
+
+    async function loadIndexedSections() {
+      try {
+        const response = await fetch(SITE_INDEX_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const manifest = await response.json();
+        if (!Array.isArray(manifest)) throw new Error("site-index.json is not an array");
+        buildSections(manifest);
+      } catch (error) {
+        buildSections([]);
+        setStatus("Site index unavailable; showing fallback snapshot");
+        console.warn("Failed to load live site index for sitemap explorer", error);
+      }
+
+      const section = sections.find((entry) => entry.id === activeSection) || sections[0];
+      activeSection = section?.id || sectionIdForCollection("entry");
+      selectedHref = selectedHref || section?.items?.[0]?.href || "index.html";
+      if (historyIndex === -1 && activeSection) {
+        sectionHistory.push(activeSection);
+        historyIndex = 0;
+      }
+    }
+
+    function currentSection() {
+      return sections.find((entry) => entry.id === activeSection) || sections[0] || null;
+    }
+
+    function currentItems() {
+      if (searchQuery) return searchResults;
+      const section = currentSection();
+      return section?.items || [];
+    }
+
+    function currentItem() {
+      const items = currentItems();
+      return items.find((item) => item.href === selectedHref) || items[0] || null;
+    }
+
+    function isMarkdownLikeHref(href) {
+      return /\.(?:md|markdown|txt)(?:[?#].*)?$/i.test(String(href || ""));
+    }
+
+    function downloadUrlForItem(item) {
+      if (!item?.href) return "";
+      const url = new URL(item.href, window.location.href);
+      if (isMarkdownLikeHref(item.href)) {
+        url.searchParams.set("format", "raw");
+        url.searchParams.set("download", "1");
+      }
+      return url.href;
+    }
+
+    function filenameForItem(item) {
+      const href = String(item?.href || "").split("#")[0].split("?")[0];
+      const parts = href.split("/").filter(Boolean);
+      return parts[parts.length - 1] || "download";
+    }
+
+    function downloadItem(item) {
+      if (!item?.href) return;
+      const anchor = document.createElement("a");
+      anchor.href = downloadUrlForItem(item);
+      anchor.download = filenameForItem(item);
+      anchor.rel = "noopener";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setStatus(`${item.title} download requested`);
+    }
+
+    function browseUrlForDirectory(dir) {
+      const normalized = !dir || dir === "/" ? "/" : `/${String(dir).replace(/^\/+|\/+$/g, "")}/`;
+      return `/__browse${normalized}`;
+    }
+
+    function browseUrlForItem(item, section = currentSection()) {
+      if (!item) {
+        if (section?.kind === "directory") return browseUrlForDirectory(section.dir);
+        return browseUrlForDirectory("/");
+      }
+      return browseUrlForDirectory(item.dir || guessDirFromHref(item.href));
+    }
+
+    function isDirectoryItem(item) {
+      return String(item?.type || "").toLowerCase() === "directory";
+    }
+
+    function isAudioItem(item) {
+      if (!item?.href) return false;
+      return /\.(mp3|wav|ogg|flac|m4a|aac|oga|opus|weba)(?:[?#].*)?$/i.test(String(item.href));
+    }
+
+    function isVideoItem(item) {
+      if (!item?.href) return false;
+      return /\.(mp4|m4v|mov|webm|mkv|avi|mpg|mpeg|wmv)(?:[?#].*)?$/i.test(String(item.href));
+    }
+
+    function isZipItem(item) {
+      return /\.zip(?:[?#].*)?$/i.test(String(item?.href || ""));
+    }
+
+    function zipDriveHrefForItem(item) {
+      const url = new URL("/programs/zip-drive.html", window.location.origin);
+      const href = normalizeHref(item?.href || "");
+      if (href) url.searchParams.set("archive", `/${href}`);
+      return `${url.pathname}${url.search}`;
+    }
+
+    function mediaPlayerHrefForItem(item) {
+      const url = new URL("/programs/media-player.html", window.location.origin);
+      const href = normalizeHref(item?.href || "");
+      if (href) {
+        url.searchParams.set("src", href.startsWith("/") ? href : `/${href}`);
+      }
+      if (item?.title) {
+        url.searchParams.set("title", item.title);
+      }
+      return `${url.pathname}${url.search}`;
+    }
+
+    function orbAssistantHrefForItem(item) {
+      const url = new URL("/programs/orb-assistant.html", window.location.origin);
+      const href = normalizeHref(item?.href || "");
+      if (href) {
+        url.searchParams.set("src", href.startsWith("/") ? href : `/${href}`);
+      }
+      if (item?.title) {
+        url.searchParams.set("title", item.title);
+      }
+      return `${url.pathname}${url.search}`;
+    }
+
+    function openHref(href, title, options = {}) {
+      if (!href) return;
+      if (options.external) {
+        window.open(href, "_blank", "noopener");
+        setStatus(`${title || href} opened in browser tab`);
+        return;
+      }
+
+      if (window.parent === window) {
+        window.location.href = href;
+        return;
+      }
+
+      window.parent.postMessage({
+        type: "sol-open-page",
+        href,
+        title: title || href
+      }, window.location.origin);
+    }
+
+    function browseDirectory(item, section = currentSection(), options = {}) {
+      const url = browseUrlForItem(item, section);
+      const dir = item?.dir || guessDirFromHref(item?.href) || section?.dir || "/";
+      openHref(url, `${directoryLabel(dir)} — Raw Directory View`, options);
+      setStatus(`Opened raw directory view for ${directoryLabel(dir)}`);
+    }
+
+    function showAudioOpenDialog(item, options = {}) {
+      const classicHref = mediaPlayerHrefForItem(item);
+      const orbHref = orbAssistantHrefForItem(item);
+      showDialog("Open Audio With", `
+        <p><strong>${escapeHtml(item?.title || "Audio file")}</strong> can open in either playback surface. When this runs inside the Sol shell, the desktop assistant should still react to the audio either way.</p>
+        <div class="dialog-option-row">
+          <button class="dialog-option" type="button" data-audio-open="classic">
+            <strong>Classic media player</strong>
+            <span>Uses the square deck and the recovered hue visualizer lineage. Choose this when you want the traditional player surface without foregrounding the orb's dance routine.</span>
+          </button>
+          <button class="dialog-option" type="button" data-audio-open="orb">
+            <strong>Orb assistant</strong>
+            <span>Routes the track through the orb-first playback surface and keeps the character framing front and center.</span>
+          </button>
+        </div>
+      `);
+      dialogBody.querySelectorAll("[data-audio-open]").forEach((button) => {
+        button.addEventListener("click", () => {
+          hideDialog();
+          if (button.getAttribute("data-audio-open") === "orb") {
+            openHref(orbHref, `${item.title} — Orb Assistant`, options);
+            setStatus(`Opened ${item.title} in the orb assistant`);
+            return;
+          }
+          openHref(classicHref, `${item.title} — Media Player`, options);
+          setStatus(`Opened ${item.title} in the classic media player`);
+        });
+      });
+    }
+
+    function itemMetaHaystack(item) {
+      return [item.title, item.href, item.type, item.detail, item.collectionLabel, directoryLabel(item.dir)].join(" ").toLowerCase();
+    }
+
+    async function searchKnowledge(query, token) {
+      const url = new URL(KNOWLEDGE_SEARCH_URL, window.location.href);
+      url.searchParams.set("query", query);
+      url.searchParams.set("top_k", String(SEARCH_SEMANTIC_LIMIT));
+      const response = await fetch(url.toString(), { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`semantic search failed: HTTP ${response.status}`);
+      }
+      const payload = await response.json();
+      if (token !== searchToken) return null;
+      const results = Array.isArray(payload.results) ? payload.results : [];
+      return results.map((result) => buildSemanticItem(result, query)).filter(Boolean);
+    }
+
+    async function performSearch(query, token) {
+      const lowered = query.toLowerCase();
+      const localMatches = sortItems(catalogItems.filter((item) => itemMetaHaystack(item).includes(lowered)));
+      let semanticMatches = [];
+      try {
+        semanticMatches = await searchKnowledge(query, token) || [];
+      } catch (error) {
+        console.warn("Semantic search unavailable for sitemap explorer", error);
+      }
+      if (token !== searchToken) return null;
+
+      const merged = [];
+      const seen = new Set();
+      for (const item of [...semanticMatches, ...localMatches]) {
+        if (!item || seen.has(item.href)) continue;
+        seen.add(item.href);
+        merged.push(item);
+        if (merged.length >= SEARCH_RESULT_LIMIT) break;
+      }
+      return merged;
+    }
+
+    function renderTreeGroup(title, items) {
+      const heading = document.createElement("h2");
+      heading.className = "pane-title";
+      heading.textContent = title;
+      tree.appendChild(heading);
+
+      items.forEach((section) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = section.id === activeSection ? "active" : "";
+        btn.innerHTML = `<span class="folder-small" aria-hidden="true"></span><span>${escapeHtml(section.label)}</span><span class="count">${section.items.length}</span>`;
+        btn.addEventListener("click", () => setSection(section.id));
+        tree.appendChild(btn);
+      });
+    }
+
+    function renderTree() {
+      tree.innerHTML = "";
+      renderTreeGroup("Collections", collectionSections);
+      renderTreeGroup("Directories", directorySections);
+    }
+
+    function whereLabelForItem(item, section) {
+      if (searchQuery) return directoryLabel(item.dir);
+      if (section?.kind === "directory") return item.collectionLabel;
+      return directoryLabel(item.dir);
+    }
+
+    function refreshContextText(section, count) {
+      const pathText = pathForSection(section);
+      contentPath.textContent = pathText;
+      addressInput.value = pathText;
+      if (searchQuery) {
+        contentMeta.textContent = `${count} match${count === 1 ? "" : "es"} across the full root`;
+      } else if (section) {
+        contentMeta.textContent = `${count} item${count === 1 ? "" : "s"} in this ${section.kind === "directory" ? "directory" : "collection"}`;
+      } else {
+        contentMeta.textContent = "0 indexed items";
+      }
+    }
+
+    function selectItem(item, section) {
+      if (!item) return;
+      selectedHref = item.href;
+      refreshContextText(section, currentItems().length);
+      setStatus(searchQuery ? `Search: ${searchQuery} · ${currentItems().length} match${currentItems().length === 1 ? "" : "es"}` : `${item.title} selected · ${currentItems().length} object${currentItems().length === 1 ? "" : "s"}`);
+    }
+
+    function selectRenderedRow(row, item, section) {
+      if (!row || !item) return;
+      const prior = list.querySelector(".row.selected");
+      if (prior && prior !== row) prior.classList.remove("selected");
+      row.classList.add("selected");
+      selectItem(item, section);
+    }
+
+    function renderList() {
+      const section = currentSection();
+      const items = currentItems();
+      const selectedItem = items.find((item) => item.href === selectedHref) || items[0] || null;
+      if (selectedItem) {
+        selectedHref = selectedItem.href;
+      }
+      list.innerHTML = "";
+
+      items.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "row";
+        if (item.href === selectedHref) row.classList.add("selected");
+        row.innerHTML = `
+          <div class="cell">
+            <span class="${fileGlyph(item.type) === "folder" ? "folder-small" : "file-icon"}" aria-hidden="true"></span>
+            <span class="name-wrap">
+              <span class="name">${escapeHtml(item.title)}</span>
+              <span class="detail">${escapeHtml(item.detail)}</span>
+            </span>
+          </div>
+          <div class="cell">${escapeHtml(item.type)}</div>
+          <div class="cell">${escapeHtml(whereLabelForItem(item, section))}</div>
+          <div class="cell open-cell">
+            <button class="open-button" type="button">Open</button>
+          </div>
+        `;
+        row.addEventListener("click", () => {
+          selectRenderedRow(row, item, section);
+        });
+        row.addEventListener("dblclick", () => openItem(item));
+        row.querySelector(".open-button").addEventListener("click", (event) => {
+          event.stopPropagation();
+          openItem(item);
+        });
+        list.appendChild(row);
+      });
+
+      refreshContextText(section, items.length);
+      if (selectedItem) {
+        selectItem(selectedItem, section);
+        return;
+      }
+      setStatus(searchQuery ? `Search: ${searchQuery} · 0 matches` : `${section?.label || "View"} · 0 objects`);
+    }
+
+    function setSection(sectionId, options = {}) {
+      const section = sections.find((entry) => entry.id === sectionId);
+      if (!section) return;
+      activeSection = section.id;
+      if (!options.preserveSelection) {
+        selectedHref = section.items[0]?.href || "";
+      }
+      if (!options.skipHistory) {
+        sectionHistory.splice(historyIndex + 1);
+        sectionHistory.push(section.id);
+        historyIndex = sectionHistory.length - 1;
+      }
+      renderTree();
+      renderList();
+    }
+
+    function goHistory(direction) {
+      const nextIndex = historyIndex + direction;
+      if (nextIndex < 0 || nextIndex >= sectionHistory.length) {
+        setStatus("No further folder history");
+        return;
+      }
+      historyIndex = nextIndex;
+      setSection(sectionHistory[historyIndex], { skipHistory: true });
+    }
+
+    function sectionAliases(section) {
+      return new Set([
+        section.id,
+        section.shortId,
+        slugifyLabel(section.label),
+        normalizeAddress(section.pathLabel),
+        section.kind === "directory" ? normalizeAddress(windowsPathForDirectory(section.dir)) : normalizeAddress(section.pathLabel)
+      ].filter(Boolean));
+    }
+
+    function jumpToAddress(rawValue) {
+      const value = rawValue.trim();
+      if (!value) {
+        refreshContextText(currentSection(), currentItems().length);
+        return;
+      }
+
+      const normalized = normalizeAddress(value);
+      const sectionMatch = sections.find((section) => sectionAliases(section).has(normalized));
+      if (sectionMatch) {
+        searchQuery = "";
+        searchResults = [];
+        searchInput.value = "";
+        setSection(sectionMatch.id);
+        setStatus(`Navigated to ${sectionMatch.label}`);
+        return;
+      }
+
+      const itemMatch = catalogItems.find((item) => normalizeAddress(item.href) === normalized);
+      if (itemMatch) {
+        searchQuery = "";
+        searchResults = [];
+        searchInput.value = "";
+        const targetSection = collectionSections.find((section) => section.shortId === itemMatch.collectionId) || currentSection();
+        setSection(targetSection.id, { preserveSelection: true });
+        selectedHref = itemMatch.href;
+        renderList();
+        setStatus(`Jumped to ${itemMatch.href}`);
+        return;
+      }
+
+      setStatus(`Path not found: ${value}`);
+      showDialog("Address Not Found", `<p>No indexed folder or file matched <strong>${escapeHtml(value)}</strong>.</p>`);
+      refreshContextText(currentSection(), currentItems().length);
+    }
+
+    async function applySearch(query) {
+      const trimmed = query.trim();
+      searchQuery = trimmed;
+      searchToken += 1;
+      const token = searchToken;
+      syncSearchUrl(trimmed);
+
+      if (!trimmed) {
+        searchResults = [];
+        renderList();
+        return;
+      }
+
+      setStatus("Running semantic search plus local file/path matching...");
+      contentMeta.textContent = "Running semantic search plus local file/path matching...";
+      list.innerHTML = "";
+
+      const matches = await performSearch(trimmed, token);
+      if (matches === null || token !== searchToken) return;
+      searchResults = matches;
+      if (!searchResults.some((item) => item.href === selectedHref)) {
+        selectedHref = searchResults[0]?.href || "";
+      }
+      renderList();
+    }
+
+    function syncSearchUrl(query) {
+      try {
+        const url = new URL(window.location.href);
+        if (query) {
+          url.searchParams.set("q", query);
+        } else {
+          url.searchParams.delete("q");
+          url.searchParams.delete("search");
+        }
+        window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      } catch {}
+    }
+
+    function queueSearch(query) {
+      clearTimeout(searchTimer);
+      searchTimer = window.setTimeout(() => {
+        applySearch(query);
+      }, SEARCH_DEBOUNCE_MS);
+    }
+
+    function openItem(item, options = {}) {
+      if (!item) return;
+      if (isDirectoryItem(item)) {
+        browseDirectory(item, currentSection(), options);
+        return;
+      }
+      if (isZipItem(item)) {
+        openHref(zipDriveHrefForItem(item), `${item.title} — ZIP Drive`, options);
+        return;
+      }
+      if (isVideoItem(item) && !options.external) {
+        openHref(mediaPlayerHrefForItem(item), `${item.title} — Media Player`, options);
+        setStatus(`Opened ${item.title} in the media player`);
+        return;
+      }
+      if (isAudioItem(item) && !options.external && !options.bypassChooser) {
+        showAudioOpenDialog(item, options);
+        return;
+      }
+      openHref(item.href, item.title, options);
+    }
+
+    async function refreshExplorer() {
+      await loadIndexedSections();
+      renderTree();
+      if (searchQuery) {
+        await applySearch(searchQuery);
+      } else {
+        renderList();
+      }
+      setStatus("Folder view refreshed from site index");
+    }
+
+    function runAction(action) {
+      const item = currentItem();
+      closeMenus();
+
+      switch (action) {
+        case "open-selected":
+          openItem(item);
+          break;
+        case "open-selected-tab":
+          openItem(item, { external: true });
+          break;
+        case "open-raw-directory":
+          browseDirectory(item, currentSection());
+          break;
+        case "download-selected":
+          downloadItem(item);
+          break;
+        case "refresh":
+          refreshExplorer();
+          break;
+        case "close-map":
+          if (window.parent !== window) {
+            window.parent.postMessage({ type: "sol-close-current-window" }, window.location.origin);
+          }
+          window.close();
+          setStatus("Close requested");
+          break;
+        case "copy-name":
+          if (item) copyText(item.title, "Name");
+          break;
+        case "copy-path":
+          if (item) copyText(item.href, "Path");
+          break;
+        case "copy-url":
+          if (item) copyText(new URL(item.href, window.location.href).href, "URL");
+          break;
+        case "toggle-sidebar":
+          windowRoot.classList.toggle("hide-sidebar");
+          setStatus(windowRoot.classList.contains("hide-sidebar") ? "Folders pane hidden" : "Folders pane shown");
+          break;
+        case "reset-layout":
+          windowRoot.classList.remove("hide-sidebar");
+          setStatus("Layout reset");
+          break;
+        case "go-back":
+          goHistory(-1);
+          break;
+        case "go-forward":
+          goHistory(1);
+          break;
+        case "go-up":
+          searchQuery = "";
+          searchResults = [];
+          searchInput.value = "";
+          setSection(sectionIdForCollection("entry"));
+          break;
+        case "go-home":
+          openItem({ href: "/", title: "Open Home" });
+          break;
+        case "section-entry":
+          setSection(sectionIdForCollection("entry"));
+          break;
+        case "section-root":
+          setSection(sectionIdForCollection("root"));
+          break;
+        case "section-posts":
+          setSection(sectionIdForCollection("posts"));
+          break;
+        case "section-programs":
+          setSection(sectionIdForCollection("programs"));
+          break;
+        case "section-assets":
+          setSection(sectionIdForCollection("assets"));
+          break;
+        case "section-support":
+          setSection(sectionIdForCollection("support"));
+          break;
+        case "show-shortcuts":
+          showDialog("Keyboard Shortcuts", `
+            <p><strong>Enter</strong> opens the selected item.</p>
+            <p><strong>Ctrl+Enter</strong> opens it in a browser tab.</p>
+            <p><strong>Ctrl+B</strong> opens the raw directory view for the selected item. <strong>Ctrl+Shift+Enter</strong> downloads the selected file.</p>
+            <p><strong>Alt+Left / Alt+Right</strong> moves section history.</p>
+            <p><strong>F9</strong> toggles the folders pane.</p>
+          `);
+          break;
+        case "show-about":
+          showDialog("About Sol-37 File Browser", `
+            <p>This archive browser is generated from the live <strong>${escapeHtml(SITE_INDEX_URL)}</strong> manifest.</p>
+            <p>Collections are pseudo-folders over the real web root. Directories show the actual path tree. Search combines local file/path matching with the read-only semantic knowledge API.</p>
+          `);
+          break;
+      }
+    }
+
+    menus.forEach((menu) => {
+      const button = menu.querySelector(".menu-button");
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleMenu(menu);
+      });
+    });
+
+    document.querySelectorAll("[data-action]").forEach((node) => {
+      node.addEventListener("click", (event) => {
+        event.stopPropagation();
+        runAction(node.dataset.action);
+      });
+    });
+
+    addressInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      jumpToAddress(addressInput.value);
+    });
+
+    searchInput.addEventListener("input", () => {
+      queueSearch(searchInput.value);
+    });
+
+    document.addEventListener("click", () => closeMenus());
+
+    dialogBackdrop.addEventListener("click", (event) => {
+      if (event.target === dialogBackdrop) hideDialog();
+    });
+
+    dialogOk.addEventListener("click", hideDialog);
+
+    document.addEventListener("keydown", (event) => {
+      if (dialogBackdrop.classList.contains("open")) {
+        if (event.key === "Escape" || event.key === "Enter") hideDialog();
+        return;
+      }
+
+      if (event.key === "Escape") {
+        closeMenus();
+        return;
+      }
+
+      if (event.key === "Enter" && event.ctrlKey) {
+        if (event.shiftKey) {
+          downloadItem(currentItem());
+          return;
+        }
+        openItem(currentItem(), { external: true });
+        return;
+      }
+
+      if (event.ctrlKey && event.key.toLowerCase() === "b") {
+        event.preventDefault();
+        runAction("open-raw-directory");
+        return;
+      }
+
+      if (event.key === "Enter") {
+        openItem(currentItem());
+        return;
+      }
+
+      if (event.altKey && event.key === "ArrowLeft") {
+        event.preventDefault();
+        goHistory(-1);
+        return;
+      }
+
+      if (event.altKey && event.key === "ArrowRight") {
+        event.preventDefault();
+        goHistory(1);
+        return;
+      }
+
+      if (event.key === "Backspace") {
+        event.preventDefault();
+        searchQuery = "";
+        searchResults = [];
+        searchInput.value = "";
+        setSection(sectionIdForCollection("entry"));
+        return;
+      }
+
+      if (event.key === "F9") {
+        event.preventDefault();
+        runAction("toggle-sidebar");
+        return;
+      }
+
+      if (event.key === "F5") {
+        event.preventDefault();
+        runAction("refresh");
+      }
+    });
+
+    loadIndexedSections().then(() => {
+      renderTree();
+      renderList();
+      const params = new URLSearchParams(window.location.search);
+      const initialSearch = String(params.get("q") || params.get("search") || "").trim();
+      if (initialSearch) {
+        searchInput.value = initialSearch;
+        void applySearch(initialSearch);
+      }
+    });
+  </script>
+</body>
+</html>

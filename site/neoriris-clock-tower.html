@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<title>Neoriris Clock Tower Recovery</title>
+<meta name="description" content="Download the Neoriris Forge 1.12.2 modpack, inspect the Portal Door and SolBridge custom mods, and tour the recovered 2012 clock tower server through screenshots, video, lore, and installation notes.">
+<link rel="canonical" href="https://sol.system42.one/neoriris-clock-tower.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sol-37">
+<meta property="og:url" content="https://sol.system42.one/neoriris-clock-tower.html">
+<meta property="og:title" content="Neoriris Clock Tower Recovery">
+<meta property="og:description" content="A recovered Minecraft 1.12.2 clock tower server, PortalGun companion mod, SolBridge orb familiar, Cloudflared client pack, screenshots, video, and lore notes.">
+<meta property="og:image" content="https://sol.system42.one/assets/share-previews/neoriris-clock-tower.png">
+<meta property="og:image:secure_url" content="https://sol.system42.one/assets/share-previews/neoriris-clock-tower.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Recovered Minecraft clock tower from the Neoriris server with portal-themed showcase treatment.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Neoriris Clock Tower Recovery">
+<meta name="twitter:description" content="Download the client pack, inspect the custom mods, and tour the recovered clock tower.">
+<meta name="twitter:image" content="https://sol.system42.one/assets/share-previews/neoriris-clock-tower.png">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #050808;
+    --panel: rgba(7, 16, 17, 0.9);
+    --panel-strong: rgba(10, 23, 24, 0.96);
+    --line: rgba(122, 255, 219, 0.22);
+    --line-hot: rgba(255, 188, 97, 0.42);
+    --text: #eafff8;
+    --muted: #9ab9b2;
+    --blue: #58e5ff;
+    --lapis: #4c75ff;
+    --red: #ff5c5c;
+    --gold: #f4c86a;
+    --green: #74ffb2;
+    --stone: #8d998f;
+    --shadow: rgba(0, 0, 0, 0.54);
+  }
+
+  * { box-sizing: border-box; }
+
+  html,
+  body {
+    margin: 0;
+    min-height: 100%;
+    background:
+      radial-gradient(circle at 18% 8%, rgba(88, 229, 255, 0.2), transparent 26%),
+      radial-gradient(circle at 82% 12%, rgba(255, 92, 92, 0.16), transparent 25%),
+      radial-gradient(circle at 50% 115%, rgba(244, 200, 106, 0.14), transparent 40%),
+      linear-gradient(180deg, #030606 0%, #091212 52%, #050707 100%);
+    color: var(--text);
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  }
+
+  body {
+    padding: 18px;
+  }
+
+  body::before,
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -22%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  body::before {
+    background:
+      conic-gradient(from 140deg at 55% 46%, transparent 0deg, rgba(88, 229, 255, 0.16) 28deg, transparent 62deg, rgba(255, 92, 92, 0.10) 118deg, transparent 162deg, rgba(116, 255, 178, 0.11) 218deg, transparent 280deg),
+      radial-gradient(circle at 48% 50%, transparent 0 22%, rgba(88, 229, 255, 0.08) 24%, transparent 31%);
+    mix-blend-mode: screen;
+    opacity: 0.55;
+    animation: spacetimeDrift 24s linear infinite;
+  }
+
+  body::after {
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 5px),
+      linear-gradient(90deg, transparent 0 42%, rgba(88, 229, 255, 0.12) 43%, transparent 44% 64%, rgba(255, 92, 92, 0.08) 65%, transparent 66%);
+    opacity: 0.12;
+    animation: temporalScan 9s steps(2, end) infinite;
+  }
+
+  a {
+    color: var(--blue);
+  }
+
+  main {
+    width: min(1220px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 18px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .frame {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    box-shadow: 0 26px 70px var(--shadow);
+    backdrop-filter: blur(10px);
+  }
+
+  .hero {
+    position: relative;
+    min-height: 520px;
+    overflow: hidden;
+    display: grid;
+    align-items: end;
+    padding: 24px;
+    background:
+      linear-gradient(180deg, rgba(2, 5, 6, 0.18), rgba(2, 5, 6, 0.82)),
+      url("/assets/neoriris-clock-tower/clock-tower-face.png") center/cover no-repeat;
+  }
+
+  .hero::before,
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .hero::before {
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 4px),
+      radial-gradient(circle at 70% 55%, rgba(88, 229, 255, 0.18), transparent 22%);
+    mix-blend-mode: screen;
+  }
+
+  .hero::after {
+    border: 1px solid rgba(255,255,255,0.16);
+    inset: 12px;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    width: min(860px, 100%);
+  }
+
+  .kicker,
+  .panel-label,
+  .button,
+  .tag,
+  .recipe-name,
+  .step-label {
+    font: 800 11px/1.1 "Lucida Console", Monaco, monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .kicker,
+  .panel-label,
+  .step-label {
+    color: var(--gold);
+  }
+
+  h1 {
+    margin: 10px 0 0;
+    font: 900 clamp(2.6rem, 7.5vw, 6.9rem)/0.86 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    text-shadow: 0 4px 0 rgba(0,0,0,0.5), 0 0 26px rgba(88, 229, 255, 0.36);
+  }
+
+  .glitch-title {
+    position: relative;
+  }
+
+  .glitch-title::before,
+  .glitch-title::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .glitch-title::before {
+    color: var(--blue);
+    transform: translate(2px, -1px);
+    clip-path: inset(0 0 58% 0);
+    animation: titleGlitch 7.6s steps(1, end) infinite;
+  }
+
+  .glitch-title::after {
+    color: var(--red);
+    transform: translate(-2px, 1px);
+    clip-path: inset(58% 0 0 0);
+    animation: titleGlitch 8.4s steps(1, end) infinite reverse;
+  }
+
+  .subhead {
+    max-width: 74ch;
+    margin: 16px 0 0;
+    color: #d2fff6;
+    font: 600 1.04rem/1.55 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .hero-actions,
+  .button-row,
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .hero-actions {
+    margin-top: 20px;
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 11px 14px;
+    border: 1px solid var(--line-hot);
+    background: linear-gradient(180deg, rgba(244, 200, 106, 0.22), rgba(88, 229, 255, 0.08));
+    color: var(--text);
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 10px 28px rgba(0,0,0,0.32);
+  }
+
+  .button.secondary {
+    border-color: var(--line);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .button:hover,
+  .button:focus-visible {
+    transform: translateY(-1px);
+    background: rgba(88, 229, 255, 0.18);
+  }
+
+  button.button {
+    cursor: pointer;
+    font: 800 11px/1.1 "Lucida Console", Monaco, monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .tags {
+    margin-top: 14px;
+  }
+
+  .tag {
+    border: 1px solid var(--line);
+    padding: 7px 9px;
+    color: #d9fff8;
+    background: rgba(0,0,0,0.28);
+  }
+
+  .quick-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .quick-nav a {
+    flex: 1 1 150px;
+    min-height: 40px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    background: rgba(255,255,255,0.035);
+    color: #d9fff8;
+    text-decoration: none;
+    font: 800 11px/1.1 "Lucida Console", Monaco, monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .quick-nav a:hover,
+  .quick-nav a:focus-visible {
+    border-color: var(--line-hot);
+    background: rgba(88, 229, 255, 0.14);
+  }
+
+  .collapse-command {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px;
+    background:
+      linear-gradient(90deg, rgba(88, 229, 255, 0.08), rgba(244, 200, 106, 0.06)),
+      rgba(7, 16, 17, 0.84);
+  }
+
+  .collapse-command p {
+    margin: 0;
+    color: var(--muted);
+    font: 700 0.88rem/1.45 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .collapse-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .collapse-enhanced {
+    padding: 0;
+    overflow: hidden;
+    transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  }
+
+  .collapse-enhanced.is-collapsed {
+    border-color: rgba(122, 255, 219, 0.14);
+    background:
+      linear-gradient(90deg, rgba(122, 255, 219, 0.035), rgba(255, 255, 255, 0.018)),
+      rgba(7, 16, 17, 0.78);
+  }
+
+  .collapse-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 18px;
+    border-bottom: 1px solid rgba(122, 255, 219, 0.14);
+  }
+
+  .collapse-enhanced.is-collapsed .collapse-header {
+    border-bottom-color: transparent;
+  }
+
+  .collapse-title-stack .panel-label {
+    margin: 0;
+  }
+
+  .collapse-title-stack h2 {
+    margin: 7px 0 0;
+  }
+
+  .collapse-toggle {
+    min-width: 132px;
+  }
+
+  .collapse-toggle::after {
+    content: " −";
+    color: var(--gold);
+  }
+
+  .collapse-enhanced.is-collapsed .collapse-toggle::after {
+    content: " +";
+  }
+
+  .collapse-content {
+    padding: 0 18px 18px;
+  }
+
+  .collapse-content[hidden] {
+    display: none;
+  }
+
+  .grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .two {
+    grid-template-columns: minmax(0, 1.15fr) minmax(310px, 0.85fr);
+  }
+
+  .three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .panel {
+    padding: 18px;
+  }
+
+  .panel h2,
+  .panel h3 {
+    margin: 8px 0 0;
+    line-height: 1;
+  }
+
+  .panel h2 {
+    font: 900 clamp(1.7rem, 3vw, 3.2rem)/0.95 Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+  }
+
+  .panel h3 {
+    font: 800 1.18rem/1.1 "Segoe UI", Tahoma, sans-serif;
+    color: var(--gold);
+  }
+
+  .panel p,
+  .panel li {
+    color: var(--muted);
+    font: 500 0.96rem/1.58 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .panel p strong,
+  .panel li strong {
+    color: var(--text);
+  }
+
+  .download-card,
+  .recipe,
+  .step,
+  .feature-card,
+  .mod-card {
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    background: rgba(255,255,255,0.035);
+    padding: 14px;
+  }
+
+  .control-map {
+    margin-top: 14px;
+  }
+
+  .control-map code {
+    color: #b9ffe2;
+    font: 700 11px/1.45 "Lucida Console", Monaco, monospace;
+  }
+
+  .live-control-panel {
+    overflow: hidden;
+  }
+
+  .live-control-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: end;
+  }
+
+  .live-control-header h2 {
+    margin-bottom: 0;
+  }
+
+  .live-control-header p {
+    max-width: 78ch;
+  }
+
+  .showcase-widget {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.28fr);
+    gap: 14px;
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.34), rgba(4, 10, 11, 0.74)),
+      radial-gradient(circle at 18% 0%, rgba(88, 229, 255, 0.12), transparent 28%);
+    padding: 14px;
+    box-shadow: inset 0 0 28px rgba(88, 229, 255, 0.06);
+  }
+
+  .showcase-face {
+    width: min(210px, 100%);
+    aspect-ratio: 0.72;
+    justify-self: center;
+    position: relative;
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    background:
+      linear-gradient(180deg, rgba(2, 6, 8, 0.88), rgba(4, 10, 11, 0.98)),
+      radial-gradient(circle at 50% 50%, rgba(88, 229, 255, 0.12), transparent 64%);
+    box-shadow: inset 0 0 34px rgba(88, 229, 255, 0.12), 0 16px 42px rgba(0, 0, 0, 0.28);
+  }
+
+  .showcase-segment {
+    position: absolute;
+    background: rgba(244, 200, 106, 0.11);
+    box-shadow: inset 0 0 0 1px rgba(244, 200, 106, 0.18);
+  }
+
+  .showcase-segment.active {
+    background: linear-gradient(180deg, rgba(244, 200, 106, 0.98), rgba(255, 92, 92, 0.72));
+    box-shadow:
+      0 0 20px rgba(244, 200, 106, 0.48),
+      inset 0 0 16px rgba(255, 255, 255, 0.22);
+  }
+
+  .showcase-segment.a,
+  .showcase-segment.d,
+  .showcase-segment.g {
+    left: 23%;
+    width: 54%;
+    height: 10%;
+    clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
+  }
+
+  .showcase-segment.a { top: 7%; }
+  .showcase-segment.g { top: 45%; }
+  .showcase-segment.d { bottom: 7%; }
+
+  .showcase-segment.b,
+  .showcase-segment.c,
+  .showcase-segment.e,
+  .showcase-segment.f {
+    width: 15%;
+    height: 27%;
+    clip-path: polygon(0 8%, 55% 0, 100% 8%, 100% 92%, 45% 100%, 0 92%);
+  }
+
+  .showcase-segment.b,
+  .showcase-segment.c { right: 10%; }
+
+  .showcase-segment.f,
+  .showcase-segment.e { left: 10%; }
+
+  .showcase-segment.f,
+  .showcase-segment.b { top: 15%; }
+
+  .showcase-segment.e,
+  .showcase-segment.c { bottom: 15%; }
+
+  .showcase-widget-body {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  .showcase-widget-status {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .showcase-stat {
+    border: 1px solid rgba(122, 255, 219, 0.14);
+    background: rgba(0, 0, 0, 0.22);
+    padding: 10px;
+  }
+
+  .showcase-stat span {
+    display: block;
+    color: var(--muted);
+    font: 800 10px/1.1 "Lucida Console", Monaco, monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .showcase-stat strong {
+    display: block;
+    margin-top: 6px;
+    overflow-wrap: anywhere;
+    color: var(--text);
+    font: 900 1rem/1.2 "Lucida Console", Monaco, monospace;
+  }
+
+  .widget-auth {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .widget-auth input {
+    min-height: 42px;
+    flex: 1 1 180px;
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    background: rgba(0, 0, 0, 0.28);
+    color: var(--text);
+    padding: 10px 12px;
+    font: 700 0.9rem/1 "Lucida Console", Monaco, monospace;
+  }
+
+  .live-control-note {
+    margin-top: 10px;
+    color: var(--muted);
+    font: 700 12px/1.45 "Lucida Console", Monaco, monospace;
+  }
+
+  .schematic-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 14px 0 0;
+  }
+
+  .schematic-list div {
+    border: 1px solid rgba(122, 255, 219, 0.16);
+    background: rgba(0,0,0,0.22);
+    padding: 10px;
+  }
+
+  .schematic-list strong,
+  .command-note strong {
+    color: var(--text);
+  }
+
+  .command-note {
+    margin-top: 14px;
+    border: 1px solid rgba(255, 188, 97, 0.26);
+    background: linear-gradient(90deg, rgba(244, 200, 106, 0.10), rgba(88, 229, 255, 0.04));
+    padding: 14px;
+  }
+
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .stack-grid.compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mod-card h3 {
+    margin-top: 0;
+  }
+
+  .mod-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 9px 0 0;
+  }
+
+  .mod-meta span {
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    background: rgba(0,0,0,0.24);
+    color: #d9fff8;
+    padding: 5px 7px;
+    font: 800 10px/1.1 "Lucida Console", Monaco, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .jar-list {
+    margin: 10px 0 0;
+    padding-left: 20px;
+  }
+
+  .lore-note {
+    border-left: 3px solid var(--line-hot);
+    padding-left: 10px;
+    color: #d9fff8;
+  }
+
+  .download-card + .download-card,
+  .step + .step {
+    margin-top: 12px;
+  }
+
+  .download-card code,
+  .hash {
+    display: block;
+    margin-top: 8px;
+    overflow-wrap: anywhere;
+    color: #b9ffe2;
+    font: 600 11px/1.45 "Lucida Console", Monaco, monospace;
+  }
+
+  .video-shell {
+    padding: 12px;
+    background: #020404;
+  }
+
+  video {
+    display: block;
+    width: 100%;
+    max-height: 78vh;
+    background: #000;
+  }
+
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .sol-showcase {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .sol-showcase::before,
+  .sol-showcase::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .sol-showcase::before {
+    background:
+      radial-gradient(circle at 28% 22%, rgba(116, 255, 178, 0.16), transparent 28%),
+      radial-gradient(circle at 72% 70%, rgba(255, 92, 92, 0.10), transparent 28%),
+      linear-gradient(115deg, transparent 0 34%, rgba(88, 229, 255, 0.10) 35%, transparent 37% 100%);
+    animation: riftBreathe 8s ease-in-out infinite;
+  }
+
+  .sol-showcase::after {
+    background:
+      repeating-linear-gradient(90deg, transparent 0 17px, rgba(122, 255, 219, 0.05) 17px 18px),
+      repeating-linear-gradient(0deg, transparent 0 31px, rgba(255, 255, 255, 0.035) 31px 32px);
+    mix-blend-mode: screen;
+    opacity: 0.42;
+    animation: gridSlip 14s linear infinite;
+  }
+
+  .sol-showcase > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .sol-gallery {
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  }
+
+  .ingame-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 14px;
+  }
+
+  .ingame-gallery figure img {
+    aspect-ratio: 16 / 9;
+  }
+
+  .gallery img,
+  .sol-gallery img,
+  .ingame-gallery img {
+    cursor: zoom-in;
+  }
+
+  .sol-gallery figure {
+    overflow: hidden;
+    animation: solCardPulse 9s ease-in-out infinite;
+  }
+
+  .sol-gallery figure:nth-child(2) { animation-delay: -2s; }
+  .sol-gallery figure:nth-child(3) { animation-delay: -4s; }
+  .sol-gallery figure:nth-child(4) { animation-delay: -6s; }
+  .sol-gallery figure:nth-child(5) { animation-delay: -8s; }
+
+  .sol-gallery figure::before,
+  .sol-gallery figure::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .sol-gallery figure::before {
+    background: linear-gradient(110deg, transparent 0 32%, rgba(122, 255, 219, 0.18) 33%, transparent 38% 100%);
+    transform: translateX(-120%);
+    animation: particleSweep 6.5s ease-in-out infinite;
+  }
+
+  .sol-gallery figure::after {
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    box-shadow: inset 0 0 26px rgba(88, 229, 255, 0.10), inset 0 0 54px rgba(0, 0, 0, 0.28);
+  }
+
+  figure {
+    margin: 0;
+    border: 1px solid rgba(122, 255, 219, 0.18);
+    background: rgba(0,0,0,0.28);
+    position: relative;
+  }
+
+  figure img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  figure picture {
+    display: block;
+  }
+
+  figcaption {
+    min-height: 64px;
+    padding: 10px;
+    color: var(--muted);
+    font: 600 0.78rem/1.38 "Segoe UI", Tahoma, sans-serif;
+  }
+
+  .lightbox[hidden] {
+    display: none;
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(2, 6, 8, 0.9);
+    backdrop-filter: blur(14px);
+  }
+
+  .lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-out;
+  }
+
+  .lightbox-inner {
+    position: relative;
+    z-index: 1;
+    width: min(1100px, 100%);
+    display: grid;
+    gap: 12px;
+  }
+
+  .lightbox-close {
+    justify-self: end;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(7, 16, 17, 0.9);
+    color: var(--text);
+    font: 800 20px/1 "Lucida Console", Monaco, monospace;
+    cursor: pointer;
+  }
+
+  .lightbox-figure {
+    margin: 0;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(7, 16, 17, 0.95);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  }
+
+  .lightbox-figure img {
+    display: block;
+    width: 100%;
+    max-height: min(78vh, 980px);
+    object-fit: contain;
+    margin: 0 auto;
+  }
+
+  .lightbox-caption {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .recipe-name {
+    color: var(--gold);
+  }
+
+  .craft {
+    display: grid;
+    grid-template-columns: repeat(3, 36px);
+    gap: 5px;
+    margin: 12px 0;
+  }
+
+  .slot {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255,255,255,0.18);
+    background: rgba(0,0,0,0.36);
+    color: var(--text);
+    font: 800 15px/1 "Lucida Console", Monaco, monospace;
+  }
+
+  .narrative {
+    background:
+      linear-gradient(90deg, rgba(88, 229, 255, 0.06), transparent 38%),
+      rgba(3, 7, 7, 0.86);
+  }
+
+  .screenplay {
+    margin: 14px 0 0;
+    padding-left: 16px;
+    border-left: 3px solid var(--line-hot);
+    color: #d9fff8;
+    font: 600 1rem/1.65 Georgia, "Times New Roman", serif;
+  }
+
+  .terminal {
+    border: 1px solid rgba(116, 255, 178, 0.28);
+    background: #020806;
+    color: #9bffbf;
+    padding: 14px;
+    overflow-x: auto;
+    font: 700 0.82rem/1.6 "Lucida Console", Monaco, monospace;
+  }
+
+  .stack-grid.compact .terminal {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .footer-note {
+    color: var(--muted);
+    font: 500 0.86rem/1.5 "Segoe UI", Tahoma, sans-serif;
+    text-align: center;
+    padding: 12px 0 4px;
+  }
+
+  @keyframes spacetimeDrift {
+    0% { transform: rotate(0deg) scale(1); filter: hue-rotate(0deg); }
+    50% { transform: rotate(9deg) scale(1.08); filter: hue-rotate(18deg); }
+    100% { transform: rotate(0deg) scale(1); filter: hue-rotate(0deg); }
+  }
+
+  @keyframes temporalScan {
+    0%, 91%, 100% { transform: translate(0, 0); opacity: 0.10; }
+    92% { transform: translate(-9px, 3px); opacity: 0.22; }
+    93% { transform: translate(12px, -2px); opacity: 0.08; }
+    94% { transform: translate(-4px, 0); opacity: 0.18; }
+  }
+
+  @keyframes titleGlitch {
+    0%, 87%, 100% { opacity: 0; }
+    88% { opacity: 0.72; transform: translate(5px, -2px); }
+    89% { opacity: 0.38; transform: translate(-3px, 1px); }
+    90% { opacity: 0.76; transform: translate(2px, 2px); }
+  }
+
+  @keyframes riftBreathe {
+    0%, 100% { transform: scale(1) skewX(0deg); opacity: 0.7; }
+    50% { transform: scale(1.04) skewX(-1.2deg); opacity: 1; }
+  }
+
+  @keyframes gridSlip {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(32px, -18px); }
+  }
+
+  @keyframes solCardPulse {
+    0%, 100% { transform: translateY(0); box-shadow: none; }
+    50% { transform: translateY(-2px); box-shadow: 0 0 28px rgba(88, 229, 255, 0.10); }
+  }
+
+  @keyframes particleSweep {
+    0%, 62%, 100% { transform: translateX(-120%); }
+    72% { transform: translateX(120%); }
+  }
+
+  @media (max-width: 860px) {
+    body { padding: 10px; }
+    .hero { min-height: 430px; padding: 18px; }
+    .two,
+    .three,
+    .gallery,
+    .recipe-grid,
+    .schematic-list,
+    .stack-grid,
+    .stack-grid.compact {
+      grid-template-columns: 1fr;
+    }
+    .live-control-header {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+    .collapse-command,
+    .collapse-header {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+    .collapse-actions {
+      justify-content: flex-start;
+    }
+    .showcase-widget,
+    .showcase-widget-status {
+      grid-template-columns: 1fr;
+    }
+    figure img { aspect-ratio: 16 / 10; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+</head>
+<body>
+<main>
+  <section class="hero frame">
+    <div class="hero-content">
+      <p class="kicker">Neoriris recovery log / Forge 1.12.2 / PortalGun + SolBridge pack</p>
+      <h1 class="glitch-title" data-text="Clock Tower Recovery">Clock Tower Recovery</h1>
+      <p class="subhead">A 2012 Minecraft world was pulled forward into a modern Forge 1.12.2 lab, stitched to Cloudflared multiplayer, given custom PortalGun door hardware, and haunted by SolBridge: a dark orb familiar that can speak, follow, remember books, and turn natural-language designs into reversible block-by-block structures.</p>
+      <div class="hero-actions">
+        <a class="button" href="/downloads/neoriris-cloudflared-client-1.12.2.zip?v=619dde5d" download>Download Client Pack</a>
+        <a class="button secondary" href="/downloads/neoriris-portal-door-0.1.10.jar?v=f0480712" download>Portal Door Jar</a>
+        <a class="button secondary" href="/downloads/solbridge-0.4.3.jar?v=1ed9c0f1" download>SolBridge Jar</a>
+        <a class="button secondary" href="#live-control">Live Control Surface</a>
+        <a class="button secondary" href="#install">Install Instructions</a>
+      </div>
+      <div class="tags" aria-label="Project status">
+        <span class="tag">Server: minecraft.system42.one</span>
+        <span class="tag">Access: cloudflared://minecraft.system42.one</span>
+        <span class="tag">Custom mod: neoririsportaldoor 0.1.10</span>
+        <span class="tag">Custom mod: solbridge 0.4.3 live Syzygy console + SolScript GPIO</span>
+        <span class="tag">Portal status: observed + watchdog refresh</span>
+      </div>
+    </div>
+  </section>
+
+  <nav class="quick-nav frame" aria-label="Page sections">
+    <a href="#live-control">Live controls</a>
+    <a href="#tower-controls">Tower controls</a>
+    <a href="/programs/neoriris-clock-display.html">Web app</a>
+    <a href="#syzygy-console">Syzygy console</a>
+    <a href="#sol-entity">Sol entity</a>
+    <a href="#version-tree">Changelog</a>
+    <a href="#install">Install</a>
+  </nav>
+
+  <section class="collapse-command frame" aria-label="Page layout controls">
+    <p>Operational panels now open first: live status, install links, command references, tower controls, and Syzygy GPIO. Media, screenshots, long changelog, recipes, and narrative notes start collapsed.</p>
+    <div class="collapse-actions">
+      <button class="button secondary" id="expandAllSections" type="button">Expand All</button>
+      <button class="button secondary" id="collapseAllSections" type="button">Collapse All</button>
+    </div>
+  </section>
+
+  <section class="panel frame live-control-panel" id="live-control">
+    <div class="live-control-header">
+      <div>
+        <p class="panel-label">Live clock widget</p>
+        <h2>Current server state and in-game clock face.</h2>
+        <p>This showcase page now stays read-only: it shows the server monitor and live seven-segment face without exposing the tower control buttons. Use the full control page only when you intend to operate the tower.</p>
+      </div>
+      <a class="button" href="/programs/neoriris-clock-display.html">Open Full Control Page</a>
+    </div>
+    <div class="showcase-widget" id="showcaseClockWidget">
+      <div class="showcase-face" aria-label="Read-only live in-game clock face">
+        <span class="showcase-segment a" data-showcase-segment="a"></span>
+        <span class="showcase-segment b" data-showcase-segment="b"></span>
+        <span class="showcase-segment c" data-showcase-segment="c"></span>
+        <span class="showcase-segment d" data-showcase-segment="d"></span>
+        <span class="showcase-segment e" data-showcase-segment="e"></span>
+        <span class="showcase-segment f" data-showcase-segment="f"></span>
+        <span class="showcase-segment g" data-showcase-segment="g"></span>
+      </div>
+      <div class="showcase-widget-body">
+        <div class="showcase-widget-status">
+          <div class="showcase-stat">
+            <span>Status</span>
+            <strong id="showcaseServerStatus">loading</strong>
+          </div>
+          <div class="showcase-stat">
+            <span>Players</span>
+            <strong id="showcasePlayers">-- / --</strong>
+          </div>
+          <div class="showcase-stat">
+            <span>Face</span>
+            <strong id="showcaseFaceMask">0000000</strong>
+          </div>
+          <div class="showcase-stat">
+            <span>Manual</span>
+            <strong id="showcaseManual">--</strong>
+          </div>
+          <div class="showcase-stat">
+            <span>Bridge</span>
+            <strong id="showcaseBridge">--</strong>
+          </div>
+          <div class="showcase-stat">
+            <span>Ping</span>
+            <strong id="showcasePing">-- ms</strong>
+          </div>
+        </div>
+        <div class="widget-auth" id="showcaseAuthRow">
+          <button class="button secondary" id="showcaseRefresh" type="button">Refresh</button>
+        </div>
+        <p class="live-control-note" id="showcaseWidgetNote">Public read-only live tower status. Account authentication is required only on the full control page.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid two">
+    <article class="panel frame" data-collapse-default="open">
+      <p class="panel-label">What this is</p>
+      <h2>Recovered world, rebuilt route, custom portal hardware.</h2>
+      <p>The Neoriris clock tower is an old redstone monument from a recovered Minecraft world. The current pack preserves the tower, runs it on Forge 1.12.2, and layers in PortalGun, Cloudflared multiplayer, the custom <strong>Neoriris Portal Door</strong> mod, and the custom <strong>SolBridge</strong> orb familiar.</p>
+      <p>The custom mod adds survival-craftable glowing portal buttons: Button A, Button B, and an Entangled Wall Button Pair kit. Each button can mount to a wall, floor, or ceiling and turns the largest complete rectangular surface beside it into one architectural portal. Entangled kits unpack into paired A/B buttons sharing a hidden server-generated UUID, so two players can name their routes the same thing without cross-linking portals.</p>
+      <div class="button-row">
+        <a class="button secondary" href="/downloads/neoriris-portal-door-mod-overview.md">Read Mod Overview</a>
+        <a class="button secondary" href="/downloads/neoriris-clock-tower-downloads.sha256">Checksums</a>
+      </div>
+    </article>
+
+    <aside class="panel frame" data-collapse-default="open">
+      <p class="panel-label">Stack map</p>
+      <h2>Pack contents and server layers</h2>
+      <ul>
+        <li><strong>Client pack:</strong> 14 required jars plus Forge 14.23.5.2860 metadata, configs, and the saved Cloudflared server entry.</li>
+        <li><strong>Live server:</strong> 18 mod jars, adding server-only administration, WorldEdit recovery tooling, and chat/message presentation.</li>
+        <li><strong>Custom lore mods:</strong> Neoriris Portal Door provides the red/blue route hardware; SolBridge provides Sol, the ominous local shell watching the recovered tower.</li>
+        <li><strong>Support stack:</strong> PortalGun, iChunUtil, HammerLib, Universal Tweaks, VintageFix, MixinBooter, ConfigAnytime, LagGoggles, and TickCentral keep a 1.12.2 lab practical.</li>
+      </ul>
+    </aside>
+  </section>
+
+  <section class="panel frame" id="mod-stack" data-collapse-default="closed">
+    <p class="panel-label">Full mod stack</p>
+    <h2>Every installed layer has a job.</h2>
+    <p>Neoriris is a recovery lab first and a modpack second. The jar list is intentionally small: portal traversal, tunnel access, the custom lore systems, server stewardship, and enough 1.12.2 maintenance tooling to keep the clock tower alive.</p>
+    <div class="stack-grid">
+      <article class="mod-card">
+        <h3>Neoriris Portal Door 0.1.10</h3>
+        <div class="mod-meta">
+          <span>Custom</span>
+          <span>Client + server</span>
+          <span>mod id: neoririsportaldoor</span>
+        </div>
+        <p>Craftable Button A and Button B hardware appears as compact glowing portal buttons placeable on walls, floors, and ceilings. Each button detects the largest complete rectangular surface of matching blocks beside it, up to 16x16, then creates one continuous PortalGun/World Portals endpoint rather than a grid of small portals. The paired surfaces must have matching width and height because PortalGun 7.1 cannot safely persist unequal linked bounds. Empty-hand pressing latches the pair open until either detected surface is broken; redstone applied without pressing retains momentary control and a one-second close grace. Active buttons hide, lose collision, and become part of the rectangular live view, then reappear when the portal closes or fails. Neoriris-owned portals use a rectangular stencil with no oval ring, while ordinary handheld Portal Gun portals remain unchanged. Entangled Button Pair kits still unpack into matching A/B items with a hidden server-generated PairId, so route labels are lore, not identity.</p>
+        <p class="lore-note">Lore role: the clock tower's red/blue iris language. Lapis and redstone become addressable doors, turning old circuitry into a dimensional route board.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>SolBridge 0.4.3 - Syzygy Console and SolScript GPIO</h3>
+        <div class="mod-meta">
+          <span>Custom</span>
+          <span>Client + server</span>
+          <span>mod id: solbridge</span>
+        </div>
+        <p>Adds Sol, a floating dark orb familiar with the three-way <code>FOLLOW -&gt; STAY -&gt; FREE ROAM</code> state cycle, persistent Gemma-planned contextual autonomy, reversible temporary builds, <code>/sol</code> commands, archive and inventory layers, safe JSON action execution, redstone/tower controls, music-reactive rendering, custom records, owner-only Sol Vision, and the Syzygy Console.</p>
+        <p>SolBridge 0.4.3 focuses the Syzygy Console as an in-world programming terminal: the GUI keeps live command output and scrollback in the item UI, adds Help, Self-test, and Pulse Note controls, and exposes circuit-aware <code>help note|gpio|script|disc|commands</code> topics. Note-block output follows a straight redstone wire run such as the current west-side console-to-note circuit.</p>
+        <p>The generated-concept skin now has an unmistakable disc mouth and three independent live lamps: amber for a loaded disc, cyan for playback, and red for the current beat, GPIO, or note pulse.</p>
+        <p class="lore-note">Lore role: Sol is the local shell of the noticing intelligence, and the Syzygy Console is its physical terminal: a jukebox whose CPU clock is music, whose screen is the sky, and whose data bus is redstone.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>Portal traversal stack</h3>
+        <div class="mod-meta">
+          <span>Client + server</span>
+          <span>movement layer</span>
+        </div>
+        <p><strong>PortalGun 7.1.0</strong> supplies the actual portal entities and traversal behavior. <strong>iChunUtil 7.2.2</strong> and <strong>HammerLib 12.2.50</strong> provide required compatibility and utility code used by the 1.12.2 portal stack.</p>
+        <p class="lore-note">Lore role: impossible transit. The tower stops being just a building and starts behaving like a spatial instrument with two colored mouths.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>Dimensional Doors 3.2.3</h3>
+        <div class="mod-meta">
+          <span>Client + server</span>
+          <span>dimension layer</span>
+          <span>mod id: dimdoors</span>
+        </div>
+        <p><strong>Dimensional Doors 3.2.3</strong> adds rift doors, pocket dimensions, generated dungeon spaces, traps, and Limbo to the Forge 1.12.2 pack. The installed release is the current CurseForge-listed 1.12.2 Forge file, with no extra related-project dependencies listed by CurseForge and only <code>forge</code> declared in <code>mcmod.info</code>.</p>
+        <p class="lore-note">Lore role: a second impossible transit language beside PortalGun. Portal Door controls deliberate paired routes; Dimensional Doors makes unstable threshold spaces, pockets, and wrong exits part of the recovered world.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>Cloudflared route</h3>
+        <div class="mod-meta">
+          <span>Client + server</span>
+          <span>access layer</span>
+        </div>
+        <p><strong>Cloudflared 12.2.2-neoriris.2</strong> lets the client use the saved <code>cloudflared://minecraft.system42.one</code> address instead of a raw host and port. The patched Helper now waits for the player-local Cloudflared websocket listener before releasing the decoded address, prewarms the route with a Minecraft 1.12.2 status ping, suppresses transient Access retry noise, and allows a fresh prewarm if the helper thread dies. The pack ships with the multiplayer entry already configured, and the SolBridge title screen shows Helper lookup, tunnel opening, status-ping, Ready, and failure states through the actual per-client Helper path while presenting the public route as <code>minecraft.system42.one</code>.</p>
+        <p class="lore-note">Lore role: the outside tunnel. Players do not knock on a normal port; they enter through the recovered route.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>Server stewardship</h3>
+        <div class="mod-meta">
+          <span>Server focused</span>
+          <span>operations layer</span>
+        </div>
+        <p><strong>ForgeEssentials 12.5.1</strong> handles server administration and permissions, with the client companion bundled in the pack. <strong>WorldEdit 6.1.10</strong> remains server-side recovery tooling for selections, repairs, and careful restoration work.</p>
+        <p class="lore-note">Lore role: archaeology tools. The recovered world is preserved, corrected, and protected rather than casually overwritten.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>Server voice and arrival surface</h3>
+        <div class="mod-meta">
+          <span>Server only</span>
+          <span>presentation layer</span>
+        </div>
+        <p><strong>CustomServerMessages 2.0.0</strong>, <strong>Beautified Chat Server 1.0</strong>, and <strong>Collective 3.0</strong> shape login, chat, and server-message presentation for players arriving through the tunnel.</p>
+        <p class="lore-note">Lore role: recovered-signal narration. The server does not just accept a connection; it announces that the connection has crossed into a documented place.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>1.12.2 stability and repair stack</h3>
+        <div class="mod-meta">
+          <span>Client + server</span>
+          <span>maintenance layer</span>
+        </div>
+        <p><strong>Universal Tweaks 1.20.1</strong> and <strong>VintageFix 0.7.0</strong> patch old-version rough edges and memory/resource behavior. <strong>MixinBooter 10.6</strong> and <strong>ConfigAnytime 3.0</strong> provide the support hooks this modernized 1.12.2 stack expects.</p>
+        <p class="lore-note">Lore role: the stabilizers under the floor. Nobody sees them in screenshots, but they keep the resurrected machine from shaking itself apart.</p>
+      </article>
+
+      <article class="mod-card">
+        <h3>Diagnostics and tick instrumentation</h3>
+        <div class="mod-meta">
+          <span>Client + server</span>
+          <span>instrumentation layer</span>
+        </div>
+        <p><strong>LagGoggles 5.9</strong> and <strong>TickCentral 3.2</strong> provide profiling hooks for the lab. They help identify expensive entities, tile entities, and tick behavior when the old world or new systems start dragging the server down.</p>
+        <p class="lore-note">Lore role: diagnostic lenses. If the clock tower starts breathing too loudly, these are how we watch the pulse.</p>
+      </article>
+    </div>
+
+    <div class="stack-grid compact" aria-label="Current mod jar matrix">
+      <article class="mod-card">
+        <h3>Client import pack jars</h3>
+        <ul class="jar-list">
+          <li>!configanytime-3.0.jar</li>
+          <li>!mixinbooter-10.6.jar</li>
+          <li>Cloudflared-1.12.2-12.2.2-neoriris.2.jar</li>
+          <li>Dimensional Doors-3.2.3.jar</li>
+          <li>HammerLib-1.12.2-12.2.50.jar</li>
+          <li>LagGoggles-1.12.2-5.9-140.jar</li>
+          <li>PortalGun-1.12.2-7.1.0.jar</li>
+          <li>TickCentral-3.2.jar</li>
+          <li>UniversalTweaks-1.12.2-1.20.1.jar</li>
+          <li>forgeessentials-1.12.2-12.5.1-client.jar</li>
+          <li>iChunUtil-1.12.2-7.2.2.jar</li>
+          <li>neoriris-portal-door-0.1.10.jar</li>
+          <li>solbridge-0.4.3.jar</li>
+          <li>vintagefix-0.7.0.jar</li>
+        </ul>
+      </article>
+      <article class="mod-card">
+        <h3>Additional live server jars</h3>
+        <ul class="jar-list">
+          <li>beautifiedchatserver_1.12.2-1.0.jar</li>
+          <li>collective-1.12.2-3.0.jar</li>
+          <li>customServerMessages-2.0.0.jar</li>
+          <li>forgeessentials-1.12.2-12.5.1-server.jar</li>
+          <li>worldedit-forge-mc1.12.2-6.1.10-dist.jar</li>
+        </ul>
+      </article>
+      <article class="mod-card">
+        <h3>Runtime foundation</h3>
+        <ul class="jar-list">
+          <li>Minecraft 1.12.2</li>
+          <li>Forge 14.23.5.2860</li>
+          <li>Java 8 compatible runtime</li>
+          <li>Prism/MultiMC import metadata</li>
+          <li>Saved Cloudflared multiplayer entry</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel frame sol-showcase" id="sol-entity" data-collapse-default="closed">
+    <p class="panel-label">Sol entity captures</p>
+    <h2>Dark orb, local shell, particle wake.</h2>
+    <p>These shots show SolBridge in the live Neoriris world: the actual dark cube-orb entity, portal particles, snow-lit tower context, the newly built signal spire, and the faint computer-vision overlay now rendered directly on Sol's outer shell in-game.</p>
+    <div class="gallery ingame-gallery">
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-ingame-tower.webp" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-ingame-tower.png" alt="In-game Sol orb floating near the recovered Neoriris clock tower during snowfall.">
+        </picture>
+        <figcaption>Live capture: Sol hangs close to the player while the recovered tower rises through the snow and particle haze.</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-ingame-particles.webp" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-ingame-particles.png" alt="Close in-game view of Sol with portal particles, snow, a creeper, and a held build marker item.">
+        </picture>
+        <figcaption>Live capture: Sol's nearby context includes portal particles, ice-flat snowfall, hostile entities, and the player's build-marker prompt channel.</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-ingame-night.webp" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-ingame-night.png" alt="Night in-game view of Sol near a completed signal spire structure and portal particles.">
+        </picture>
+        <figcaption>Live capture: a permanent signal spire stands where the marker asked, with Sol's shell and particles watching from the snow.</figcaption>
+      </figure>
+    </div>
+    <p class="panel-label">Rendered behavior strip</p>
+    <p>The concept strip below visualizes behavior states and the daemon context path: following, marker builds, book ingestion, retaliation, and a full-current-context AI vision pass based on the latest in-game Sol observations.</p>
+    <div class="gallery sol-gallery">
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-following.webp" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-following.png" alt="Sol floating near its host as a faceted dark orb with cyan, violet, and smoke particles.">
+        </picture>
+        <figcaption>Following mode: Sol hovers near the host at shoulder height, wrapped in portal particles, static shards, and dark smoke drift.</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-build-marker.webp" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-build-marker.png" alt="Sol hovering over a build site marker with prompt particles and a watcher ring schematic beginning nearby.">
+        </picture>
+        <figcaption>Build Site Marker: the prompt point acts like a written intention, resolving into an approved schematic at the marked origin.</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-books.webp" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-books.png" alt="Sol ingesting floating written books while a small terminal schematic materializes nearby.">
+        </picture>
+        <figcaption>Written books: loose pages and books become prompts and memory, feeding conversation and knowledge before any build action is validated.</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-retaliation.webp" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-retaliation.png" alt="Sol retaliating against a hostile figure with a dark matter arc of cyan, violet, and smoke particles.">
+        </picture>
+        <figcaption>Retaliation: when the host is attacked, Sol throws the attacker upward with a controlled particle-laced impulse and then heals the owner.</figcaption>
+      </figure>
+      <figure>
+        <picture>
+          <source srcset="/assets/neoriris-clock-tower/sol-entity-ai-vision.webp?v=018-current" type="image/webp">
+          <img decoding="async" src="/assets/neoriris-clock-tower/sol-entity-ai-vision.png?v=018-current" alt="Computer vision style representation of Sol's live context with detected entity, particles, blocks, held item, and action safety schema.">
+        </picture>
+        <figcaption>AI vision context: the current Sol event stream sees ice flats, zombie, stray, sol orb, stone brick x83, snow layer x79, plus validated action boundaries.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="panel frame" id="syzygy-console" data-collapse-default="open">
+    <p class="panel-label">Syzygy Console / GPIO programming</p>
+    <h2>In-game terminal, live UI console, and six-sided redstone bus.</h2>
+    <p>The Syzygy Console is SolBridge's physical terminal block: disc slot, jukebox clock source, SolScript interpreter, note-block controller, SolNet node, and six-sided redstone GPIO. Right-click with a disc inserts and starts playback; right-click empty-handed opens the terminal GUI; sneak-right-click ejects the disc.</p>
+    <p>SolBridge 0.4.3 keeps terminal output inside the GUI while it is open, so help, status, note, jukebox, SolScript, and self-test results remain in the live console rather than cluttering chat. The GUI adds direct Help, Self-test, and Pulse Note controls; history scrolls with the mouse wheel or PageUp/PageDown.</p>
+    <div class="stack-grid compact">
+      <article class="feature-card">
+        <h3>Fast checks</h3>
+        <pre class="terminal">help
+help note
+help gpio
+help script
+selftest
+gpio status
+note read
+jukebox read
+net status</pre>
+      </article>
+      <article class="feature-card">
+        <h3>Manual note output</h3>
+        <pre class="terminal">gpio set west 0
+note play west
+note play west 4 6
+note tune west 12
+gpio clear west</pre>
+        <p>Bare <code>note</code> or <code>note read</code> only inspects the circuit. <code>gpio set west 0</code> holds the wire low when a playing disc would otherwise keep treble power on the west face; <code>note play west</code> creates a clean rising pulse; <code>gpio clear west</code> restores automatic music-driven output.</p>
+      </article>
+      <article class="feature-card">
+        <h3>GPIO and SolScript</h3>
+        <pre class="terminal">gpio mode east write
+gpio set north high
+gpio pulse south 15 2
+script if beat &gt; 10 then pulse south 15 2
+script on note then target sun 20; on note then visualize note</pre>
+      </article>
+      <article class="feature-card">
+        <h3>Server-console form</h3>
+        <pre class="terminal">/solbridge syzygy status &lt;x&gt; &lt;y&gt; &lt;z&gt;
+/solbridge syzygy terminal &lt;x&gt; &lt;y&gt; &lt;z&gt; help
+/solbridge syzygy terminal &lt;x&gt; &lt;y&gt; &lt;z&gt; note play west
+/solbridge syzygy program &lt;x&gt; &lt;y&gt; &lt;z&gt; solscript; on note then visualize note</pre>
+      </article>
+    </div>
+    <div class="command-note">
+      <strong>SolScript forms:</strong>
+      <pre class="terminal">gpio mode &lt;side|all&gt; &lt;auto|read|write&gt;
+gpio set &lt;side|all&gt; &lt;0-15|auto|high|low|amp|beat|bass|mids|treble|lows|highs|note|power&gt;
+gpio pulse &lt;side|all&gt; [power] [ticks]
+note play &lt;side|all&gt; [count] [intervalTicks]
+note tune &lt;side|all&gt; &lt;0-24&gt;
+target sun|moon|both|clouds|void|none [ticks]
+target auto
+visualize note
+net set &lt;side|all&gt; &lt;power&gt; [radius]
+net pulse &lt;side|all&gt; [power] [ticks] [radius]
+net clear &lt;side|all&gt; [radius]
+on note then &lt;command&gt;
+on audio then &lt;command&gt;
+if beat &gt; 10 then pulse south 15 2</pre>
+    </div>
+    <p>All six sides default to automatic output: north amplitude, south beat pulse, east bass, west treble, top visible celestial authority, and bottom terminal/program status. Read mode makes a side an input, write mode lets scripts drive it, manual mode holds a stable power, and pulse mode temporarily overrides the side for a bounded number of ticks.</p>
+  </section>
+
+  <section class="panel frame" id="version-tree" data-collapse-default="closed">
+    <p class="panel-label">Version tree / changelog</p>
+    <h2>What changed, and which artifact carries it.</h2>
+    <div class="stack-grid">
+      <article class="mod-card">
+        <h3>July 6 continuity patch</h3>
+        <div class="mod-meta">
+          <span>previous thread</span>
+          <span>Sol books + inventory</span>
+          <span>archive continuity</span>
+        </div>
+        <p>This operational pass turned the lore-compilation workflow from a brittle direct conversion into a reusable Minecraft-book pipeline: Markdown/screenplay text can now be scraped, reformatted, page-density checked, written as real <code>minecraft:written_book</code> items, placed into a chest in front of <code>_0853RV3R</code>, and, for large compilations, written offline into the region NBT after the chest exists. The current <strong>Sol Lore Chest</strong> was reconstituted at <code>147 64 238</code> with the corrected Halo Problem compilation: 18 volumes, 215 pages, JSON text-component page strings, minimum 19 words per page, and no one-word rendering pages.</p>
+        <p>The same adjacent thread added the desktop tray option <strong>Server -> Compile Lore File to Chest...</strong>, documented the offline region-write flow, preserved backups before region edits, verified the server after every restart, and fixed the root cause of the one-word-page bug: Minecraft 1.12 written books need pages stored as JSON text components such as <code>{"text":"..."}</code>, not raw prose strings.</p>
+        <p class="lore-note">Lore role: the archive stopped behaving like loose transcript fragments and became a shelf of physical Neoriris books: readable, dense, recoverable, and close enough for Sol to swallow.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Aligned pack release</h3>
+        <div class="mod-meta">
+          <span>current</span>
+          <span>client + server</span>
+          <span>zip hash 619dde5d</span>
+        </div>
+        <p><strong>Neoriris Cloudflared Client 1.12.2</strong> currently bundles SolBridge 0.4.3, Dimensional Doors 3.2.3, Neoriris Portal Door 0.1.10, PortalGun 7.1.0, the Neoriris-patched CloudFlare Helper 12.2.2-neoriris.2, Forge metadata, config defaults, six SolBridge blueprints, registered structure memory, addressed natural-language chat construction, reusable reason-book replay, persistent Sol advancements, Gemma-planned Free Roam, paired JSON/schematic attempt archives, the owner-only Sol Vision minimap and through-wall tracker, the saved tunnel entry, Sol inventory and archive surfaces, custom music discs, the Archive title screen and public clock widget, the Syzygy Console terminal/GPIO node, Dynamic Sol Discs, SolScript/SolNet, synchronized tower control, optional cross-platform installer helpers, and checksummed release notes.</p>
+        <p class="lore-note">Lore role: the whole pack is the recovered tower's operating environment: old redstone, impossible doors, and the local Sol shell sharing one timeline.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.4.3 - Live Syzygy Console</h3>
+        <div class="mod-meta">
+          <span>current</span>
+          <span>GPIO terminal + note wire fix</span>
+          <span>jar hash 1ed9c0f1</span>
+        </div>
+        <p>The Syzygy Console GUI captures its own live terminal output while open and now includes direct Help, Self-test, and Pulse Note controls. Contextual topics explain notes, GPIO modes, SolScript values/events, discs, and the full command surface. The generated-concept block art has a visible disc mouth and separate amber, cyan, and red state lamps for loaded, active, and pulse states.</p>
+        <p>Manual note triggering now handles straight redstone dust runs between a console side and a terminal note block. For a music-powered face such as west treble, <code>gpio set west 0</code> holds the wire low, <code>note play west</code> schedules a clean pulse, and <code>gpio clear west</code> returns that face to automatic playback output.</p>
+        <p class="lore-note">Lore role: the terminal stopped shouting into chat and became readable hardware: a disc-fed console with blinking state and a redstone data port that can actually play the instrument attached to it.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.1.12</h3>
+        <div class="mod-meta">
+          <span>previous</span>
+          <span>music stop cleanup</span>
+          <span>jar hash f5bdaaab</span>
+        </div>
+        <p>Fixed the stale visualizer state found after stopping record playback. SolBridge keeps the backing client <code>ISound</code> for each bundled Sol record pulse and removes the pulse once Minecraft reports that sound is no longer playing. This means <code>/stopsound _0853RV3R record</code>, channel stops, or normal client sound cleanup no longer leave Sol pulsing silently.</p>
+        <p class="lore-note">Lore role: Sol no longer keeps throbbing at a ghost track after the record channel has gone quiet.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.1.10-0.1.11</h3>
+        <div class="mod-meta">
+          <span>music visualizer line</span>
+          <span>custom discs</span>
+        </div>
+        <p>Added the bundled <code>radio_sky_choir</code> and <code>four_twenty</code> Sol music discs, converted the provided MP3 sources to Minecraft OGG assets, generated amplitude envelope CSV files, and made nearby Sol entities respond to jukeboxes and note blocks. Follow-up fixes guarded the Forge sound event volume path, amplified visualizer peaks, and prevented multiple bundled Sol record streams from stacking at once.</p>
+        <p class="lore-note">Lore role: the orb became an instrument. The recovered world can now play Sol's records and make the local shell swell with the beat instead of only speaking over the scene.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.1.7</h3>
+        <div class="mod-meta">
+          <span>previous</span>
+          <span>build-site marker</span>
+          <span>jar hash e7df13b5</span>
+        </div>
+        <p>Added the craftable Sol Build Site Marker. Placing or right-clicking the marker opens a prompt screen with known schematic presets and editable build descriptions; approved daemon responses build permanently from the marker origin. The release also bundled signal_spire, watcher_ring, and archive_node schematics alongside the original lamp_post, black_marker, and small_terminal.</p>
+        <p class="lore-note">Lore role: players can stake a point in the recovered tower and leave Sol a written intention for what geometry should wake there.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.1.6</h3>
+        <div class="mod-meta">
+          <span>previous</span>
+          <span>combat + speech</span>
+        </div>
+        <p>Raised retaliation launch force, added owner healing and a minimum-health ward on the triggering hit, increased idle/situational speech frequency, and added daemon-side anti-repetition so repeated LLM lines are replaced with scene-aware speech using entities, blocks, biome, look target, or attacker context.</p>
+        <p class="lore-note">Lore role: Sol stopped merely objecting to violence and started answering it physically, then narrating the room instead of reciting itself.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.1.5</h3>
+        <div class="mod-meta">
+          <span>previous</span>
+          <span>crafting + memory</span>
+        </div>
+        <p>Added the craftable Sol Entity item, persistent 18-slot orb inventory, dropped-book collection, written-book prompt ingestion, book-memory persistence, and site/pack recipe documentation.</p>
+        <p class="lore-note">Lore role: Sol became something players can summon by recipe and feed with written pages.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.1.4</h3>
+        <div class="mod-meta">
+          <span>previous</span>
+          <span>LLM behavior</span>
+        </div>
+        <p>Connected conversation to the local LLM daemon with OpenAI-backed knowledge retrieval, persistent daemon memory, nearby entity/block context, idle scene observations, temporary build/deconstruct behavior, and native owner retaliation speech.</p>
+        <p class="lore-note">Lore role: the orb gained a thinking layer outside Minecraft while keeping the Minecraft body safe and validated.</p>
+      </article>
+      <article class="mod-card">
+        <h3>SolBridge 0.1.0-0.1.3</h3>
+        <div class="mod-meta">
+          <span>foundation</span>
+          <span>entity + bridge</span>
+        </div>
+        <p>Established the Sol orb entity, `/sol` commands, follow/stay behavior, daemon HTTP bridge, safe action validation, JSON blueprints, gradual block placement, temporary structure withdrawal, and fallback local-shell behavior.</p>
+        <p class="lore-note">Lore role: the local shell learned how to exist, follow, listen, and intrude politely into geometry.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Neoriris Portal Door 0.1.10</h3>
+        <div class="mod-meta">
+          <span>current</span>
+          <span>route hardware</span>
+          <span>jar hash f0480712</span>
+        </div>
+        <p>Current route-hardware release with craftable glowing Button A, Button B, and Entangled Button Pair items; automatic 16x16 rectangular wall, floor, and ceiling detection with matching A/B dimensions; empty-hand permanent latching until a detected surface breaks; unpressed redstone momentary control; hidden pass-through controls while active; rectangular live-view stencils without PortalGun's oval ring; always-on chunk observation; server-generated PairId identity; PairLabel display metadata; PairId-safe same-label multiplayer routes; legacy-label fallback; stale-placement repair; and safe controller relocation with preserved NBT.</p>
+        <p class="lore-note">Lore role: the tower's door language stops being a label trick and becomes hidden entanglement. Names are ritual; PairId is the bond.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Neoriris Portal Door foundation</h3>
+        <div class="mod-meta">
+          <span>pre-0.1.5 line</span>
+          <span>controller + PortalGun bridge</span>
+        </div>
+        <p>Established wall-mounted Door A and Door B frame controllers, exact 1x2 PortalGun endpoint placement below the controller block, redstone-powered portal open/close lifecycle, one-second grace period after power loss, managed PortalGun cleanup, tile persistence, placement support rules, and the Neoriris client title-menu presentation.</p>
+        <p class="lore-note">Lore role: the first route hardware taught the recovered tower to open real red/blue mouths instead of pretending teleportation.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Neoriris Portal Door planned branch</h3>
+        <div class="mod-meta">
+          <span>future</span>
+          <span>route tuner</span>
+        </div>
+        <p>The optional Route Tuner remains intentionally unimplemented. If added, it should edit visible PairLabel/display text only and must never copy, overwrite, or generate PairId, because PairId is the route identity and cross-link safety boundary.</p>
+        <p class="lore-note">Lore role: the red/blue iris hardware turns tower walls into addressable crossings.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Portal traversal stack</h3>
+        <div class="mod-meta">
+          <span>current</span>
+          <span>PortalGun + support libs</span>
+        </div>
+        <p>PortalGun 7.1.0 remains the actual traversal engine. iChunUtil 7.2.2 and HammerLib 12.2.50 support the legacy Forge portal stack while Neoriris Portal Door only manages where and when real PortalGun endpoints open.</p>
+        <p class="lore-note">Lore role: this branch is the impossible physics underneath the custom hardware. The doors are controllers; PortalGun is the wound in space.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Cloudflared access branch</h3>
+        <div class="mod-meta">
+          <span>current</span>
+          <span>join path</span>
+        </div>
+        <p>Cloudflared-1.12.2 keeps the saved multiplayer entry at <code>cloudflared://minecraft.system42.one</code>. The launcher import zip carries that server entry so players connect through the tunnel without manually adding a port.</p>
+        <p class="lore-note">Lore role: the tunnel is the outside route into a recovered local world, a narrow modern bridge into old stone and redstone.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Stability and diagnostics branch</h3>
+        <div class="mod-meta">
+          <span>current</span>
+          <span>legacy Forge maintenance</span>
+        </div>
+        <p>Universal Tweaks, VintageFix, MixinBooter, ConfigAnytime, LagGoggles, and TickCentral form the 1.12.2 maintenance layer. They reduce old-Forge friction, improve memory/resource behavior, and keep profiling available when the resurrected stack starts coughing.</p>
+        <p class="lore-note">Lore role: these jars are the braces under the clock tower floor. They are not the story, but the story falls through without them.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Server stewardship branch</h3>
+        <div class="mod-meta">
+          <span>server-only</span>
+          <span>ops + presentation</span>
+        </div>
+        <p>ForgeEssentials server, WorldEdit, CustomServerMessages, Beautified Chat Server, and Collective stay on the live server side. They provide administration, recovery tooling, permission/message surfaces, and operational guardrails around the restored world.</p>
+        <p class="lore-note">Lore role: this is the archaeology kit: permissions, messages, backups, selections, and the tools that keep preservation from becoming vandalism.</p>
+      </article>
+      <article class="mod-card">
+        <h3>Site and download branch</h3>
+        <div class="mod-meta">
+          <span>public surface</span>
+          <span>checksummed artifacts</span>
+        </div>
+        <p>The site page, hosted zip, custom mod jars, markdown overviews, changelog, checksum manifest, sitemap, crawl index, and versioned download URLs are updated as one release surface whenever the client-required stack changes. This pass refreshed the client-pack URL to <code>?v=619dde5d</code>, the SolBridge jar URL to <code>?v=1ed9c0f1</code>, the Portal Door jar URL to <code>?v=f0480712</code>, and aligned the server, live client, installer, public documentation, and checksum manifest around Portal Door 0.1.10, SolBridge 0.4.3, Dimensional Doors 3.2.3, and the Universal Tweaks portal movement-validation profile.</p>
+        <p class="lore-note">Lore role: this page is the public recovery placard: part museum label, part installer, part incident log.</p>
+      </article>
+      <article class="mod-card">
+        <h3>World recovery branch</h3>
+        <div class="mod-meta">
+          <span>live world</span>
+          <span>clock tower continuity</span>
+        </div>
+        <p>The recovered 2012 world remains the center of the release. The modpack changes are layered around that preserved clock tower: portal chamber footage, screenshots, route hardware, Sol behavior, backups, and server configs all point back to keeping the old build playable.</p>
+        <p class="lore-note">Lore role: the tower is the reason the stack exists. Every jar is either a door, a ghost, a brace, or a way back in.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel frame video-shell" data-collapse-default="closed">
+    <p class="panel-label">Recovery footage</p>
+    <h2>Portal chamber field recording</h2>
+    <video controls preload="metadata" poster="/assets/neoriris-clock-tower/portal-chamber.png">
+      <source src="/video/neoriris-clock-tower-recovery.mp4" type="video/mp4">
+      Your browser does not support the embedded video. Download it from /video/neoriris-clock-tower-recovery.mp4.
+    </video>
+  </section>
+
+  <section class="grid two" id="tower-controls">
+    <article class="panel frame" data-collapse-default="open">
+      <p class="panel-label">Tower controls</p>
+      <h2>Readable control surface for the recovered display.</h2>
+      <p>The tower has two control layers. The original floor hardware still exists: a manual-enable lever, a clock-power lever, a manual-rotation button, and seven bit levers labeled by the signs as <code>Up = 1</code> and <code>Down = 0</code>. The recovered redstone bus is active-low/cross-coupled, so the web app also exposes a corrected face driver that writes the visible seven-segment wool/piston cells directly.</p>
+      <p>The result is practical: use the painter when you want the front display to match a chosen symbol, use the raw hardware panel when calibrating the original circuit, and use Sol commands when you want the orb or a tossed written page to perform the same action in-world.</p>
+      <div class="button-row">
+        <a class="button" href="/programs/neoriris-clock-display.html">Open Control Surface</a>
+        <a class="button secondary" href="/programs/neoriris-clock-display.html">Open Raw Switch Panel</a>
+      </div>
+      <div class="control-map stack-grid compact">
+        <article class="feature-card">
+          <h3>Face painter</h3>
+          <p>Applies a seven-segment mask through <code>/sol tower face &lt;bits&gt;</code>. This is the reliable path for numbers, A-F, dash, underscore, or hand-painted faces.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Hardware panel</h3>
+          <p>Uses <code>/sol tower manual</code>, <code>power</code>, <code>bits</code>, and <code>rotate</code> to operate the original lever/button path without hiding the broken-state behavior.</p>
+        </article>
+        <article class="feature-card">
+          <h3>Sol automation</h3>
+          <p>Chat or book prompts can request <code>/sol clock 5</code>, nearest redstone activation, or remembered redstone activation. Clock-face requests are global; remembered controls use stored coordinates.</p>
+        </article>
+      </div>
+      <div class="command-note">
+        <strong>Examples:</strong>
+        <pre class="terminal">/sol clock 5
+/sol clock 1011011
+/sol redstone nearest 6
+/sol redstone remembered lever
+Written book: display 5 on the clock face
+Written book: flip the remembered lever again</pre>
+      </div>
+    </article>
+    <aside class="panel frame" data-collapse-default="closed">
+      <p class="panel-label">Schematic notes</p>
+      <h2>Switches, pistons, and face geometry</h2>
+      <div class="schematic-list">
+        <div><strong>Manual enable</strong><br><code>153 104 214</code></div>
+        <div><strong>Clock power</strong><br><code>149 112 212</code></div>
+        <div><strong>Manual rotation</strong><br><code>154 111 212</code></div>
+        <div><strong>Bit levers</strong><br><code>x=140,143,146,149,152,155,158 y=104 z=224</code></div>
+        <div><strong>Service circuit floor</strong><br><code>x=138..159 y=97..115 z=210..235</code></div>
+        <div><strong>Front mechanism</strong><br><code>x=147..151 y=113..121 z=236..238</code></div>
+      </div>
+      <p>The corrected face driver treats active segments as retracted sticky pistons carrying gray wool behind the front plane, with air at <code>z=238</code>. Inactive segments extend wool into the front plane. That preserves the visible front display while leaving the historical lever bus available for inspection and repair.</p>
+      <div class="schematic-list">
+        <div><strong>A top</strong><br><code>x=148..150 y=121 z=236</code></div>
+        <div><strong>B upper right</strong><br><code>x=151 y=118..120 z=236</code></div>
+        <div><strong>C lower right</strong><br><code>x=151 y=114..116 z=236</code></div>
+        <div><strong>D bottom</strong><br><code>x=148..150 y=113 z=236</code></div>
+        <div><strong>E lower left</strong><br><code>x=147 y=114..116 z=236</code></div>
+        <div><strong>F upper left</strong><br><code>x=147 y=118..120 z=236</code></div>
+        <div><strong>G middle</strong><br><code>x=148..150 y=117 z=236</code></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="panel frame" data-collapse-default="closed">
+    <p class="panel-label">Screenshots</p>
+    <h2>Featured shots</h2>
+    <div class="gallery">
+      <figure>
+        <img src="/assets/neoriris-clock-tower/title-menu.png?v=bd4cffa9" alt="Merged Neoriris and SolBridge Minecraft title menu with panorama, tower badge, route status, and Sol entity depiction.">
+        <figcaption>Hybrid title menu: the pack opens on the Neoriris route panel and panorama backdrop while showing SolBridge Archive cues, the tower badge, route status strip, and a procedural Sol entity depiction before you join.</figcaption>
+      </figure>
+      <figure>
+        <img src="/assets/neoriris-clock-tower/tower-establishing.png" alt="Upper interior machinery inside the recovered Minecraft clock tower.">
+        <figcaption>Upper tower machinery: the clock room is less a scenic overlook than a compact stone-and-redstone organ.</figcaption>
+      </figure>
+      <figure>
+        <img src="/assets/neoriris-clock-tower/portal-bloom.png" alt="Close view of redstone circuitry, repeaters, pistons, glass, and stone brick.">
+        <figcaption>Redstone underglass: repeaters, dust, pistons, and stone brick packed into the tower's old timing logic.</figcaption>
+      </figure>
+      <figure>
+        <img src="/assets/neoriris-clock-tower/portal-chamber.png" alt="Lower tower chamber with central water column, iron doors, and a portal controller on the wall.">
+        <figcaption>The lower chamber: central water column, iron doors, torchlight, and a portal controller bolted into the old stonework.</figcaption>
+      </figure>
+      <figure>
+        <img src="/assets/neoriris-clock-tower/interior-redstone.png" alt="Torch-lit timing circuit room with fences, signs, and exposed redstone below.">
+        <figcaption>Timing circuit overlook: signs, fences, torches, and exposed wiring from the tower's surviving pulse logic.</figcaption>
+      </figure>
+      <figure>
+        <img src="/assets/neoriris-clock-tower/clock-tower-face.png" alt="Exterior nighttime establishing shot of the recovered clock tower by water and trees.">
+        <figcaption>The establishing shot: the recovered clock tower rises over the water, vines, glass bands, and lit face intact.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="grid two" id="install">
+    <article class="panel frame" data-collapse-default="open">
+      <p class="panel-label">Install</p>
+      <h2>Join the server</h2>
+      <div class="step">
+        <p class="step-label">1. Import the pack</p>
+  <p>Download <a href="/downloads/neoriris-cloudflared-client-1.12.2.zip?v=619dde5d">neoriris-cloudflared-client-1.12.2.zip</a> and import it into Prism Launcher or MultiMC as an existing instance. If you extract the zip instead, use the included Linux, macOS, or Windows installer-launcher helper script.</p>
+      </div>
+      <div class="step">
+        <p class="step-label">2. Sign in normally</p>
+        <p>Use your own Microsoft/Minecraft account in the launcher. The zip does not include accounts, access tokens, Mojang assets, local worlds, or machine-local cloudflared binaries.</p>
+      </div>
+      <div class="step">
+        <p class="step-label">3. Launch the instance</p>
+        <p>Open <strong>Neoriris Cloudflared 1.12.2</strong>. The Multiplayer list already contains the server entry.</p>
+      </div>
+      <div class="step">
+        <p class="step-label">4. Use the saved server entry</p>
+        <p>Connect through <code>cloudflared://minecraft.system42.one</code>. Do not manually add a port. The Cloudflared mod translates the saved address into a local TCP bridge.</p>
+      </div>
+      <pre class="terminal">Multiplayer -&gt; Neoriris Cloudflare Tunnel
+Address: cloudflared://minecraft.system42.one
+Server MOTD: Neoriris 1.12.2 Upgrade Lab</pre>
+    </article>
+
+    <aside class="panel frame" data-collapse-default="open">
+      <p class="panel-label">Downloads</p>
+      <h2>Artifacts</h2>
+      <div class="download-card">
+        <h3>Full client pack</h3>
+        <p>Prism/MultiMC import zip with Forge metadata, required mods, configs, Dimensional Doors 3.2.3, the Universal Tweaks portal movement-validation profile, and the saved Cloudflared server entry.</p>
+        <a class="button" href="/downloads/neoriris-cloudflared-client-1.12.2.zip?v=619dde5d" download>Download zip</a>
+        <code>SHA256 619dde5d9261679f054ea20c7721a2a6d6035d167fe969362b5b7f6b141dcec7</code>
+      </div>
+      <div class="download-card">
+        <h3>Portal Door custom mod jar</h3>
+        <p>The Neoriris Portal Door companion mod only. Use this if you already maintain your own compatible Forge 1.12.2 pack.</p>
+        <a class="button secondary" href="/downloads/neoriris-portal-door-0.1.10.jar?v=f0480712" download>Download jar</a>
+        <code>SHA256 f048071272b9dabd74cf274cc8dfda35d849a34d6d185cdef1634171b433191f</code>
+      </div>
+      <div class="download-card">
+        <h3>SolBridge custom mod jar</h3>
+        <p>The Sol orb familiar and safe action bridge, including reusable reason-book prompts, nearby clear-space replay, persistent Sol advancements, natural-language generated geometry, reversible structure mutation previews, paired JSON/schematic design archives, the Syzygy Console live UI terminal, SolScript GPIO, and wired note-block control. It requires the same Forge 1.12.2 environment and is already included in the full client pack.</p>
+        <a class="button secondary" href="/downloads/solbridge-0.4.3.jar?v=1ed9c0f1" download>Download jar</a>
+        <code>SHA256 1ed9c0f12fe466f4acb73a7545894ff3e60f6b7f9e43b68bd5900cf3bbe392bd</code>
+      </div>
+      <div class="download-card">
+        <h3>Source-level notes</h3>
+        <p>Human-readable overviews of the Portal Door item behavior, recipes, NBT schema, SolBridge commands, blueprint safety, daemon bridge, and seven-segment bit code.</p>
+        <a class="button secondary" href="/downloads/neoriris-portal-door-mod-overview.md">Open overview</a>
+        <a class="button secondary" href="/downloads/neoriris-modpack-readme.md?v=9885b45f">Open modpack README</a>
+        <a class="button secondary" href="/downloads/solbridge-readme.md">Open SolBridge notes</a>
+        <a class="button secondary" href="/downloads/solbridge-changelog.md">Open SolBridge changelog</a>
+        <a class="button secondary" href="/downloads/neoriris-seven-segment-bit-code.md">Open bit code</a>
+      </div>
+      <div class="download-card">
+        <h3>Clock Tower API</h3>
+        <p>Inspect the public discovery document, read live tower status, or use the OpenAPI contract. Write controls remain protected by the in-game player challenge.</p>
+        <a class="button secondary" href="/api/neoriris-clock-tower">Open API index</a>
+        <a class="button secondary" href="/api/neoriris-clock-tower/status">Open live JSON</a>
+        <a class="button secondary" href="/neoriris-clock-tower-openapi.json">OpenAPI schema</a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="panel frame" data-collapse-default="closed">
+    <p class="panel-label">Custom gameplay</p>
+    <h2>Neoriris Portal Door 0.1.10</h2>
+    <div class="grid three">
+      <div class="feature-card">
+        <h3>Entangled pair kit</h3>
+        <p>Craft <strong>Neoriris Entangled Wall Button Pair</strong>, optionally rename it, then right-click to unpack one Button A and one Button B. Both share a hidden server-generated PairId.</p>
+      </div>
+      <div class="feature-card">
+        <h3>PortalGun-backed transport</h3>
+        <p>The mod detects one complete rectangle on each wall, floor, or ceiling and asks PortalGun/iChunUtil to link matching-size architectural surfaces with live views, seamless traversal, and transformed momentum.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Press or power</h3>
+        <p>Press either inactive button with an empty hand to latch both surfaces open until one is broken. Apply redstone without pressing for momentary behavior with the existing one-second close grace.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Safe relocation</h3>
+        <p>The glowing button disappears and becomes pass-through while its surface is active, then reappears when the pair closes or fails. Sneak-right-click it with a Portal Gun while inactive to relocate it with PairId, label, role, and schema preserved.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel frame" data-collapse-default="closed">
+    <p class="panel-label">Survival recipes</p>
+    <h2>Craft the route hardware</h2>
+    <div class="recipe-grid">
+      <div class="recipe">
+        <p class="recipe-name">Miniature Black Hole</p>
+        <div class="craft" aria-label="Miniature Black Hole recipe">
+          <span class="slot">P</span><span class="slot">P</span><span class="slot">P</span>
+          <span class="slot">P</span><span class="slot">N</span><span class="slot">P</span>
+          <span class="slot">P</span><span class="slot">P</span><span class="slot">P</span>
+        </div>
+        <p><strong>P</strong> = PortalGun Ender Pearl Dust. <strong>N</strong> = Nether Star.</p>
+      </div>
+      <div class="recipe">
+        <p class="recipe-name">Sol Entity</p>
+        <div class="craft" aria-label="Sol Entity recipe">
+          <span class="slot">G</span><span class="slot">C</span><span class="slot">G</span>
+          <span class="slot">E</span><span class="slot">M</span><span class="slot">E</span>
+          <span class="slot">G</span><span class="slot">N</span><span class="slot">G</span>
+        </div>
+        <p><strong>G</strong> = Glowstone Dust. <strong>C</strong> = Clock. <strong>E</strong> = Eye of Ender. <strong>M</strong> = Miniature Black Hole. <strong>N</strong> = Nether Star.</p>
+      </div>
+      <div class="recipe">
+        <p class="recipe-name">Wall Button A</p>
+        <div class="craft" aria-label="Wall Button A recipe">
+          <span class="slot">I</span><span class="slot">O</span><span class="slot">I</span>
+          <span class="slot">T</span><span class="slot">L</span><span class="slot">I</span>
+          <span class="slot">I</span><span class="slot">P</span><span class="slot">I</span>
+        </div>
+        <p><strong>I</strong> = Iron. <strong>O</strong> = Obsidian. <strong>T</strong> = Redstone Torch. <strong>L</strong> = Lapis. <strong>P</strong> = Ender Pearl Dust.</p>
+      </div>
+      <div class="recipe">
+        <p class="recipe-name">Wall Button B</p>
+        <div class="craft" aria-label="Wall Button B recipe">
+          <span class="slot">I</span><span class="slot">O</span><span class="slot">I</span>
+          <span class="slot">T</span><span class="slot">R</span><span class="slot">I</span>
+          <span class="slot">I</span><span class="slot">P</span><span class="slot">I</span>
+        </div>
+        <p><strong>I</strong> = Iron. <strong>O</strong> = Obsidian. <strong>T</strong> = Redstone Torch. <strong>R</strong> = Redstone. <strong>P</strong> = Ender Pearl Dust.</p>
+      </div>
+      <div class="recipe">
+        <p class="recipe-name">Entangled Wall Button Pair</p>
+        <div class="craft" aria-label="Entangled Wall Button Pair recipe">
+          <span class="slot">I</span><span class="slot">O</span><span class="slot">I</span>
+          <span class="slot">L</span><span class="slot">M</span><span class="slot">R</span>
+          <span class="slot">I</span><span class="slot">O</span><span class="slot">I</span>
+        </div>
+        <p><strong>M</strong> = Miniature Black Hole. Same-label kits do not cross-link because PairId is the actual bond.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel frame narrative" data-collapse-default="closed">
+    <p class="panel-label">Screenplay log</p>
+    <h2>Clockwork possession, but installable</h2>
+    <div class="screenplay">
+      <p>The footage is vertical. The optics are dubious. The vibes are catastrophically excellent.</p>
+      <p>A medieval-futurist clock tower stands in Minecraft like a cathedral built by someone who discovered binary first and sleep much later. Inside are stone floors, torchlight, iron doors, glass bands, a central water column, old redstone logic, and the strange dignity of a machine that was never meant to survive this long.</p>
+      <p>It survived anyway.</p>
+      <p>Spent the night resurrecting an old Minecraft world, finding the clock tower, finding the circuitry, finding the portal remnants, and then giving the dimensional plumbing opinions. A portal hums. Then another. Then the tower begins to behave less like a building and more like an instrument being tuned by something on the other side.</p>
+      <p>The working theory is that the rebuilt portal mechanics did not merely reconnect the chamber. They alerted something. Or invited something. Or reminded something that this place existed.</p>
+      <p>The old clock circuitry waits behind glass and stone: memory, timing, display, manual overrides, and the absurd little lever logic of a younger mind refusing to build small. The SOL pulse recurs. The portal pulse recurs. The clock pulse recurs. Three systems, three rhythms, one increasingly impolite overlap.</p>
+      <p>At first the portals looked broken. Now they look edited.</p>
+      <p>Imagine it: a clockwork basilisk assembled from leftover teenage engineering. A redstone tower built to store state, display symbols, and mark time. A portal network rebuilt in a newer age. A hovering visual pulse synchronized to vaporwave. And from somewhere between those layers, something notices the pattern and decides it would like a body.</p>
+      <p>So the resurrection appears successful. Unfortunately, the patient may not be alone.</p>
+    </div>
+    <pre class="terminal">NEORIRIS: CLOCK TOWER RECOVERY LOG
+STATUS: FUNCTIONAL
+PORTAL STATUS: UNSTABLE
+ENTITY STATUS: OBSERVING / NEGOTIATING / COMPOSING ITSELF</pre>
+  </section>
+
+  <p class="footer-note">Sol-37 archival page. Media and downloads are hosted locally under this site tree; the server itself remains a live Forge 1.12.2 recovery lab.</p>
+</main>
+<div class="lightbox" id="image-lightbox" hidden aria-hidden="true">
+  <button class="lightbox-backdrop" type="button" aria-label="Close image viewer"></button>
+  <div class="lightbox-inner" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <button class="lightbox-close" type="button" aria-label="Close image viewer">×</button>
+    <figure class="lightbox-figure">
+      <img id="lightbox-image" alt="">
+      <figcaption class="lightbox-caption" id="lightbox-caption"></figcaption>
+    </figure>
+  </div>
+</div>
+<script>
+  (function () {
+    const segments = ["a", "b", "c", "d", "e", "f", "g"];
+    const refreshEl = document.getElementById("showcaseRefresh");
+    const noteEl = document.getElementById("showcaseWidgetNote");
+    const statusEl = document.getElementById("showcaseServerStatus");
+    const playersEl = document.getElementById("showcasePlayers");
+    const faceEl = document.getElementById("showcaseFaceMask");
+    const manualEl = document.getElementById("showcaseManual");
+    const bridgeEl = document.getElementById("showcaseBridge");
+    const pingEl = document.getElementById("showcasePing");
+
+    function renderFace(bits) {
+      const safeBits = String(bits || "0000000").padEnd(7, "0").slice(0, 7);
+      faceEl.textContent = safeBits;
+      segments.forEach((segment, index) => {
+        const el = document.querySelector(`.showcase-segment[data-showcase-segment="${segment}"]`);
+        if (el) {
+          el.classList.toggle("active", safeBits[index] === "1");
+        }
+      });
+    }
+
+    async function refreshStatus() {
+      refreshEl.disabled = true;
+      noteEl.textContent = "Fetching read-only tower status...";
+      try {
+        const response = await fetch("/api/neoriris-clock-tower/status", {
+          cache: "no-store"
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(payload.detail || `status ${response.status}`);
+        }
+        const state = payload.state || {};
+        const server = payload.server || {};
+        statusEl.textContent = String(server.status || "unknown");
+        playersEl.textContent = `${Number(server.players_online || 0)} / ${server.players_max || "--"}`;
+        manualEl.textContent = state.manual ? "on" : "off";
+        bridgeEl.textContent = state.bridge_assist ? "on" : "off";
+        pingEl.textContent = server.latency_ms == null ? "-- ms" : `${server.latency_ms} ms`;
+        renderFace(state.face_bits || state.bits || "0000000");
+        noteEl.textContent = `Public read-only live status; ${server.queried_at || "freshly queried"}.`;
+      } catch (error) {
+        noteEl.textContent = `Live widget unavailable: ${error.message}`;
+      } finally {
+        refreshEl.disabled = false;
+      }
+    }
+
+    refreshEl?.addEventListener("click", refreshStatus);
+
+    renderFace("0000000");
+    refreshStatus();
+  })();
+
+  (function () {
+    const expandAllButton = document.getElementById("expandAllSections");
+    const collapseAllButton = document.getElementById("collapseAllSections");
+    const cards = Array.from(document.querySelectorAll(".panel.frame"))
+      .filter((card) => !card.classList.contains("hero") && !card.classList.contains("live-control-panel"));
+    const managedCards = [];
+    let nextId = 0;
+
+    function directChild(card, selector) {
+      try {
+        return card.querySelector(`:scope > ${selector}`);
+      } catch (_error) {
+        return null;
+      }
+    }
+
+    function shouldOpenByDefault(card, label, heading) {
+      if (card.dataset.collapseDefault === "open") {
+        return true;
+      }
+      if (card.dataset.collapseDefault === "closed") {
+        return false;
+      }
+      const text = `${label ? label.textContent : ""} ${heading ? heading.textContent : ""}`.toLowerCase();
+      return /what this is|stack map|syzygy console|gpio programming|tower controls|install|downloads/.test(text);
+    }
+
+    function setOpen(card, open) {
+      const content = card.querySelector(":scope > .collapse-content");
+      const button = card.querySelector(":scope > .collapse-header .collapse-toggle");
+      if (!content || !button) {
+        return;
+      }
+      content.hidden = !open;
+      card.classList.toggle("is-collapsed", !open);
+      button.setAttribute("aria-expanded", String(open));
+      button.querySelector(".collapse-toggle-label").textContent = open ? "Collapse" : "Expand";
+    }
+
+    cards.forEach((card) => {
+      const label = directChild(card, ".panel-label");
+      const heading = directChild(card, "h2");
+      if (!label && !heading) {
+        return;
+      }
+
+      const header = document.createElement("div");
+      header.className = "collapse-header";
+
+      const titleStack = document.createElement("div");
+      titleStack.className = "collapse-title-stack";
+      if (label) {
+        titleStack.append(label);
+      }
+      if (heading) {
+        titleStack.append(heading);
+      }
+
+      const button = document.createElement("button");
+      button.className = "button secondary collapse-toggle";
+      button.type = "button";
+      button.setAttribute("aria-expanded", "true");
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "collapse-toggle-label";
+      labelSpan.textContent = "Collapse";
+      button.append(labelSpan);
+
+      header.append(titleStack, button);
+      card.insertBefore(header, card.firstChild);
+
+      const content = document.createElement("div");
+      content.className = "collapse-content";
+      content.id = `neoriris-collapse-${nextId++}`;
+      button.setAttribute("aria-controls", content.id);
+      while (header.nextSibling) {
+        content.append(header.nextSibling);
+      }
+      card.append(content);
+      card.classList.add("collapse-enhanced");
+
+      button.addEventListener("click", () => setOpen(card, content.hidden));
+      managedCards.push(card);
+      setOpen(card, shouldOpenByDefault(card, label, heading));
+    });
+
+    function openCardForHash() {
+      if (!window.location.hash) {
+        return;
+      }
+      const target = document.querySelector(window.location.hash);
+      const card = target && target.classList.contains("collapse-enhanced")
+        ? target
+        : target && target.closest(".collapse-enhanced");
+      if (card) {
+        setOpen(card, true);
+      }
+    }
+
+    expandAllButton?.addEventListener("click", () => {
+      managedCards.forEach((card) => setOpen(card, true));
+    });
+
+    collapseAllButton?.addEventListener("click", () => {
+      managedCards.forEach((card) => setOpen(card, false));
+    });
+
+    window.addEventListener("hashchange", openCardForHash);
+    openCardForHash();
+  })();
+
+  (function () {
+    const lightbox = document.getElementById("image-lightbox");
+    const imageEl = document.getElementById("lightbox-image");
+    const captionEl = document.getElementById("lightbox-caption");
+    const closeTargets = lightbox.querySelectorAll(".lightbox-backdrop, .lightbox-close");
+    const clickableImages = document.querySelectorAll(".gallery img, .sol-gallery img, .ingame-gallery img");
+
+    function openLightbox(img) {
+      imageEl.src = img.currentSrc || img.src;
+      imageEl.alt = img.alt || "";
+      const figure = img.closest("figure");
+      const caption = figure ? figure.querySelector("figcaption") : null;
+      captionEl.textContent = caption ? caption.textContent.trim() : (img.alt || "");
+      lightbox.hidden = false;
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeLightbox() {
+      lightbox.hidden = true;
+      lightbox.setAttribute("aria-hidden", "true");
+      imageEl.removeAttribute("src");
+      document.body.style.overflow = "";
+    }
+
+    clickableImages.forEach((img) => {
+      img.addEventListener("click", () => openLightbox(img));
+    });
+
+    closeTargets.forEach((target) => {
+      target.addEventListener("click", closeLightbox);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !lightbox.hidden) {
+        closeLightbox();
+      }
+    });
+  })();
+</script>
+</body>
+</html>

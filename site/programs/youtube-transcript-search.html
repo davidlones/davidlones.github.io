@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>YouTube + TikTok Transcript Search</title>
+  <style>
+    :root {
+      --bg: #040706;
+      --bg2: #101812;
+      --panel: rgba(9, 20, 15, 0.88);
+      --panel2: rgba(17, 33, 23, 0.9);
+      --line: #315742;
+      --line2: #769f6d;
+      --ink: #eef8df;
+      --muted: #9bad94;
+      --accent: #d8ff52;
+      --accent2: #53f5bd;
+      --warn: #ffc857;
+      --danger: #ff7f7f;
+      --shadow: rgba(0, 0, 0, 0.45);
+      --panel-radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body {
+      color: var(--ink);
+      font: 14px/1.45 "Lucida Console", "Courier New", monospace;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(216, 255, 82, 0.18), transparent 34rem),
+        radial-gradient(circle at 84% 16%, rgba(83, 245, 189, 0.16), transparent 30rem),
+        linear-gradient(135deg, var(--bg), var(--bg2) 52%, #07120d);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.026) 1px, transparent 1px);
+      background-size: 100% 24px, 24px 100%;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.12));
+    }
+
+    a { color: var(--accent2); }
+
+    .app {
+      width: min(1320px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 36px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .hero,
+    .panel,
+    .result,
+    .video {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--panel-radius);
+      box-shadow: 0 18px 46px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.06);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(18px, 3vw, 34px);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: end;
+      background:
+        linear-gradient(135deg, rgba(216, 255, 82, 0.12), transparent 42%),
+        linear-gradient(180deg, rgba(17, 33, 23, 0.96), rgba(4, 7, 6, 0.86));
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -80px;
+      top: -100px;
+      border: 1px solid rgba(216, 255, 82, 0.22);
+      border-radius: 50%;
+      box-shadow: 0 0 90px rgba(83, 245, 189, 0.18);
+      pointer-events: none;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: clamp(30px, 6vw, 68px);
+      line-height: 0.95;
+      letter-spacing: -0.09em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      color: var(--warn);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .tagline {
+      max-width: 78ch;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(110px, 1fr));
+      gap: 8px;
+      min-width: 260px;
+    }
+
+    .stat {
+      border: 1px solid rgba(106, 143, 112, 0.55);
+      background: rgba(0,0,0,0.2);
+      border-radius: 16px;
+      padding: 10px;
+    }
+
+    .stat strong {
+      display: block;
+      color: var(--accent2);
+      font-size: 20px;
+    }
+
+    .stat span,
+    label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(330px, 410px) 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .rail {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .step {
+      border: 1px solid rgba(118, 159, 109, 0.5);
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.22);
+      padding: 12px;
+    }
+
+    .step b {
+      color: var(--accent2);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .step span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr 90px;
+      gap: 10px;
+      align-items: end;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line2);
+      background: rgba(0,0,0,0.34);
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    #transcript-text {
+      min-height: 360px;
+      white-space: pre-wrap;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(212, 240, 106, 0.18);
+    }
+
+    button {
+      border: 1px solid #d4f06a;
+      background: linear-gradient(180deg, #d4f06a, #8fb63d);
+      color: #111808;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    button.secondary {
+      border-color: rgba(106, 143, 112, 0.65);
+      background: rgba(0,0,0,0.24);
+      color: var(--ink);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .status {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .error {
+      color: var(--danger);
+      border: 1px dashed rgba(255, 124, 124, 0.6);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .ok {
+      color: var(--accent2);
+    }
+
+    .video-list,
+    .results,
+    .ask-sources {
+      display: grid;
+      gap: 8px;
+    }
+
+    .video {
+      width: 100%;
+      padding: 10px;
+      text-align: left;
+      color: var(--ink);
+      background: var(--panel2);
+      text-transform: none;
+      letter-spacing: 0;
+      border-radius: 16px;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .video:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent2);
+    }
+
+    .video.active {
+      border-color: var(--accent);
+      background: rgba(212, 240, 106, 0.14);
+    }
+
+    .video strong,
+    .result h3 {
+      display: block;
+      margin: 0 0 5px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .pill {
+      border: 1px solid rgba(106, 143, 112, 0.5);
+      background: rgba(0,0,0,0.22);
+      border-radius: 999px;
+      padding: 2px 6px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .result {
+      padding: 12px;
+      background: var(--panel2);
+    }
+
+    .progress {
+      height: 10px;
+      border: 1px solid rgba(118, 159, 109, 0.55);
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+
+    .progress[hidden] {
+      display: none;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      transition: width 180ms ease;
+    }
+
+    .result .text {
+      margin-top: 8px;
+      white-space: pre-wrap;
+      color: #dcebd6;
+      max-height: 8.5em;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .answer {
+      white-space: pre-wrap;
+      border: 1px solid rgba(106, 143, 112, 0.5);
+      background: rgba(0,0,0,0.22);
+      border-radius: 16px;
+      padding: 12px;
+      color: #dcebd6;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .grid,
+      .rail,
+      .row,
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="hero">
+      <div>
+        <h1>YouTube + TikTok Transcript Search</h1>
+        <p class="tagline">Paste YouTube or TikTok links. The local service prefers existing subtitle tracks, falls back to local transcription when needed, stores transcripts for copy/paste, and indexes chunks for keyword or optional semantic search.</p>
+      </div>
+      <div class="stats" id="stats" aria-live="polite">
+        <div class="stat"><strong>...</strong><span>Channels</span></div>
+        <div class="stat"><strong>...</strong><span>Videos</span></div>
+        <div class="stat"><strong>...</strong><span>Chunks</span></div>
+        <div class="stat"><strong>...</strong><span>Failures</span></div>
+      </div>
+    </section>
+
+    <section class="rail" aria-label="Workflow">
+      <div class="step">
+        <b>1. Load</b>
+        <span>Paste videos, playlists, or creator channels.</span>
+      </div>
+      <div class="step">
+        <b>2. Read</b>
+        <span>Open full transcripts and copy clean text.</span>
+      </div>
+      <div class="step">
+        <b>3. Query</b>
+        <span>Search or ask across the local caption archive.</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <aside class="stack">
+        <form class="panel stack" id="ingest-form">
+          <h2>Load Transcripts</h2>
+          <label>
+            Video URLs
+            <textarea id="urls" placeholder="One video, playlist, channel URL, TikTok link, or one URL per line"></textarea>
+          </label>
+          <div class="filters">
+            <label>
+              Playlist/channel limit
+              <input id="ingest-limit" type="number" min="1" max="500" placeholder="optional" />
+            </label>
+            <label>
+              Languages
+              <input id="languages" value="en en-US en-GB" />
+            </label>
+            <button id="ingest-submit" type="submit">Ingest</button>
+          </div>
+          <p class="status" id="ingest-status">Existing subtitle tracks are preferred. If a video does not expose subtitles, the service can fall back to local transcription.</p>
+          <div id="ingest-results"></div>
+        </form>
+
+        <section class="panel stack">
+          <h2>Indexed Videos</h2>
+          <label>
+            Channel filter
+            <select id="channel">
+              <option value="">All indexed channels</option>
+            </select>
+          </label>
+          <div class="video-list" id="videos">
+            <p class="status">No indexed videos loaded yet.</p>
+          </div>
+        </section>
+      </aside>
+
+      <section class="stack">
+        <form class="panel stack" id="search-form">
+          <h2>Search Captions</h2>
+          <div class="row">
+            <label>
+              Query
+              <input id="query" placeholder='Try "machine memory" or artificial consciousness' autocomplete="off" />
+            </label>
+            <button id="search-submit" type="submit">Search</button>
+          </div>
+          <div class="filters">
+            <label>
+              Mode
+              <select id="mode">
+                <option value="keyword">Keyword</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="semantic">Semantic</option>
+              </select>
+            </label>
+            <label>
+              Scope
+              <select id="scope">
+                <option value="all">All indexed videos</option>
+                <option value="channel">Selected channel</option>
+                <option value="video">Selected video</option>
+              </select>
+            </label>
+            <label>
+              Limit
+              <select id="limit">
+                <option>10</option>
+                <option>25</option>
+                <option>50</option>
+              </select>
+            </label>
+          </div>
+          <div class="toolbar">
+            <p class="status" id="search-status">Keyword search works immediately after ingest.</p>
+            <button class="secondary" id="embed-submit" type="button">Build Semantic Index</button>
+          </div>
+          <div class="progress" id="embed-progress" hidden aria-label="Semantic embedding progress">
+            <div class="progress-bar" id="embed-progress-bar"></div>
+          </div>
+          <div class="results" id="results"></div>
+        </form>
+
+        <form class="panel stack" id="ask-form">
+          <h2>Ask Across Transcripts</h2>
+          <div class="row">
+            <label>
+              Question
+              <input id="question" placeholder="What does this creator think about recursive self-improvement?" autocomplete="off" />
+            </label>
+            <button id="ask-submit" type="submit">Ask</button>
+          </div>
+          <div class="filters">
+            <label>
+              Retrieval
+              <select id="ask-mode">
+                <option value="hybrid">Hybrid</option>
+                <option value="keyword">Keyword</option>
+                <option value="semantic">Semantic</option>
+              </select>
+            </label>
+            <label>
+              Scope
+              <select id="ask-scope">
+                <option value="all">All indexed videos</option>
+                <option value="channel">Selected channel</option>
+                <option value="video">Selected video</option>
+              </select>
+            </label>
+            <label>
+              Chunks
+              <select id="ask-chunks">
+                <option>4</option>
+                <option selected>8</option>
+                <option>12</option>
+              </select>
+            </label>
+          </div>
+          <p class="status" id="ask-status">Answers use a compact set of retrieved chunks so the local model stays inside its context window.</p>
+          <div class="answer" id="ask-answer" hidden></div>
+          <div class="ask-sources" id="ask-video-summaries"></div>
+          <div class="ask-sources" id="ask-sources"></div>
+        </form>
+
+        <section class="panel stack">
+          <div class="toolbar">
+            <h2 id="transcript-title">Transcript</h2>
+            <div>
+              <button class="secondary" id="copy-transcript" type="button">Copy</button>
+              <button class="secondary" id="copy-plain" type="button">Copy Plain</button>
+            </div>
+          </div>
+          <p class="status" id="transcript-status">Select an indexed video to load its full transcript.</p>
+          <textarea id="transcript-text" readonly aria-label="Selected video transcript" placeholder="Transcript text will appear here for copy/paste."></textarea>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const apiBase = '/api/yts';
+    const statsEl = document.querySelector('#stats');
+    const ingestForm = document.querySelector('#ingest-form');
+    const urlsInput = document.querySelector('#urls');
+    const ingestLimit = document.querySelector('#ingest-limit');
+    const languagesInput = document.querySelector('#languages');
+    const ingestSubmit = document.querySelector('#ingest-submit');
+    const ingestStatus = document.querySelector('#ingest-status');
+    const ingestResults = document.querySelector('#ingest-results');
+    const channelInput = document.querySelector('#channel');
+    const videosEl = document.querySelector('#videos');
+    const searchForm = document.querySelector('#search-form');
+    const queryInput = document.querySelector('#query');
+    const modeInput = document.querySelector('#mode');
+    const scopeInput = document.querySelector('#scope');
+    const limitInput = document.querySelector('#limit');
+    const searchSubmit = document.querySelector('#search-submit');
+    const searchStatus = document.querySelector('#search-status');
+    const resultsEl = document.querySelector('#results');
+    const embedSubmit = document.querySelector('#embed-submit');
+    const embedProgress = document.querySelector('#embed-progress');
+    const embedProgressBar = document.querySelector('#embed-progress-bar');
+    const askForm = document.querySelector('#ask-form');
+    const questionInput = document.querySelector('#question');
+    const askModeInput = document.querySelector('#ask-mode');
+    const askScopeInput = document.querySelector('#ask-scope');
+    const askChunksInput = document.querySelector('#ask-chunks');
+    const askSubmit = document.querySelector('#ask-submit');
+    const askStatus = document.querySelector('#ask-status');
+    const askAnswer = document.querySelector('#ask-answer');
+    const askVideoSummaries = document.querySelector('#ask-video-summaries');
+    const askSources = document.querySelector('#ask-sources');
+    const transcriptTitle = document.querySelector('#transcript-title');
+    const transcriptStatus = document.querySelector('#transcript-status');
+    const transcriptText = document.querySelector('#transcript-text');
+    const copyTranscript = document.querySelector('#copy-transcript');
+    const copyPlain = document.querySelector('#copy-plain');
+
+    let videos = [];
+    let selectedVideoId = '';
+    const ingestJobStorageKey = 'sol37-yts-ingest-job';
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    async function parseJsonResponse(response) {
+      const text = await response.text();
+      let payload = {};
+      try {
+        payload = text ? JSON.parse(text) : {};
+      } catch {
+        payload = { error: text || `HTTP ${response.status}` };
+      }
+      if (!response.ok) throw new Error(payload.detail || payload.error || `HTTP ${response.status}`);
+      return payload;
+    }
+
+    async function getJson(path) {
+      return parseJsonResponse(await fetch(`${apiBase}${path}`, { cache: 'no-store' }));
+    }
+
+    async function postJson(path, payload) {
+      return parseJsonResponse(await fetch(`${apiBase}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }));
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function waitForJob(job, label) {
+      if (!job.id) return job;
+      let latest = job;
+      while (latest.status === 'running') {
+        if (Number.isFinite(latest.total) && latest.total > 0) {
+          const percent = Math.round((latest.processed / latest.total) * 100);
+          embedProgress.hidden = false;
+          embedProgressBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+          searchStatus.textContent = `${label}: ${latest.processed}/${latest.total} chunks embedded.`;
+        } else {
+          embedProgress.hidden = false;
+          embedProgressBar.style.width = '12%';
+          searchStatus.textContent = `${label} queued...`;
+        }
+        await sleep(1500);
+        latest = await getJson(`/jobs/${encodeURIComponent(job.id)}`);
+      }
+      if (latest.status === 'failed') {
+        throw new Error(latest.detail || latest.error || `${label} failed`);
+      }
+      return latest;
+    }
+
+    function rememberIngestJob(jobId) {
+      try {
+        if (jobId) localStorage.setItem(ingestJobStorageKey, jobId);
+        else localStorage.removeItem(ingestJobStorageKey);
+      } catch {
+        // Polling still works when storage is unavailable.
+      }
+    }
+
+    function recalledIngestJob() {
+      try {
+        return localStorage.getItem(ingestJobStorageKey) || '';
+      } catch {
+        return '';
+      }
+    }
+
+    async function finishIngestJob(job) {
+      let latest = job;
+      rememberIngestJob(job.id);
+      ingestSubmit.disabled = true;
+      while (latest.status === 'running') {
+        const elapsed = Math.max(0, Math.round(Date.now() / 1000 - (latest.created_at || Date.now() / 1000)));
+        ingestStatus.textContent = `Transcription is running in the background (${elapsed}s). You can leave this page and return.`;
+        await sleep(1500);
+        latest = await getJson(`/jobs/${encodeURIComponent(job.id)}`);
+      }
+      rememberIngestJob('');
+      if (latest.status === 'failed') {
+        throw new Error(latest.detail || latest.error || 'Background transcription failed');
+      }
+      const summary = latest.result;
+      if (!summary) throw new Error('Background transcription completed without a result');
+      renderIngestSummary(summary);
+      ingestStatus.textContent = 'Ingest complete.';
+      await refreshData();
+      const firstLoaded = (summary.items || []).find((item) => item.status !== 'failed');
+      if (firstLoaded) await loadTranscript(firstLoaded.video_id);
+      return summary;
+    }
+
+    async function resumeIngestJob() {
+      const jobId = recalledIngestJob();
+      if (!jobId) return;
+      ingestResults.innerHTML = '';
+      try {
+        const job = await getJson(`/jobs/${encodeURIComponent(jobId)}`);
+        await finishIngestJob(job);
+      } catch (error) {
+        rememberIngestJob('');
+        ingestStatus.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      } finally {
+        ingestSubmit.disabled = false;
+      }
+    }
+
+    function scopeParams(scopeValue) {
+      const params = {};
+      if (scopeValue === 'channel') {
+        if (!channelInput.value) throw new Error('Choose a channel before using selected-channel scope.');
+        params.channel_id = channelInput.value;
+      }
+      if (scopeValue === 'video') {
+        if (!selectedVideoId) throw new Error('Choose a video before using selected-video scope.');
+        params.video_id = selectedVideoId;
+      }
+      return params;
+    }
+
+    function renderStats(stats) {
+      statsEl.innerHTML = [
+        ['channels', 'Channels'],
+        ['videos', 'Videos'],
+        ['chunks', 'Chunks'],
+        ['failures', 'Failures']
+      ].map(([key, label]) => (
+        `<div class="stat"><strong>${escapeHtml(stats[key] ?? 0)}</strong><span>${label}</span></div>`
+      )).join('');
+    }
+
+    function renderChannels(items) {
+      const previous = channelInput.value;
+      channelInput.innerHTML = '<option value="">All indexed channels</option>' + items.map((item) => {
+        const id = escapeHtml(item.channel_id || '');
+        const title = escapeHtml(item.channel || item.channel_id || 'Unknown channel');
+        const count = escapeHtml(item.indexed_videos ?? 0);
+        return `<option value="${id}">${title} (${count})</option>`;
+      }).join('');
+      if ([...channelInput.options].some((option) => option.value === previous)) {
+        channelInput.value = previous;
+      }
+    }
+
+    function renderVideos() {
+      const channelId = channelInput.value;
+      const filtered = channelId ? videos.filter((video) => video.channel_id === channelId) : videos;
+      if (selectedVideoId && !filtered.some((video) => video.video_id === selectedVideoId)) {
+        selectedVideoId = '';
+      }
+      if (!filtered.length) {
+        videosEl.innerHTML = '<p class="status">No indexed videos for this scope.</p>';
+        return;
+      }
+      videosEl.innerHTML = filtered.map((video) => {
+        const active = video.video_id === selectedVideoId ? ' active' : '';
+        const title = escapeHtml(video.title || video.video_id);
+        const channel = escapeHtml(video.channel || 'Unknown channel');
+        const language = escapeHtml(video.transcript_language || 'unknown');
+        return `<button class="video${active}" type="button" data-video-id="${escapeHtml(video.video_id)}">
+          <strong>${title}</strong>
+          <span class="meta"><span class="pill">${channel}</span><span class="pill">${language}</span></span>
+        </button>`;
+      }).join('');
+      videosEl.querySelectorAll('.video').forEach((button) => {
+        button.addEventListener('click', () => loadTranscript(button.dataset.videoId));
+      });
+    }
+
+    function renderIngestSummary(summary) {
+      ingestResults.innerHTML = `<p class="status ok">Discovered ${summary.discovered}; indexed ${summary.indexed}; unchanged ${summary.unchanged}; failures ${summary.failures}.</p>` +
+        (summary.items || []).map((item) => {
+          const status = escapeHtml(item.status || 'unknown');
+          const title = escapeHtml(item.title || item.video_id);
+          const reason = item.reason ? ` <span class="pill">${escapeHtml(item.reason)}</span>` : '';
+          const rawDetail = String(item.detail || '').replace(/\s+/g, ' ').trim();
+          const detail = rawDetail
+            ? `<span class="status error">${escapeHtml(rawDetail.slice(0, 240))}${rawDetail.length > 240 ? '...' : ''}</span>`
+            : '';
+          return `<div class="video"><strong>${title}</strong><span class="meta"><span class="pill">${status}</span>${reason}</span>${detail}</div>`;
+        }).join('');
+    }
+
+    async function refreshData() {
+      const [stats, channels, videoPayload] = await Promise.all([
+        getJson('/stats'),
+        getJson('/channels'),
+        getJson('/videos')
+      ]);
+      videos = videoPayload.items || [];
+      renderStats(stats);
+      renderChannels(channels.items || []);
+      renderVideos();
+    }
+
+    async function loadTranscript(videoId, timestamps = true) {
+      if (!videoId) return;
+      selectedVideoId = videoId;
+      renderVideos();
+      transcriptStatus.textContent = 'Loading transcript...';
+      transcriptText.value = '';
+      try {
+        const payload = await getJson(`/transcript?video_id=${encodeURIComponent(videoId)}&timestamps=${timestamps ? '1' : '0'}`);
+        transcriptTitle.textContent = payload.video.title || 'Transcript';
+        transcriptStatus.innerHTML = `${escapeHtml(payload.video.channel || 'Unknown channel')} · ${payload.segments.length} segment${payload.segments.length === 1 ? '' : 's'}`;
+        transcriptText.value = payload.text;
+      } catch (error) {
+        transcriptStatus.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      }
+    }
+
+    async function copyText(text) {
+      if (!text) {
+        transcriptStatus.textContent = 'Nothing to copy yet.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        transcriptStatus.textContent = 'Copied transcript to clipboard.';
+      } catch (error) {
+        transcriptText.focus();
+        transcriptText.select();
+        transcriptStatus.innerHTML = `<span class="error">Clipboard copy failed. The transcript is selected for manual copy.</span>`;
+      }
+    }
+
+    ingestForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      ingestSubmit.disabled = true;
+      ingestStatus.textContent = 'Discovering videos and fetching subtitles or transcripts. This can take a while for playlists, channels, or local transcription fallback...';
+      ingestResults.innerHTML = '';
+      try {
+        const job = await postJson('/ingest', {
+          text: urlsInput.value,
+          limit: ingestLimit.value || null,
+          languages: languagesInput.value.split(/\s+/).filter(Boolean),
+          background: true
+        });
+        await finishIngestJob(job);
+      } catch (error) {
+        ingestStatus.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      } finally {
+        ingestSubmit.disabled = false;
+      }
+    });
+
+    channelInput.addEventListener('change', renderVideos);
+
+    searchForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const query = queryInput.value.trim();
+      if (!query) return;
+      const params = new URLSearchParams({
+        q: query,
+        mode: modeInput.value,
+        limit: limitInput.value
+      });
+      searchSubmit.disabled = true;
+      searchStatus.textContent = 'Searching...';
+      resultsEl.innerHTML = '';
+      try {
+        const scoped = scopeParams(scopeInput.value);
+        if (scoped.channel_id) params.set('channel_id', scoped.channel_id);
+        if (scoped.video_id) params.set('video_id', scoped.video_id);
+        const payload = await getJson(`/search?${params}`);
+        searchStatus.textContent = `${payload.items.length} result${payload.items.length === 1 ? '' : 's'} for "${query}".`;
+        resultsEl.innerHTML = payload.items.length ? payload.items.map((item) => {
+          const title = escapeHtml(item.title || item.video_id);
+          const channel = escapeHtml(item.channel || 'Unknown channel');
+          const stamp = escapeHtml(item.timestamp || '');
+          const text = escapeHtml(item.text || '');
+          const url = escapeHtml(item.watch_url || '#');
+          return `<article class="result">
+            <h3><a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a></h3>
+            <div class="meta"><span class="pill">${channel}</span><span class="pill">${stamp}</span></div>
+            <div class="text">${text}</div>
+          </article>`;
+        }).join('') : '<p class="status">No matching transcript chunks found.</p>';
+      } catch (error) {
+        searchStatus.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      } finally {
+        searchSubmit.disabled = false;
+      }
+    });
+
+    embedSubmit.addEventListener('click', async () => {
+      embedSubmit.disabled = true;
+      searchStatus.textContent = 'Starting semantic embedding job...';
+      embedProgress.hidden = false;
+      embedProgressBar.style.width = '4%';
+      try {
+        const job = await postJson('/embed', { batch_size: 1 });
+        const payload = await waitForJob(job, 'Semantic embedding job');
+        embedProgressBar.style.width = '100%';
+        searchStatus.textContent = `Semantic index built for ${payload.embedded ?? 0} chunks.`;
+        await refreshData();
+      } catch (error) {
+        searchStatus.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      } finally {
+        embedSubmit.disabled = false;
+        setTimeout(() => {
+          embedProgress.hidden = true;
+          embedProgressBar.style.width = '0%';
+        }, 1800);
+      }
+    });
+
+    askForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const question = questionInput.value.trim();
+      if (!question) return;
+      askSubmit.disabled = true;
+      askStatus.textContent = 'Retrieving transcript chunks and asking the local model...';
+      askAnswer.hidden = true;
+      askAnswer.textContent = '';
+      askVideoSummaries.innerHTML = '';
+      askSources.innerHTML = '';
+      try {
+        const scoped = scopeParams(askScopeInput.value);
+        const payload = await postJson('/ask', {
+          question,
+          mode: askModeInput.value,
+          chunks: Number(askChunksInput.value),
+          channel_id: scoped.channel_id || undefined,
+          video_id: scoped.video_id || undefined
+        });
+        askAnswer.textContent = payload.answer || '';
+        askAnswer.hidden = false;
+        const summaryCount = (payload.video_summaries || []).length;
+        askStatus.textContent = `${(payload.sources || []).length} source${(payload.sources || []).length === 1 ? '' : 's'} and ${summaryCount} video ${summaryCount === 1 ? 'summary' : 'summaries'} used.`;
+        askVideoSummaries.innerHTML = (payload.video_summaries || []).map((item) => (
+          `<article class="result">
+            <h3><a href="${escapeHtml(item.url || '#')}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title || item.video_id)}</a></h3>
+            <div class="meta"><span class="pill">${escapeHtml(item.channel || 'Unknown channel')}</span><span class="pill">sampled video summary</span></div>
+            <div class="text">${escapeHtml(item.summary || '')}</div>
+          </article>`
+        )).join('');
+        askSources.innerHTML = (payload.sources || []).map((item) => (
+          `<article class="result">
+            <h3><a href="${escapeHtml(item.url || '#')}" target="_blank" rel="noopener noreferrer">[${escapeHtml(item.id)}] ${escapeHtml(item.title || item.video_id)}</a></h3>
+            <div class="meta"><span class="pill">${escapeHtml(item.channel || 'Unknown channel')}</span><span class="pill">${escapeHtml(item.timestamp || '')}</span></div>
+          </article>`
+        )).join('');
+      } catch (error) {
+        askStatus.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      } finally {
+        askSubmit.disabled = false;
+      }
+    });
+
+    copyTranscript.addEventListener('click', () => copyText(transcriptText.value));
+    copyPlain.addEventListener('click', async () => {
+      if (!selectedVideoId) return;
+      try {
+        const payload = await getJson(`/transcript?video_id=${encodeURIComponent(selectedVideoId)}&timestamps=0`);
+        await copyText(payload.text);
+      } catch (error) {
+        transcriptStatus.innerHTML = `<span class="error">${escapeHtml(error.message)}</span>`;
+      }
+    });
+
+    refreshData().catch((error) => {
+      statsEl.innerHTML = '<div class="stat"><strong>!</strong><span>API offline</span></div>';
+      videosEl.innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
+    });
+    resumeIngestJob();
+  </script>
+</body>
+</html>

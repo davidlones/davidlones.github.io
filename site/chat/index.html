@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="indexifembedded">
+  <title>Local SolAI Console</title>
+  <meta
+    name="description"
+    content="Unified local SolAI console with grounded chat, live camera, semantic search, runtime controls, and debug visibility in one surface."
+  >
+  <link rel="stylesheet" href="/chat/chat.css?v=20260420f">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">site app / system42</p>
+        <h1>Local SolAI Console</h1>
+        <p class="lede">
+          Unified local chat, live camera, semantic lookup, runtime controls, model-lane visibility, and voice
+          presence in one console. Debug opens hot by default so the active context stays visible while you work.
+        </p>
+      </div>
+      <div class="hero-meta">
+        <span id="status-pill" class="pill">idle</span>
+        <span id="session-label" class="session-pill">session pending</span>
+        <span id="voice-status" class="session-pill">voice muted</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="panel controls-panel" aria-label="Model and context controls">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">control deck</p>
+            <h2>Model Selection / Context Control</h2>
+          </div>
+          <span id="control-summary" class="session-pill">reasoning · stream on · context auto</span>
+        </div>
+        <div class="controls-grid">
+          <label class="runtime-picker">
+            <span>Profile</span>
+            <select id="profile-select"></select>
+          </label>
+          <label class="runtime-picker">
+            <span>Context mode</span>
+            <select id="context-mode-select">
+              <option value="auto" selected>Auto UI context</option>
+              <option value="minimal">Minimal summary</option>
+              <option value="raw">Raw override</option>
+              <option value="off">No page context</option>
+            </select>
+          </label>
+          <label class="toggle">
+            <input id="persist-toggle" type="checkbox" checked>
+            <span>Persist chat turns</span>
+          </label>
+          <label class="toggle">
+            <input id="stream-toggle" type="checkbox" checked>
+            <span>Stream responses</span>
+          </label>
+          <label class="toggle">
+            <input id="allow-actions-toggle" type="checkbox">
+            <span>Allow action planning</span>
+          </label>
+          <label class="toggle">
+            <input id="lightweight-toggle" type="checkbox">
+            <span>Lightweight text mode</span>
+          </label>
+          <label class="toggle">
+            <input id="context-telemetry-toggle" type="checkbox" checked>
+            <span>Include telemetry</span>
+          </label>
+          <label class="toggle">
+            <input id="context-runtime-toggle" type="checkbox" checked>
+            <span>Include runtime + memory</span>
+          </label>
+          <label class="toggle">
+            <input id="context-transcript-toggle" type="checkbox" checked>
+            <span>Include transcript tail</span>
+          </label>
+          <label class="toggle">
+            <input id="context-camera-toggle" type="checkbox" checked>
+            <span>Include camera summary</span>
+          </label>
+        </div>
+        <label class="context-editor">
+          <span>Raw Context Override</span>
+          <textarea
+            id="raw-context-input"
+            rows="8"
+            placeholder='Plain text or JSON object for page_context when Context mode is set to "Raw override".'
+          ></textarea>
+        </label>
+      </article>
+
+      <article class="panel chat-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">chat</p>
+            <h2>Sol / Chat</h2>
+          </div>
+          <div class="button-row">
+            <button id="debug-toggle" class="ghost" type="button" aria-pressed="true">Debug on</button>
+            <button id="copy-button" class="ghost" type="button">Copy transcript</button>
+            <button id="reset-button" class="ghost danger" type="button">Reset</button>
+          </div>
+        </div>
+
+        <div class="statusbar">
+          <span class="session-pill">debug default: on</span>
+          <span id="error-banner" class="error" hidden></span>
+        </div>
+
+        <div class="chat-toolbar">
+          <label class="toggle">
+            <input id="include-camera-toggle" type="checkbox">
+            <span>Include live camera frame</span>
+          </label>
+          <button id="history-refresh" class="ghost" type="button">Reload</button>
+        </div>
+
+        <main id="messages" class="messages" aria-live="polite"></main>
+
+        <form id="composer" class="composer">
+          <label class="sr-only" for="message-input">Message</label>
+          <input id="image-input" type="file" accept="image/*" multiple hidden>
+          <textarea
+            id="message-input"
+            name="message"
+            rows="4"
+            maxlength="12000"
+            placeholder="Ask about the machine, the archive, the current sensors, or the active runtime."
+          ></textarea>
+          <div id="attachment-tray" class="attachment-tray" hidden></div>
+          <div class="composer-row">
+            <div class="composer-actions">
+              <button id="attach-button" class="ghost" type="button">Attach image</button>
+              <button id="speak-button" class="ghost" type="button">Read last</button>
+              <button id="stop-audio-button" class="ghost" type="button">Stop</button>
+              <p class="hint">Enter sends. Shift+Enter inserts a newline.</p>
+            </div>
+            <button id="send-button" type="submit">Send</button>
+          </div>
+        </form>
+      </article>
+
+      <aside id="presence-card" class="panel presence-panel" data-state="idle" aria-label="Sol presence and controls">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">presence</p>
+            <h2>Sol Presence</h2>
+          </div>
+          <button id="voice-toggle" class="ghost" type="button" aria-pressed="false">Voice off</button>
+        </div>
+        <button id="presence-figure" class="presence-figure" type="button" aria-label="Focus the chat composer">
+          <span class="presence-shadow" aria-hidden="true"></span>
+          <span class="presence-ring" aria-hidden="true"></span>
+          <div class="presence-orb-shell">
+            <canvas id="presence-orb" aria-hidden="true"></canvas>
+            <audio id="presence-audio" preload="none" playsinline crossorigin="anonymous" aria-hidden="true"></audio>
+          </div>
+          <span class="presence-caption">Sol</span>
+        </button>
+        <div class="presence-mini">
+          <span id="presence-mode">Idle on network</span>
+          <span id="presence-session">Pending</span>
+        </div>
+      </aside>
+
+      <article class="panel stack-panel" aria-label="Local model stack">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">stack</p>
+            <h2>Three-lane model routing</h2>
+          </div>
+        </div>
+        <p id="stack-summary" class="stack-summary">Probing backend stack…</p>
+        <div id="stack-grid" class="stack-grid"></div>
+      </article>
+
+      <article class="panel metrics-panel" aria-label="Site wide debug metrics">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">telemetry</p>
+            <h2>Site Wide Debug Metrics</h2>
+          </div>
+        </div>
+        <div class="metrics-summary">
+          <article class="metric-card">
+            <span class="metric-label">External Hits</span>
+            <strong id="metric-external-hits">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Hits Today</span>
+            <strong id="metric-hits-today">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Unique IPs</span>
+            <strong id="metric-unique-ips">—</strong>
+          </article>
+          <article class="metric-card">
+            <span class="metric-label">Top Path</span>
+            <strong id="metric-top-path">—</strong>
+          </article>
+        </div>
+        <details id="metrics-details" class="metrics-details" open>
+          <summary id="metrics-summary">Site Wide Debug Metrics · Expanded</summary>
+          <div class="metrics-grid">
+            <div class="metrics-block">
+              <h3>Client Diagnostics</h3>
+              <div id="metric-client" class="metrics-log"></div>
+            </div>
+            <div class="metrics-block">
+              <h3>Sensor Readouts</h3>
+              <div id="metric-readouts" class="metrics-log"></div>
+            </div>
+            <div class="metrics-block">
+              <h3>Recent Requests</h3>
+              <div id="metric-requests" class="metrics-log"></div>
+            </div>
+          </div>
+        </details>
+      </article>
+
+      <article class="panel cognitive-panel" aria-label="Continuous cognitive loop state">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">cognitive loop</p>
+            <h2>Memory / Observer</h2>
+          </div>
+        </div>
+        <div class="cognitive-grid">
+          <div class="cognitive-card">
+            <h3>Working Memory</h3>
+            <pre id="cognitive-memory" class="cognitive-pre">Loading working memory...</pre>
+          </div>
+          <div class="cognitive-card">
+            <h3>Environment State</h3>
+            <pre id="cognitive-environment" class="cognitive-pre">Loading environment state...</pre>
+          </div>
+          <div class="cognitive-card">
+            <h3>Active Anomalies</h3>
+            <pre id="cognitive-anomalies" class="cognitive-pre">Loading anomalies...</pre>
+          </div>
+          <div class="cognitive-card">
+            <h3>Observer Summary</h3>
+            <pre id="cognitive-observer" class="cognitive-pre">Loading observer report...</pre>
+          </div>
+          <div class="cognitive-card">
+            <h3>Recent Frames</h3>
+            <pre id="cognitive-frames" class="cognitive-pre">Loading recent frames...</pre>
+          </div>
+          <div class="cognitive-card">
+            <h3>AI Metrics</h3>
+            <pre id="cognitive-metrics" class="cognitive-pre">Loading AI metrics...</pre>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel runtime-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">runtime</p>
+            <h2>Service Console</h2>
+          </div>
+          <div class="button-row">
+            <button id="runtime-refresh" class="ghost" type="button">Refresh</button>
+            <button id="runtime-restart" class="ghost" type="button">Restart</button>
+          </div>
+        </div>
+        <div class="runtime-toolbar">
+          <label class="runtime-picker">
+            <span>Service</span>
+            <select id="runtime-service-select"></select>
+          </label>
+          <label class="runtime-picker">
+            <span>Mode</span>
+            <select id="runtime-mode-select">
+              <option value="status">Status</option>
+              <option value="logs">Logs</option>
+            </select>
+          </label>
+        </div>
+        <pre id="runtime-console" class="runtime-console">Loading runtime console…</pre>
+        <div id="action-launchers" class="action-launchers"></div>
+      </article>
+
+      <article class="panel camera-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">camera</p>
+            <h2>Live Camera</h2>
+          </div>
+          <div class="button-row">
+            <button id="camera-refresh" class="ghost" type="button">Reconnect</button>
+            <button id="camera-describe" class="ghost" type="button">Describe</button>
+            <button id="camera-auto" class="ghost" type="button">Auto pending</button>
+          </div>
+        </div>
+        <div class="camera-frame">
+          <img id="camera-image" alt="Live Sol camera stream">
+          <div class="camera-overlay">
+            <span id="camera-overlay-text">Connecting camera stream...</span>
+          </div>
+        </div>
+        <div class="camera-meta">
+          <span id="camera-confidence" class="session-pill">confidence pending</span>
+          <span id="camera-cache" class="session-pill">cache pending</span>
+        </div>
+        <div id="camera-progress" class="camera-progress" hidden>
+          <div class="camera-progress-copy">
+            <span id="camera-progress-label">Waiting for camera generation...</span>
+            <span id="camera-progress-age">0.0s</span>
+          </div>
+          <div id="camera-progress-track" class="camera-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="camera-progress-bar" class="camera-progress-bar"></div>
+          </div>
+        </div>
+        <pre id="camera-caption" class="camera-caption">Waiting for camera caption...</pre>
+            <pre id="camera-thread" class="camera-thread">Current Assessment: Camera thread pending.
+Change Over Time: Waiting for the first stable scene description.
+Operational Note: Grayscale low-resolution feed; fine text and color remain unreliable.</pre>
+      </article>
+
+      <article class="panel query-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">direct query</p>
+            <h2>GET /api/chat/query</h2>
+          </div>
+        </div>
+        <form id="query-form" class="utility-form">
+          <input id="query-input" type="text" maxlength="12000" placeholder="Run a stateless or persisted direct query">
+          <div class="utility-row">
+            <label class="toggle">
+              <input id="query-persist" type="checkbox">
+              <span>Persist in current session</span>
+            </label>
+            <button type="submit">Run query</button>
+          </div>
+        </form>
+        <pre id="query-output" class="utility-output">Direct query output will appear here.</pre>
+      </article>
+
+      <article class="panel knowledge-panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">knowledge</p>
+            <h2>Semantic Search</h2>
+          </div>
+        </div>
+        <div class="statusbar">
+          <span id="knowledge-health-pill" class="session-pill">knowledge pending</span>
+          <span id="knowledge-health-meta" class="session-pill">docs pending</span>
+        </div>
+        <form id="knowledge-form" class="utility-form">
+          <input id="knowledge-input" type="text" maxlength="2000" placeholder="Search Sol knowledge">
+          <div class="utility-row">
+            <label class="runtime-picker utility-compact">
+              <span>Top K</span>
+              <select id="knowledge-top-k">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="8">8</option>
+                <option value="12">12</option>
+              </select>
+            </label>
+            <button type="submit">Search</button>
+          </div>
+        </form>
+        <div id="knowledge-results" class="knowledge-results">
+          <p class="utility-empty">Knowledge results will appear here.</p>
+        </div>
+      </article>
+
+      <section id="chat-debug-panel" class="panel debug-panel" aria-label="Chat debug payloads">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">debug</p>
+            <h2>Chat Context Surface</h2>
+          </div>
+        </div>
+        <div class="debug-grid">
+          <div class="debug-card">
+            <h3>Current Chat Context</h3>
+            <pre id="debug-context" class="debug-pre">Context not built yet.</pre>
+          </div>
+          <div class="debug-card">
+            <h3>Knowledge Lookups</h3>
+            <pre id="debug-retrieval" class="debug-pre">No retrieval metadata yet.</pre>
+          </div>
+          <div class="debug-card">
+            <h3>Last Chat Metadata</h3>
+            <pre id="debug-response" class="debug-pre">No chat response yet.</pre>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <template id="message-template">
+    <article class="message">
+      <div class="message-meta">
+        <span class="message-role"></span>
+        <span class="message-time"></span>
+      </div>
+      <div class="message-body"></div>
+      <details class="message-debug" hidden>
+        <summary>Retrieval</summary>
+        <div class="message-debug-body"></div>
+      </details>
+    </article>
+  </template>
+
+  <script src="/assets/hue-visualizer.js?v=20260428h" defer></script>
+  <script src="/chat/chat.js?v=20260420h" defer></script>
+</body>
+</html>

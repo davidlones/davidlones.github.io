@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<title>Barn Swallow Pad</title>
+<meta name="description" content="A touch-first Barn Swallow inspired synthesis pad inside the Sol-37 desktop shell.">
+<link rel="canonical" href="https://sol.system42.one/programs/bird-song-pad.html">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #071018;
+    --bg2: #0d1d28;
+    --panel: rgba(10, 20, 27, 0.9);
+    --panel-2: rgba(13, 27, 36, 0.95);
+    --line: rgba(144, 196, 210, 0.2);
+    --line-strong: rgba(144, 196, 210, 0.34);
+    --text: #eef7fa;
+    --muted: #9eb7bf;
+    --accent: #80d7e4;
+    --accent-2: #ffd29b;
+    --good: #8cf0bd;
+    --warn: #ffd36e;
+    --hot: #ff8d78;
+    --shadow: rgba(0, 0, 0, 0.34);
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    --sans: "Trebuchet MS", "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    color: var(--text);
+    font-family: var(--sans);
+    background:
+      radial-gradient(circle at top left, rgba(128, 215, 228, 0.18), transparent 28%),
+      radial-gradient(circle at top right, rgba(255, 210, 155, 0.14), transparent 24%),
+      linear-gradient(180deg, #060d14 0%, #08131b 45%, #071018 100%);
+  }
+
+  main {
+    width: min(1320px, calc(100vw - 24px));
+    margin: 0 auto;
+    padding: 14px 0 24px;
+    display: grid;
+    gap: 14px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px var(--shadow);
+    overflow: hidden;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: 0;
+    background:
+      linear-gradient(135deg, rgba(10, 21, 29, 0.94), rgba(8, 16, 22, 0.92)),
+      linear-gradient(90deg, rgba(128, 215, 228, 0.05), rgba(255, 210, 155, 0.05));
+  }
+
+  .hero-copy {
+    padding: 24px;
+  }
+
+  .eyebrow,
+  .tiny,
+  .stat-label,
+  .pill {
+    font-family: var(--mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(34px, 5.2vw, 72px);
+    line-height: 0.93;
+    letter-spacing: -0.05em;
+  }
+
+  .hero-copy p {
+    max-width: 62ch;
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .pill {
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
+    color: #dff7fd;
+    font-size: 11px;
+  }
+
+  .hero-side {
+    padding: 20px;
+    border-left: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+    display: grid;
+    gap: 12px;
+    align-content: center;
+  }
+
+  .status-box {
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+
+  .status-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+
+  .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: #4f6670;
+    box-shadow: 0 0 0 0 rgba(128, 215, 228, 0);
+    transition: background 120ms ease, box-shadow 120ms ease;
+  }
+
+  .status-dot.live {
+    background: var(--good);
+    box-shadow: 0 0 14px rgba(140, 240, 189, 0.72);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+    gap: 14px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .section-head h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .body {
+    padding: 18px;
+  }
+
+  .pad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .pad {
+    position: relative;
+    min-height: 154px;
+    border: 1px solid var(--line-strong);
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+      linear-gradient(135deg, rgba(8, 20, 27, 0.98), rgba(15, 28, 37, 0.94));
+    color: var(--text);
+    text-align: left;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    touch-action: manipulation;
+  }
+
+  .pad:hover,
+  .pad:focus-visible,
+  .pad.active {
+    transform: translateY(-2px);
+    border-color: rgba(128, 215, 228, 0.54);
+    box-shadow: 0 18px 32px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(128, 215, 228, 0.18);
+    outline: none;
+  }
+
+  .pad::after {
+    content: "";
+    position: absolute;
+    inset: auto 16px 16px auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.32), transparent 45%), rgba(128, 215, 228, 0.1);
+    border: 1px solid rgba(128, 215, 228, 0.26);
+  }
+
+  .pad strong {
+    display: block;
+    font-size: 22px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  .pad em {
+    display: block;
+    margin-top: 8px;
+    color: var(--accent-2);
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .pad span {
+    display: block;
+    margin-top: 10px;
+    padding-right: 44px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .control-stack {
+    display: grid;
+    gap: 14px;
+  }
+
+  .meter {
+    display: grid;
+    gap: 10px;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(6, 12, 17, 0.98), rgba(6, 12, 17, 0.92)),
+      radial-gradient(circle at top, rgba(128, 215, 228, 0.08), transparent 42%);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .stat {
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .stat-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .stat strong {
+    display: block;
+    font-family: var(--mono);
+    font-size: 20px;
+  }
+
+  .sliders {
+    display: grid;
+    gap: 12px;
+  }
+
+  .slider-row {
+    display: grid;
+    gap: 6px;
+  }
+
+  .slider-row label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .slider-row output {
+    font-family: var(--mono);
+    color: var(--text);
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: #8fdbe5;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .button {
+    padding: 11px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .button.primary {
+    background: linear-gradient(180deg, rgba(128, 215, 228, 0.2), rgba(128, 215, 228, 0.08));
+  }
+
+  .legend {
+    display: grid;
+    gap: 10px;
+  }
+
+  .legend-item {
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .legend-item strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 15px;
+  }
+
+  .legend-item p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .footer-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  @media (max-width: 980px) {
+    .hero,
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .hero-side {
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .pad-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    main {
+      width: min(100vw - 14px, 100%);
+      padding: 8px 0 18px;
+    }
+
+    .hero-copy,
+    .hero-side,
+    .body {
+      padding: 14px;
+    }
+
+    .pad-grid,
+    .stats {
+      grid-template-columns: 1fr;
+    }
+
+    .pad {
+      min-height: 136px;
+    }
+  }
+</style>
+</head>
+<body>
+<main>
+  <section class="panel hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Avian Contact Lab</p>
+      <h1>Barn Swallow Pad</h1>
+      <p>
+        A touch-first synth built from the earlier swallow readout: short clustered chirps, chattery bursts,
+        and dominant energy in the rough 2 to 6 kHz band. These pads are for plausible mimicry experiments,
+        not claims of literal translation.
+      </p>
+      <div class="pill-row">
+        <span class="pill">Mobile Tap Targets</span>
+        <span class="pill">Swallow-Inspired Envelopes</span>
+        <span class="pill">Live Orb Audio Bridge</span>
+      </div>
+    </div>
+    <aside class="hero-side">
+      <div class="status-box">
+        <span class="tiny">Output Status</span>
+        <div class="status-line">
+          <span id="status-text">Armed, waiting for first tap</span>
+          <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+        </div>
+      </div>
+      <div class="status-box">
+        <span class="tiny">Current Intent</span>
+        <div class="status-line">
+          <span id="intent-text">No phrase selected</span>
+          <span id="chirp-count">0 chirps</span>
+        </div>
+      </div>
+      <div class="status-box">
+        <span class="tiny">Field Posture</span>
+        <div class="status-line">
+          <span id="field-text">Soft porch test</span>
+          <span id="band-text">2.0-6.0 kHz</span>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="grid">
+    <section class="panel">
+      <div class="section-head">
+        <h2>Pad Grid</h2>
+        <span class="tiny">Tap or click a phrase</span>
+      </div>
+      <div class="body">
+        <div class="pad-grid" id="pad-grid">
+          <button class="pad" type="button" data-preset="contact">
+            <strong>Contact Sweep</strong>
+            <em>Locate / announce</em>
+            <span>Fast bright chirps with a slight upward glide. Good as a first lightweight hail.</span>
+          </button>
+          <button class="pad" type="button" data-preset="porch">
+            <strong>Porch Chatter</strong>
+            <em>Low-threat social</em>
+            <span>Short rough twittering bursts tuned to sound occupied rather than confrontational.</span>
+          </button>
+          <button class="pad" type="button" data-preset="return">
+            <strong>Nest Return</strong>
+            <em>Arrival phrase</em>
+            <span>Triplet clusters with a quick drop at the tail, shaped like a return-to-perch cue.</span>
+          </button>
+          <button class="pad" type="button" data-preset="food">
+            <strong>Bug Here</strong>
+            <em>Excited rally</em>
+            <span>Denser cluster timing and slightly hotter rasp, meant to imply discovered activity.</span>
+          </button>
+          <button class="pad" type="button" data-preset="clear">
+            <strong>All Clear</strong>
+            <em>Spacing / calm</em>
+            <span>More separated chirps with gentler attack, useful for less agitating playback.</span>
+          </button>
+          <button class="pad" type="button" data-preset="alarm">
+            <strong>Alarm Edge</strong>
+            <em>Do not overuse</em>
+            <span>Harder broadband ticks and urgency. Included for contrast, but this is the one to use sparingly.</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2>Controls</h2>
+        <span class="tiny">Shape the call set</span>
+      </div>
+      <div class="body control-stack">
+        <div class="meter">
+          <canvas id="scope" width="420" height="184" aria-label="Bird call spectrum visualizer"></canvas>
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-label">Brightness</span>
+              <strong id="brightness-readout">1.00x</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Pace</span>
+              <strong id="pace-readout">1.00x</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Distance</span>
+              <strong id="distance-readout">Near</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="sliders">
+          <div class="slider-row">
+            <label for="brightness">
+              <span>Brightness / pitch skew</span>
+              <output id="brightness-output" for="brightness">1.00x</output>
+            </label>
+            <input id="brightness" type="range" min="0.7" max="1.35" step="0.01" value="1">
+          </div>
+          <div class="slider-row">
+            <label for="pace">
+              <span>Pace / spacing</span>
+              <output id="pace-output" for="pace">1.00x</output>
+            </label>
+            <input id="pace" type="range" min="0.7" max="1.4" step="0.01" value="1">
+          </div>
+          <div class="slider-row">
+            <label for="distance">
+              <span>Distance / reverb tail</span>
+              <output id="distance-output" for="distance">Near</output>
+            </label>
+            <input id="distance" type="range" min="0" max="100" step="1" value="18">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="button primary" id="demo-sequence" type="button">Play Demo Sequence</button>
+          <button class="button" id="stop-audio" type="button">Stop Output</button>
+          <button class="button" id="randomize" type="button">Randomize Field Mix</button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <section class="grid">
+    <section class="panel">
+      <div class="section-head">
+        <h2>Preset Notes</h2>
+        <span class="tiny">Communication is speculative</span>
+      </div>
+      <div class="body legend">
+        <div class="legend-item">
+          <strong>Why these shapes</strong>
+          <p>The earlier clip suggested brief broadband chirps and chatter bursts instead of long tonal whistles. This synth keeps chirps short, bright, and irregular for that reason.</p>
+        </div>
+        <div class="legend-item">
+          <strong>What “translation” means here</strong>
+          <p>These labels are human convenience handles for timing, energy, and clustering. They are not a claim that Barn Swallows map cleanly onto literal English phrases.</p>
+        </div>
+        <div class="legend-item">
+          <strong>Use in the field</strong>
+          <p>Keep playback brief, low volume, and infrequent. Repeated alarm-like output can stress birds or distort their normal behavior around nests.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2>Operating Note</h2>
+        <span class="tiny">Shell integration</span>
+      </div>
+      <div class="body">
+        <p class="footer-note">
+          This page publishes a lightweight audio bridge into the parent Sol shell, so the desktop orb can react
+          to synthetic chirp energy the same way it reacts to embedded page audio.
+        </p>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script>
+(() => {
+  const PRESETS = {
+    contact: {
+      label: 'Contact Sweep',
+      note: 'locate / announce',
+      chirps: 5,
+      baseFreq: 3400,
+      spread: 640,
+      chirpMs: 64,
+      gapMs: 58,
+      glide: 420,
+      noiseMix: 0.18,
+      rasp: 0.08,
+    },
+    porch: {
+      label: 'Porch Chatter',
+      note: 'low-threat social',
+      chirps: 8,
+      baseFreq: 2950,
+      spread: 420,
+      chirpMs: 40,
+      gapMs: 36,
+      glide: 180,
+      noiseMix: 0.34,
+      rasp: 0.18,
+    },
+    return: {
+      label: 'Nest Return',
+      note: 'arrival phrase',
+      chirps: 6,
+      baseFreq: 3200,
+      spread: 520,
+      chirpMs: 56,
+      gapMs: 50,
+      glide: -240,
+      noiseMix: 0.22,
+      rasp: 0.1,
+    },
+    food: {
+      label: 'Bug Here',
+      note: 'excited rally',
+      chirps: 9,
+      baseFreq: 3650,
+      spread: 760,
+      chirpMs: 38,
+      gapMs: 28,
+      glide: 310,
+      noiseMix: 0.28,
+      rasp: 0.16,
+    },
+    clear: {
+      label: 'All Clear',
+      note: 'spacing / calm',
+      chirps: 4,
+      baseFreq: 2780,
+      spread: 340,
+      chirpMs: 72,
+      gapMs: 112,
+      glide: 110,
+      noiseMix: 0.12,
+      rasp: 0.04,
+    },
+    alarm: {
+      label: 'Alarm Edge',
+      note: 'urgent contrast',
+      chirps: 10,
+      baseFreq: 3900,
+      spread: 920,
+      chirpMs: 28,
+      gapMs: 22,
+      glide: 540,
+      noiseMix: 0.42,
+      rasp: 0.3,
+    },
+  };
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const statusText = $('#status-text');
+  const statusDot = $('#status-dot');
+  const intentText = $('#intent-text');
+  const chirpCountText = $('#chirp-count');
+  const fieldText = $('#field-text');
+  const bandText = $('#band-text');
+  const brightness = $('#brightness');
+  const pace = $('#pace');
+  const distance = $('#distance');
+  const brightnessOutput = $('#brightness-output');
+  const paceOutput = $('#pace-output');
+  const distanceOutput = $('#distance-output');
+  const brightnessReadout = $('#brightness-readout');
+  const paceReadout = $('#pace-readout');
+  const distanceReadout = $('#distance-readout');
+  const scope = $('#scope');
+  const scopeCtx = scope.getContext('2d');
+  const stopButton = $('#stop-audio');
+  const demoButton = $('#demo-sequence');
+  const randomizeButton = $('#randomize');
+
+  let audioContext = null;
+  let masterGain = null;
+  let wetGain = null;
+  let analyser = null;
+  let highpass = null;
+  let reverbNode = null;
+  let levelData = null;
+  let drawRaf = 0;
+  let bridgeRaf = 0;
+  let activeVoices = 0;
+  let demoTimer = 0;
+  let pendingStopTimeout = 0;
+  let lastPreset = null;
+
+  function clamp01(value) {
+    return Math.max(0, Math.min(1, Number(value) || 0));
+  }
+
+  function formatDistanceLabel(rawValue) {
+    const value = Number(rawValue);
+    if (value < 30) return 'Near';
+    if (value < 65) return 'Mid';
+    return 'Far';
+  }
+
+  function syncControlReadouts() {
+    const brightnessValue = Number(brightness.value);
+    const paceValue = Number(pace.value);
+    const distanceValue = Number(distance.value);
+    const distanceLabel = formatDistanceLabel(distanceValue);
+    brightnessOutput.value = `${brightnessValue.toFixed(2)}x`;
+    paceOutput.value = `${paceValue.toFixed(2)}x`;
+    distanceOutput.value = distanceLabel;
+    brightnessReadout.textContent = `${brightnessValue.toFixed(2)}x`;
+    paceReadout.textContent = `${paceValue.toFixed(2)}x`;
+    distanceReadout.textContent = distanceLabel;
+    fieldText.textContent = distanceValue > 60 ? 'Longer exterior carry' : distanceValue > 30 ? 'Yard edge relay' : 'Soft porch test';
+  }
+
+  function publishBridgeState(level, active) {
+    const payload = {
+      active: Boolean(active),
+      level: clamp01(level),
+      src: 'synthetic://barn-swallow-pad',
+      currentTime: audioContext ? Number(audioContext.currentTime || 0) : 0,
+      paused: !active,
+      playbackRate: 1,
+      ts: Date.now(),
+    };
+    window.__solPageAudioBridge = payload;
+    if (window.parent && window.parent !== window) {
+      try {
+        window.parent.postMessage(
+          {
+            type: active ? 'sol-page-audio-level' : 'sol-page-audio-stop',
+            level: payload.level,
+          },
+          window.location.origin
+        );
+      } catch {}
+    }
+  }
+
+  function stopBridge(reason = 'idle') {
+    window.clearTimeout(pendingStopTimeout);
+    pendingStopTimeout = 0;
+    statusDot.classList.remove('live');
+    if (reason === 'manual') {
+      statusText.textContent = 'Output stopped';
+    } else if (reason === 'ended') {
+      statusText.textContent = 'Burst complete';
+    } else {
+      statusText.textContent = 'Armed, waiting for first tap';
+    }
+    publishBridgeState(0, false);
+  }
+
+  function scheduleBridgeDecay() {
+    window.clearTimeout(pendingStopTimeout);
+    pendingStopTimeout = window.setTimeout(() => {
+      if (activeVoices <= 0) {
+        stopBridge('ended');
+      }
+    }, 260);
+  }
+
+  async function ensureAudio() {
+    if (audioContext) {
+      if (audioContext.state === 'suspended') {
+        try {
+          await audioContext.resume();
+        } catch {}
+      }
+      return audioContext.state === 'running';
+    }
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) {
+      statusText.textContent = 'Web Audio unavailable in this browser';
+      return false;
+    }
+    audioContext = new AudioCtor();
+    if (audioContext.state === 'suspended') {
+      try {
+        await audioContext.resume();
+      } catch {}
+    }
+    if (audioContext.state !== 'running') {
+      statusText.textContent = 'Audio blocked until a direct tap';
+      return false;
+    }
+
+    masterGain = audioContext.createGain();
+    masterGain.gain.value = 0.22;
+    wetGain = audioContext.createGain();
+    wetGain.gain.value = 0.04;
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.82;
+    levelData = new Uint8Array(analyser.frequencyBinCount);
+    highpass = audioContext.createBiquadFilter();
+    highpass.type = 'highpass';
+    highpass.frequency.value = 1600;
+
+    reverbNode = audioContext.createConvolver();
+    reverbNode.buffer = buildImpulseResponse(audioContext, 1.4, 1.8);
+
+    highpass.connect(masterGain);
+    highpass.connect(wetGain);
+    wetGain.connect(reverbNode);
+    reverbNode.connect(masterGain);
+    masterGain.connect(analyser);
+    analyser.connect(audioContext.destination);
+    drawVisualizer();
+    bridgePump();
+    return true;
+  }
+
+  function buildImpulseResponse(context, seconds, decay) {
+    const rate = context.sampleRate;
+    const length = Math.max(1, Math.floor(rate * seconds));
+    const impulse = context.createBuffer(2, length, rate);
+    for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) {
+      const data = impulse.getChannelData(channel);
+      for (let i = 0; i < length; i += 1) {
+        const t = i / length;
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, decay);
+      }
+    }
+    return impulse;
+  }
+
+  function makeNoiseBuffer(context) {
+    const duration = 0.08;
+    const length = Math.max(1, Math.floor(context.sampleRate * duration));
+    const buffer = context.createBuffer(1, length, context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i += 1) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+    }
+    return buffer;
+  }
+
+  function triggerPadFlash(presetId) {
+    $$('.pad').forEach((button) => {
+      button.classList.toggle('active', button.dataset.preset === presetId);
+    });
+    window.setTimeout(() => {
+      $$('.pad.active').forEach((button) => button.classList.remove('active'));
+    }, 220);
+  }
+
+  function scheduleChirp(startAt, frequency, durationMs, glide, noiseMix, rasp) {
+    const chirpGain = audioContext.createGain();
+    chirpGain.gain.setValueAtTime(0.0001, startAt);
+    chirpGain.gain.exponentialRampToValueAtTime(0.08 + rasp * 0.05, startAt + 0.008);
+    chirpGain.gain.exponentialRampToValueAtTime(0.0001, startAt + durationMs / 1000);
+    chirpGain.connect(highpass);
+
+    const osc = audioContext.createOscillator();
+    osc.type = rasp > 0.18 ? 'square' : 'triangle';
+    osc.frequency.setValueAtTime(Math.max(1600, frequency), startAt);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1700, frequency + glide), startAt + durationMs / 1000);
+    osc.connect(chirpGain);
+    osc.start(startAt);
+    osc.stop(startAt + durationMs / 1000 + 0.02);
+
+    if (noiseMix > 0) {
+      const noiseSource = audioContext.createBufferSource();
+      noiseSource.buffer = makeNoiseBuffer(audioContext);
+      const noiseFilter = audioContext.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.frequency.value = Math.max(2000, frequency * 1.1);
+      noiseFilter.Q.value = 0.8 + rasp * 5;
+      const noiseGain = audioContext.createGain();
+      noiseGain.gain.setValueAtTime(0.0001, startAt);
+      noiseGain.gain.linearRampToValueAtTime(noiseMix * 0.06, startAt + 0.006);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, startAt + durationMs / 1000);
+      noiseSource.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(highpass);
+      noiseSource.start(startAt);
+      noiseSource.stop(startAt + durationMs / 1000 + 0.03);
+    }
+  }
+
+  async function playPreset(presetId) {
+    const preset = PRESETS[presetId];
+    if (!preset) return;
+    const ready = await ensureAudio();
+    if (!ready) return;
+
+    window.clearTimeout(demoTimer);
+    lastPreset = presetId;
+    triggerPadFlash(presetId);
+
+    const brightnessValue = Number(brightness.value);
+    const paceValue = Number(pace.value);
+    const distanceValue = Number(distance.value);
+    const now = audioContext.currentTime + 0.02;
+    const chirpCount = preset.chirps;
+    const gapSeconds = (preset.gapMs / 1000) / paceValue;
+    const chirpSeconds = Math.max(0.016, (preset.chirpMs / 1000) / paceValue);
+
+    masterGain.gain.cancelScheduledValues(now);
+    masterGain.gain.setValueAtTime(0.2, now);
+    wetGain.gain.cancelScheduledValues(now);
+    wetGain.gain.setValueAtTime(0.02 + (distanceValue / 100) * 0.12, now);
+
+    activeVoices += chirpCount;
+    statusDot.classList.add('live');
+    statusText.textContent = `Playing ${preset.label}`;
+    intentText.textContent = `${preset.label} · ${preset.note}`;
+    chirpCountText.textContent = `${chirpCount} chirps`;
+    bandText.textContent = `${Math.round((preset.baseFreq - 900) * brightnessValue / 100) / 10}-${Math.round((preset.baseFreq + preset.spread + 1300) * brightnessValue / 100) / 10} kHz`;
+
+    for (let index = 0; index < chirpCount; index += 1) {
+      const jitter = (Math.random() - 0.5) * 0.012;
+      const startAt = now + index * gapSeconds + jitter;
+      const frequency = (preset.baseFreq + preset.spread * Math.sin(index * 1.7) + Math.random() * 240) * brightnessValue;
+      const glide = preset.glide * (0.65 + Math.random() * 0.6) * brightnessValue;
+      const noiseMix = preset.noiseMix * (0.8 + Math.random() * 0.4);
+      scheduleChirp(startAt, frequency, chirpSeconds * 1000, glide, noiseMix, preset.rasp);
+      window.setTimeout(() => {
+        activeVoices = Math.max(0, activeVoices - 1);
+        if (activeVoices <= 0) {
+          scheduleBridgeDecay();
+        }
+      }, Math.max(0, ((startAt - audioContext.currentTime + chirpSeconds + 0.06) * 1000)));
+    }
+  }
+
+  function drawVisualizer() {
+    if (!scopeCtx) return;
+    const width = scope.width;
+    const height = scope.height;
+    const render = () => {
+      drawRaf = window.requestAnimationFrame(render);
+      scopeCtx.clearRect(0, 0, width, height);
+      scopeCtx.fillStyle = '#071018';
+      scopeCtx.fillRect(0, 0, width, height);
+
+      for (let i = 0; i < 6; i += 1) {
+        scopeCtx.strokeStyle = i === 0 ? 'rgba(128, 215, 228, 0.24)' : 'rgba(128, 215, 228, 0.08)';
+        scopeCtx.beginPath();
+        const y = (height / 6) * i;
+        scopeCtx.moveTo(0, y);
+        scopeCtx.lineTo(width, y);
+        scopeCtx.stroke();
+      }
+
+      if (!analyser || !levelData) return;
+      analyser.getByteFrequencyData(levelData);
+      const barCount = 56;
+      const step = Math.max(1, Math.floor(levelData.length / barCount));
+      for (let i = 0; i < barCount; i += 1) {
+        const value = levelData[i * step] / 255;
+        const x = (width / barCount) * i;
+        const barWidth = Math.max(4, width / barCount - 3);
+        const barHeight = Math.max(2, value * (height - 18));
+        const hue = 185 - Math.min(90, i * 1.3);
+        scopeCtx.fillStyle = `hsla(${hue}, 80%, ${48 + value * 22}%, 0.92)`;
+        scopeCtx.fillRect(x, height - barHeight - 10, barWidth, barHeight);
+      }
+    };
+    render();
+  }
+
+  function bridgePump() {
+    const tick = () => {
+      bridgeRaf = window.requestAnimationFrame(tick);
+      if (!analyser || !levelData) return;
+      analyser.getByteFrequencyData(levelData);
+      let sum = 0;
+      for (let i = 0; i < levelData.length; i += 1) {
+        sum += levelData[i];
+      }
+      const level = (sum / levelData.length) / 255;
+      if (level > 0.02 || activeVoices > 0) {
+        publishBridgeState(level, true);
+      }
+    };
+    tick();
+  }
+
+  function stopAudio() {
+    if (!audioContext || !masterGain) {
+      stopBridge('manual');
+      return;
+    }
+    window.clearTimeout(demoTimer);
+    activeVoices = 0;
+    const now = audioContext.currentTime;
+    masterGain.gain.cancelScheduledValues(now);
+    masterGain.gain.setTargetAtTime(0.0001, now, 0.02);
+    stopBridge('manual');
+  }
+
+  function randomizeControls() {
+    brightness.value = (0.78 + Math.random() * 0.48).toFixed(2);
+    pace.value = (0.78 + Math.random() * 0.46).toFixed(2);
+    distance.value = String(Math.round(Math.random() * 90));
+    syncControlReadouts();
+    statusText.textContent = 'Field mix randomized';
+  }
+
+  function playDemoSequence() {
+    const sequence = ['contact', 'porch', 'return', 'food', 'clear'];
+    let index = 0;
+    const run = () => {
+      if (index >= sequence.length) return;
+      void playPreset(sequence[index]);
+      index += 1;
+      demoTimer = window.setTimeout(run, 520);
+    };
+    run();
+  }
+
+  $$('#pad-grid .pad').forEach((button) => {
+    button.addEventListener('click', () => {
+      void playPreset(button.dataset.preset);
+    });
+  });
+
+  [brightness, pace, distance].forEach((input) => {
+    input.addEventListener('input', syncControlReadouts);
+  });
+
+  stopButton.addEventListener('click', stopAudio);
+  demoButton.addEventListener('click', playDemoSequence);
+  randomizeButton.addEventListener('click', randomizeControls);
+
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type === 'sol-window-close') {
+      stopAudio();
+    }
+  });
+
+  window.addEventListener('pagehide', () => {
+    stopAudio();
+    if (drawRaf) window.cancelAnimationFrame(drawRaf);
+    if (bridgeRaf) window.cancelAnimationFrame(bridgeRaf);
+  });
+
+  syncControlReadouts();
+  publishBridgeState(0, false);
+})();
+</script>
+</body>
+</html>
