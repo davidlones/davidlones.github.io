@@ -115,3 +115,11 @@ A system that cannot explain its condition is difficult to preserve.
 Technical changes are part of the archive. Development logs, architectural decisions, operational incidents, and deployment stories are themselves archival artifacts.
 
 The history of the system should be searchable alongside the content the system stores. The archive should preserve not only what was created, but how it came to exist.
+
+## Reviewed source and deployment boundaries — October 3, 2026
+
+The reviewed public subset is managed in `site/` of `davidlones/davidlones.github.io`, under an explicit allowlist. Preserve existing history and experiments. Future changes flow through branches, validation, PRs, merged source and explicit backup-first deployment; do not replace history with a fresh snapshot or bypass conflicting live edits.
+
+GitHub Pages hosts the static desktop/archive. The home server runs models, radio and APIs. Build adapters are Pages-specific and must not overwrite home source. Unreviewed backend code, private data, credentials, model weights and runtime output are outside the public-source boundary. A proposed backend publication needs its own reviewed import and deployment procedure.
+
+Record source completion, PR status, Pages deployment, home file hashes and visible-device verification separately. Preserve resolved file bytes in addition to symlink metadata. Check actual storage headroom before writes; a successful backup or build does not prove enough capacity for deployment. Narration cue metadata cannot retime or change voice already mixed into an audio recording.

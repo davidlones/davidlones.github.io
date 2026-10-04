@@ -20,7 +20,7 @@ The live site's comprehensive crawler indexes mix multiple home-server roots and
 
 - GitHub Pages: generated static desktop, reviewed archive, static Star Map, local-file visualizer, legacy experiments, and service entry links.
 - Sol home server: models, radio, APIs, live chat/speech, authenticated controls, private household interfaces, generated media and large downloads.
-- `site/`: Git-managed source for reviewed home-server files after this PR is merged. Import is the exceptional reconciliation path; reviewed Git deployment is the regular direction.
+- `site/`: Git-managed source for reviewed home-server files following the merged PR #44. Import is the exceptional reconciliation path; reviewed Git deployment is the regular direction.
 - Root legacy files: historical experiments, kept independently. Build output preserves their routes unless current reviewed source occupies the same public route; every historical page remains accessible under `/experiments/`.
 
 Pages adaptations are generated, not written back to live source. A guard insertion that no longer matches its expected function fails the build so a future source edit requires review of the adapter.
@@ -38,8 +38,12 @@ Pages adaptations are generated, not written back to live source. A guard insert
 
 ## Known boundaries
 
-External media and live features require the home server to be available. This is not an offline mirror of the multi-gigabyte archive. The build does not claim to fix historical experiment behavior or the known screensaver activation/reassembly defects. This PR prepares publication; the Pages source-setting switch and merge activate it.
+External media and live features require the home server to be available. This is not an offline mirror of the multi-gigabyte archive. The build does not claim to fix historical experiment behavior or the known screensaver activation/reassembly defects. PR #44 subsequently merged and Pages switched to Actions. The publication is live; later renderer repairs are tracked separately in PR #45.
 
 Local private audit output is under `/mnt/sol-data/sol-stack/site-git-sync/`; it is intentionally not included in this public repository.
 
-The home workstation also has a scoped `/home/david/random/AGENTS.md` directing future managed-source edits through this repository, and a stable wrapper at `/home/david/random/bin/sol37_public_source_sync.py`. These do not change Caddy or deploy this unmerged branch.
+The home workstation also has a scoped `/home/david/random/AGENTS.md` directing future managed-source edits through this repository, and a stable wrapper at `/home/david/random/bin/sol37_public_source_sync.py`. These do not change Caddy or deploy source automatically.
+
+## Completed publication checkpoint
+
+PR #44 merged at 2026-10-04T02:50:25Z, preserving history. Actions run `37172275119` completed build and deployment successfully. Eight public documents/assets, including desktop, `/gui/`, archive, service links, Star Map and preserved experiments, returned 200 and matched the local build bytes. All 183 managed home files matched the merged revision, so the home deployment was a no-op. No service, DNS or proxy configuration changed. See [current source/deployment status](source-and-deployment-status.md) for the subsequent repair boundary.
