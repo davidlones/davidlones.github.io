@@ -365,6 +365,7 @@
     });
     function startAV() {
       const generation = ++playbackGeneration;
+      document.getElementById("playback-status").textContent = "Connecting synchronized audio and video…";
       if (avPlayer) { avPlayer.destroy(); avPlayer = null; }
       for (const video of [ids.camera, secondaryImage]) {
         video.pause(); video.removeAttribute("src"); video.load();
@@ -374,6 +375,7 @@
       const url = `/api/dashboard/vision-av/${selectedCamera}/${mode}/live.m3u8`;
       video.muted = !soundEnabled;
       const play = () => video.play().catch(() => {
+        if (generation !== playbackGeneration) return;
         video.muted = true; soundEnabled = false;
         document.getElementById("lens-audio").textContent = "Enable sound";
         video.play().catch(() => {});
@@ -542,10 +544,15 @@
     });
     document.getElementById("lens-audio").addEventListener("click", async () => {
       soundEnabled = !soundEnabled;
+      const generation = playbackGeneration;
       const video = selectedCamera === "primary" ? ids.camera : secondaryImage;
       video.muted = !soundEnabled;
-      try { await video.play(); } catch (_) { soundEnabled = false; video.muted = true; }
       document.getElementById("lens-audio").textContent = soundEnabled ? "Mute sound" : "Enable sound";
+      try { await video.play(); } catch (_) {
+        if (generation !== playbackGeneration) return;
+        soundEnabled = false; video.muted = true;
+        document.getElementById("lens-audio").textContent = "Enable sound";
+      }
     });
 
     function tick() {
