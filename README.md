@@ -17,7 +17,7 @@ This repository preserves the earlier experiments and tracks the reviewed public
 | `_site/` | Generated Pages output. Never edit or commit it. |
 | Home-server files outside the allowlist | Remain home-server-owned: private documents, household interfaces/data, runtime services, credentials, logs, media masters, downloads, model weights and generated datasets. |
 
-The import preserves the current screensaver code, including known activation/reassembly issues; this migration does not silently mix a screensaver repair into the source reconciliation. Those changes can now be reviewed as separate Git diffs.
+The initial import preserved the live screensaver code. The activation, icon recovery and narration-reference repairs are tracked separately in [PR #45](https://github.com/davidlones/davidlones.github.io/pull/45). See the [verified status and remaining work](docs/source-and-deployment-status.md) before claiming a repair has reached production.
 
 ## Build and verify
 
@@ -25,6 +25,7 @@ Python 3.10+ and Node.js 22+ are sufficient; no package installation is needed.
 
 ```bash
 python3 -m unittest discover -s tools -p 'test_*.py'
+node tools/test_screensaver.cjs
 python3 tools/build_pages.py
 python3 tools/verify_pages.py
 python3 -m http.server 8876 --bind 127.0.0.1 --directory _site
@@ -70,12 +71,8 @@ Keep backups on an independently verified mounted volume with enough space. Ther
 
 The workflow builds and validates PRs without deployment. Pushes to `main` build and deploy through the `github-pages` environment using the [official Pages Actions flow](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
 
-At review time the repository still uses legacy branch publishing from `main` at `/`. **As part of merging this migration, change Settings → Pages → Build and deployment → Source to GitHub Actions**, then merge or run the workflow on `main`. The equivalent owner command is:
+PR #44 merged on 2026-10-04 UTC as `f3af75a94e5b2dfa8cd5f9d7ef25405cbc2acfb8`. Pages was switched to GitHub Actions and the merged build deployed successfully to https://davidlones.github.io/. That migration is complete; do not repeat the source-setting switch for ordinary updates.
 
-```bash
-gh api --method PUT repos/davidlones/davidlones.github.io/pages -f build_type=workflow
-```
-
-Do not run the switch before the PR is ready to merge. No force-push, history replacement, custom-domain change, or home-server deployment is required to review this PR. GitHub-hosted Actions has no home-server credentials and cannot deploy the live services.
+GitHub-hosted Actions has no home-server credentials and cannot deploy live services. A successful Pages deployment does not prove the home source changed. Check available space on the actual resolved destination filesystems before applying home updates, and verify live hashes and public responses afterward. The October 3 screensaver repair was held from deployment because root storage was exhausted.
 
 See [the reconciliation inventory](docs/live-source-reconciliation.md) for scope, exclusions and verification.

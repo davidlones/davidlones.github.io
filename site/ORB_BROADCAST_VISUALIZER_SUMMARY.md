@@ -1,5 +1,14 @@
 # Orb Broadcast + Visualizer Summary
 
+## October 3 verification and repair status
+
+The implementation history below is retained. [PR #45](https://github.com/davidlones/davidlones.github.io/pull/45) prepares repairs for incomplete latch activation, stranded icons after particle eviction, and blocked-audio retry. It was open and not deployed at this checkpoint; root disk exhaustion blocked the main-site update. GitHub Pages publication from PR #44 is a separate completed change.
+
+Preserve the original behavior: held-pointer gravity dissolves icons; releasing an unlatched field reassembles them; vacuuming all icons automatically latches the full music screensaver and A → B → C hold program. A manual latch uses the same path. Audio refusal leaves visuals active with pending-audio status. Ordinary embedded audio drives only the orb. The top active Star Map can join the field without a maximization requirement.
+
+The restored recordings contain 3/6/9 baked cues. Track A's “Thank you for continuing to hold” starts at the historical 1:25 mix offset. See [the narration script](ORB_HOLD_NARRATION_SCRIPT.md) and `data/assistant-hold-loop-timings.json`; offsets are from the original render recipe, not fresh speech-onset measurements. Generated speech is a separate lane, and its mute control does not remove baked voice from a music file. Historical machine-state lines are not current telemetry. No audio was rerendered for this repair.
+
+
 Date: 2026-04-28
 
 This document summarizes the assistant orb, broadcast, local-audio, music-screensaver, Star Map visualizer, cache-control, and built-in hold-music work completed in this iteration.
@@ -119,7 +128,7 @@ This closed several previous reassembly paths that caused icons to reform when t
 
 ## 5. Star Map Visualizer Integration
 
-The maximized Star Map is now intended to merge into the screensaver rather than appear as a separate opaque application window.
+The top active Star Map (maximized or otherwise) is intended to merge into the screensaver rather than appear as a separate opaque application window.
 
 Implemented behavior:
 
@@ -243,7 +252,7 @@ The transcript is documented separately in `ORB_HOLD_NARRATION_SCRIPT.md`.
 The narration includes:
 
 - commentary on the music itself
-- commentary on current server state
+- commentary on server state at the historical render time
 - commentary on broadcast override presence
 - commentary framing the system like a self-aware phone hold environment
 

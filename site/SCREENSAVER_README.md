@@ -1,5 +1,14 @@
 # Sol-37 Screensaver + Star Map README
 
+## October 3 verification and repair status
+
+The implementation history below is retained. [PR #45](https://github.com/davidlones/davidlones.github.io/pull/45) prepares repairs for incomplete latch activation, stranded icons after particle eviction, and blocked-audio retry. It was open and not deployed at this checkpoint; root disk exhaustion blocked the main-site update. GitHub Pages publication from PR #44 is a separate completed change.
+
+Preserve the original behavior: held-pointer gravity dissolves icons; releasing an unlatched field reassembles them; vacuuming all icons automatically latches the full music screensaver and A → B → C hold program. A manual latch uses the same path. Audio refusal leaves visuals active with pending-audio status. Ordinary embedded audio drives only the orb. The top active Star Map can join the field without a maximization requirement.
+
+The restored recordings contain 3/6/9 baked cues. Track A's “Thank you for continuing to hold” starts at the historical 1:25 mix offset. See [the narration script](ORB_HOLD_NARRATION_SCRIPT.md) and `data/assistant-hold-loop-timings.json`; offsets are from the original render recipe, not fresh speech-onset measurements. Generated speech is a separate lane, and its mute control does not remove baked voice from a music file. Historical machine-state lines are not current telemetry. No audio was rerendered for this repair.
+
+
 Date: 2026-06-28
 
 ## What This Document Covers
@@ -392,3 +401,7 @@ It starts as:
 - a plausible audio visualizer
 
 Then the site lets those systems contaminate each other until the browser window stops feeling like a window and starts feeling like a viewport.
+
+### Final-icon activation repair (October 3, 2026)
+
+The renderer emits the automatic activation event only after every participating desktop icon has actually disintegrated. Merely hiding or shrinking icons does not activate it. The last icon triggers the same hold-playlist activation path as the manual ✦ control in the SOL orb popup; the full field snaps on at the next rendered frame. Blocked autoplay leaves the field active and retries on interaction. Dismissal restores the icons. Original hold recordings are unchanged.

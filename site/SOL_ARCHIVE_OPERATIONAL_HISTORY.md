@@ -385,3 +385,11 @@ coordinates remain operator estimates and there is no compass survey, the
 result is explicitly limited to low-confidence position along the calibrated
 microphone axis. Environmental candidates never enter emergency notification
 policy.
+
+## October 3, 2026 — Source reconciliation and screensaver review
+
+The public source was reconciled into `davidlones/davidlones.github.io` through PR #44, preserving repository history and all 54 older files while adding 183 reviewed source files. GitHub Pages moved to Actions and deployed successfully; the home source already matched, so no home files or services changed. The new working direction is reviewed Git source to deployment, with explicit private/runtime exclusions.
+
+The screensaver review recovered the original automatic icon-vacuum latch and the baked hold-program chronology. June's original SOL-GPT restoration had rolled the audio back to 3/6/9 cues while the transcript retained May's expanded 5/8/11-cue version. PR #45 prepares activation, icon recovery, autoplay retry and cue-reference fixes. At this dated checkpoint it remained open, tested but not deployed because root storage was exhausted. Original MP3s were preserved; full listening and physical Safari verification were not claimed.
+
+A separate backend assessment identified 32 candidate Python modules. That assessment did not publish backend source or establish a portable server release. See the source repository's current status document and PRs before using this historical checkpoint as operational state.

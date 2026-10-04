@@ -5,5 +5,7 @@
 - Inventory drift with `tools/site_sync.py inventory` before an import. Do not copy the entire live web root.
 - New synchronization paths require explicit review in `config/public-files.json`. Exclude credentials, private documents, household data, runtime logs, model weights and large generated datasets/media.
 - Do not edit `_site/`. Pages-specific changes belong in `pages/` or the build adapter; service functionality remains at `https://sol.system42.one`.
-- Run `python3 -m unittest discover -s tools -p 'test_*.py'`, the build, and `tools/verify_pages.py` before publication. Browser-check navigation and service boundaries when changing the Pages adapter.
+- Run `python3 -m unittest discover -s tools -p 'test_*.py'`, `node tools/test_screensaver.cjs`, the build, and `tools/verify_pages.py` before publication. Browser-check navigation and service boundaries when changing the Pages adapter.
 - Live deployment must use the sync tool with a resolved-file backup and a clean Git revision. Do not bypass drift checks or remove untracked live files.
+
+- Read `docs/source-and-deployment-status.md` for the dated publication checkpoint, then verify current PR, Actions and live state. Pages success does not imply home deployment. Check target filesystem headroom before writes; preserve original hold audio when fixing cue metadata.
