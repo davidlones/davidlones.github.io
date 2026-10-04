@@ -27,3 +27,22 @@ async function fixture() {
   assert.equal(state.active,true);
 }
 fixture().then(()=>console.log('PASS: hold play starts within gesture while context unlock is unresolved; pending state clears on success')).catch(e=>{console.error(e);process.exit(1)});
+
+// Run the actual orb click handler to distinguish sound retry from full exit.
+const clickStart = shell.indexOf("    assistantAvatar?.addEventListener('click', async () => {");
+const clickEnd = shell.indexOf("    assistantAvatar?.addEventListener('pointerdown'", clickStart);
+const orbState = {musicScreensaverForcedActive:true,musicScreensaverActive:true,musicScreensaverMediaActive:true,musicScreensaverPendingAutostart:false};
+let handler, dismisses=0, retries=0, toggles=0;
+vm.runInNewContext(shell.slice(clickStart,clickEnd), {
+  assistantState:orbState, assistantAvatar:{addEventListener(_,fn){handler=fn;}},
+  maybeAutostartLatchedScreensaverAudio(){retries++;},
+  dismissLatchedAssistantScreensaver(){dismisses++;orbState.musicScreensaverForcedActive=false;orbState.musicScreensaverActive=false;},
+  toggleAssistantPlayback(){toggles++;},setAssistantStatus(){},
+  stopAssistantPlayback(){orbState.musicScreensaverActive=false;}
+});
+(async()=>{
+ await handler(); assert.equal(dismisses,1);assert.equal(toggles,0);assert.equal(orbState.musicScreensaverActive,false);
+ Object.assign(orbState,{musicScreensaverForcedActive:true,musicScreensaverActive:true,musicScreensaverMediaActive:false,musicScreensaverPendingAutostart:true});
+ await handler();assert.equal(retries,1);assert.equal(dismisses,1);assert.equal(orbState.musicScreensaverActive,true);
+ console.log('PASS: playing orb tap exits the latch; pending orb tap still retries sound');
+})().catch(e=>{console.error(e);process.exit(1)});
