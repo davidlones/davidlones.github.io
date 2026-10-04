@@ -13,8 +13,12 @@ from site_sync import ROOT, files, read_public
 OUT = ROOT / '_site'
 LIVE = 'https://sol.system42.one'
 STATIC = 'https://davidlones.github.io'
-GENERATED = {'site-index.json', 'knowledge-index.json', 'sitemap.xml', 'robots.txt', 'archive.html', 'live-services.html', 'gui/index.html'}
 SERVICE_ALIASES = ['chat', 'dashboard', 'start', 'radio', 'services/desk', 'unified-clock', 'sol-ai', 'push', 'webcam-feed', 'youtube-transcript-search', 'zip-drive', 'api-reference']
+# These need generated catalogs, server aliases or parent service state even when
+# their HTML does not contain an inline /api/ request.
+LIVE_ONLY = {'programs/airbits/index.html', 'programs/media-player.html',
+             'programs/dosbox.html', 'programs/orb-assistant.html',
+             'programs/unified-clock.html', 'featured-facebook-post.html'}
 GUARDS = ['hydrateAssistantHistory', 'initializeAssistantBroadcastPolling',
           'initializePublicPushNotifications', 'refreshSecondaryFeatureMinecraftStatus',
           'startSecondaryFeatureStatusRefresh', 'scheduleSecondaryFeatureToast',
@@ -103,6 +107,8 @@ def adapt_desktop(text):
         text = guard(text, name, f'window.solOpenLiveService({json.dumps(path)}); return;')
     # Caddy supplies these aliases on the live host; Pages needs physical paths.
     text = text.replace("window.location.pathname === '/gui'", "window.location.pathname.replace(/\\/$/, '') === '/gui'")
+    text = text.replace('new URL(href, window.location.href)', 'new URL(href, document.baseURI)')
+    text = text.replace("new URL('programs/media-player.html', window.location.href)", "new URL('programs/media-player.html', document.baseURI)")
     # Keep the archive entry focused on the desktop; the live site's featured service remains linked.
     text = text.replace("const featuredWin = openLinkedResourceWindow(ROOT_FEATURED_POST.href, ROOT_FEATURED_POST.title);", "const featuredWin = null; // Static archive opens on the desktop.")
     # Literal runtime/media resources referenced inside JavaScript, including template URLs.
@@ -132,7 +138,7 @@ def main():
         target = OUT / name
         text = target.read_text()
         # No client-side proxying of same-origin service applications from Pages.
-        if re.search(r'/api/|new WebSocket|new EventSource|/push/', text) or name.startswith(('chat/', 'dashboard/', 'start/', 'sol-ai/')):
+        if name in LIVE_ONLY or re.search(r'/api/|new WebSocket|new EventSource|/push/', text) or name.startswith(('chat/', 'dashboard/', 'start/', 'sol-ai/')):
             services.append({'path': name, 'title': title(text, name)})
             target.write_text(landing(title(text, name), name))
     for name in SERVICE_ALIASES:

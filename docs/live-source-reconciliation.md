@@ -30,9 +30,10 @@ Pages adaptations are generated, not written back to live source. A guard insert
 - Four sync tests exercise dry-run behavior, allowlisting, resolved symlink import, conflicting Git changes, unsafe paths, credential rejection, live drift refusal, resolved-file backups and two sequential committed deployments while preserving a live symlink.
 - Static verification checks source/allowlist agreement, secret signatures and size limits, artifact symlink/privacy boundaries, all local HTML references, and desktop/visualizer JavaScript syntax.
 - Browser smoke test: current desktop rendered 38 icons, the explicit live-desktop URL was correct, no page exceptions occurred, and no backend API/push requests were made on initial load.
+- Star Map opened and parsed all 6,605 catalog stars. The `/gui/?i=programs/star-map.html&maximize=true` alias was checked at phone width; its iframe resolves from the root with no failed local requests. The radio entry page has an explicit live URL and no executable scripts.
 - Gitleaks 8.30.1 scan of imported source passed after review of two false positives: literal localStorage key names. The configuration exempts those exact assignments only.
 - Public chat (following its redirect), radio program, START, and household desk entry URLs returned HTTP 200 through Cloudflare. This verifies navigation targets, not the internal health of every backend service.
-- Build emits 27 service entry pages and preserves 54 legacy files.
+- Build emits 33 service entry pages and preserves 54 legacy files. Media/DOSBox catalogs and external-script applications are explicitly classified even when their HTML does not contain an API URL.
 - The home live files were read only. No API, model, radio service or public Pages setting was changed during preparation.
 
 ## Known boundaries
@@ -40,3 +41,5 @@ Pages adaptations are generated, not written back to live source. A guard insert
 External media and live features require the home server to be available. This is not an offline mirror of the multi-gigabyte archive. The build does not claim to fix historical experiment behavior or the known screensaver activation/reassembly defects. This PR prepares publication; the Pages source-setting switch and merge activate it.
 
 Local private audit output is under `/mnt/sol-data/sol-stack/site-git-sync/`; it is intentionally not included in this public repository.
+
+The home workstation also has a scoped `/home/david/random/AGENTS.md` directing future managed-source edits through this repository, and a stable wrapper at `/home/david/random/bin/sol37_public_source_sync.py`. These do not change Caddy or deploy this unmerged branch.
