@@ -2759,7 +2759,7 @@
   </aside>
 
 <script id="assistant-default-answers" type="application/json">{"version": 1, "generated_at": "2026-10-03T05:03:48.431286+00:00", "expires_at": 1791090228431.2861, "sources": ["/README.md", "/site-index.json", "/index.html"], "answers": {"what is sol": {"message": "Sol is David's local-first archive and assistant. Sol-37 brings together writing, research, software experiments, media, and technology projects in a retro desktop. Open an icon to explore, use the archive browser at /sitemap.html, or ask the assistant about the page you're reading.", "grounded": true}, "what are the main parts of this archive": {"message": "The archive includes writing and research, software and simulation projects, audio and video, and technical documentation. The desktop and Start menu open individual projects; /sitemap.html is the full archive browser. Sol Assistant provides conversational access, while the Site Server Manual explains the site's operation.", "grounded": true}, "how does this site work": {"message": "Sol-37 serves a collection of static pages inside a Windows-style desktop. Icons and the Start menu open pages or embedded programs. Local services add chat, voice, search, media playlists, and other live features. For details, open the Site Server Manual at /site-server.html.", "grounded": true}, "what can i open from here": {"message": "Use a desktop icon or the Start menu. Current destinations include David Lones \u2014 Parker County Technology Support, Site Map \u2014 Archive Directory, Sol Assistant \u2014 Cognitive Buddy, Star Map \u2014 StarFinder II, Public Logbook \u2014 IRC Relay, Media Player \u2014 Video Loop, Radio Observatory \u2014 Sol Site Receiver, Stardate Console \u2014 Chronology Lab, DOSBox \u2014 C:\\\\WINDOWS\\\\, Barn Swallow Pad \u2014 Contact Console, AirBits \u2014 Acoustic File Modem, Clippy 98 \u2014 Independent Microsoft Agent. Browse /sitemap.html for the full catalog.", "grounded": true}, "what changed on the site recently": {"message": "The public index checked on 2026-10-03 lists these recently modified desktop pages:\n\u2022 2026-10-01: David Lones | Parker County Technology Support (/services/index.html)\n\u2022 2026-08-30: Sol T-Dongle Universal Node | Sol-37 (/sol-tdongle.html)\n\u2022 2026-08-27: Local AI Dashboard (/dashboard/index.html)\n\u2022 2026-08-18: Radio Observatory (/programs/radio.html)\n\nThese are indexed modification dates, not a claim that each page was newly published. Open the Site Server Manual for how the site works, or the archive browser at /sitemap.html for the full catalog.", "grounded": true}, "what is new in the archive": {"message": "The public index checked on 2026-10-03 lists these recently modified desktop pages:\n\u2022 2026-10-01: David Lones | Parker County Technology Support (/services/index.html)\n\u2022 2026-08-30: Sol T-Dongle Universal Node | Sol-37 (/sol-tdongle.html)\n\u2022 2026-08-27: Local AI Dashboard (/dashboard/index.html)\n\u2022 2026-08-18: Radio Observatory (/programs/radio.html)\n\nThese are indexed modification dates, not a claim that each page was newly published. Open the Site Server Manual for how the site works, or the archive browser at /sitemap.html for the full catalog.", "grounded": true}}}</script>
-<script src="/assets/hue-visualizer.js?v=20261004-latch-recovery"></script>
+<script src="/assets/hue-visualizer.js?v=20261004-vacuum-snap"></script>
 <script>
 (function(){
   // ---------- Helpers ----------
@@ -3101,8 +3101,7 @@
     musicScreensaverRaf: 0,
     musicScreensaverRestorePosition: null,
     starMapGravityField: null,
-    desktopVisibleIconCount: 0,
-    desktopVacuumObserver: null,
+    desktopVacuumInitialized: false,
     broadcastMode: false,
     broadcastKey: '',
     broadcastState: null,
@@ -4530,20 +4529,6 @@
     animate();
   }
 
-  function isDesktopIconVisiblyPresent(icon) {
-    if (!(icon instanceof Element)) return false;
-    if (icon.classList.contains('hidden')) return false;
-    const style = window.getComputedStyle(icon);
-    if (style.display === 'none' || style.visibility === 'hidden') return false;
-    if (Number(style.opacity || '1') <= 0.01) return false;
-    const rect = icon.getBoundingClientRect();
-    return rect.width > 6 && rect.height > 6;
-  }
-
-  function visibleDesktopIconCount() {
-    return $$('.desktop a.icon').filter(isDesktopIconVisiblyPresent).length;
-  }
-
   function shouldAutostartLatchedScreensaverAudio() {
     return !assistantState.broadcastMode && (!assistantState.localAudioUrl
       || (assistantState.musicScreensaverPendingAutostart && assistantState.musicScreensaverForcedStartedPlayback));
@@ -4613,34 +4598,11 @@
     return true;
   }
 
-  function syncDesktopVacuumScreensaverLatch() {
-    const visibleCount = visibleDesktopIconCount();
-    const previousVisibleCount = Number(assistantState.desktopVisibleIconCount || 0);
-    assistantState.desktopVisibleIconCount = visibleCount;
-    if (visibleCount > 0) {
-      return;
-    }
-    if (previousVisibleCount > 0) {
-      activateLatchedAssistantScreensaver('icons');
-    }
-  }
-
   function initializeDesktopVacuumScreensaverLatch() {
-    if (assistantState.desktopVacuumObserver || !desktop) return;
-    assistantState.desktopVisibleIconCount = visibleDesktopIconCount();
-    const observer = new MutationObserver(() => {
-      syncDesktopVacuumScreensaverLatch();
-    });
-    observer.observe(desktop, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['class', 'style', 'hidden', 'aria-hidden'],
-    });
-    assistantState.desktopVacuumObserver = observer;
-    window.addEventListener('resize', syncDesktopVacuumScreensaverLatch);
+    if (assistantState.desktopVacuumInitialized || !desktop) return;
+    assistantState.desktopVacuumInitialized = true;
+    // The renderer reports actual disintegration, not merely small/hidden icons.
     window.addEventListener('sol:desktop-icons-vacuumed', () => {
-      assistantState.desktopVisibleIconCount = 0;
       activateLatchedAssistantScreensaver('icons');
     });
     window.addEventListener('sol:assistant-screensaver-dismiss', () => {

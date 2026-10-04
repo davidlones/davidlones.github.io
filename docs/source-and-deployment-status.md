@@ -26,3 +26,9 @@ Preserve Git history in both `davidlones.github.io` and any future `davidlones/r
 4. Verify the public renderer/cache version, full activation when audio is blocked, retry on interaction, dismissal and complete icon recovery. Confirm the cue manifest and transcript correspond to the actual audio files. Physical iPhone/Safari and full A/B/C listening remain unverified by the controlled Chromium tests.
 
 See [the rendering chronology](screensaver-hold-rendering-review.md) and [the import inventory](live-source-reconciliation.md).
+
+## Resumed validation, October 3 late evening
+
+Root headroom recovered to about 26 GiB before rollout; the earlier full-disk checkpoint above is historical. Pre-deployment runtime snapshot `20261004T042749Z` contains 5,169 items with no missing sources. Resolved deployment targets were checked independently for free space and baseline drift. Original A/B/C audio still matches the preserved masters byte for byte.
+
+The repair now explicitly distinguishes actual icon disintegration from visual hiding/shrinking. The final icon emits one automatic activation event, and the latched field snaps fully on at the next frame. The manual ✦ Easter egg remains in the orb popup. Renderer regression tests cover partial versus complete vacuum, desktop/touch activation, empty desktops, and icon recovery. Record merge and live verification separately after rollout.

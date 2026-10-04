@@ -62,6 +62,7 @@
     let idleDark = 0;
     let activationCharge = 0;
     let fieldPresence = 0;
+    let desktopVacuumComplete = false;
     let holdGravity = 0;
     let pointerHeld = false;
     let pointerX = 0.5;
@@ -369,12 +370,18 @@
 
     function updateDesktopGravity(w, h, cursorX, cursorY, orbX, orbY, horizonRadius, red, green, blue, reassemble, disk) {
       if (variant !== "multiversal") return;
-      const icons = document.querySelectorAll(".desktop a.icon");
+      const icons = Array.from(document.querySelectorAll(".desktop a.icon")).filter((icon) => {
+        const style = window.getComputedStyle?.(icon);
+        if (style?.display === "none" || style?.visibility === "hidden" || icon.hidden) return false;
+        const rect = icon.getBoundingClientRect();
+        return Boolean(iconStates.get(icon)?.disintegrated) || (rect.width > 0 && rect.height > 0);
+      });
       const strength = Math.max(fieldPresence, holdGravity);
       const musicScreensaverHold = document.body.classList.contains("music-screensaver");
       if (!icons.length || strength <= 0.01) {
         updateIconParticles(w, h, red, green, blue, !musicScreensaverHold && !pointerHeld, disk);
         resetDesktopGravity();
+        desktopVacuumComplete = false;
         return;
       }
       icons.forEach((icon, index) => {
@@ -438,6 +445,11 @@
       updateIconParticles(w, h, red, green, blue, reassemble, disk);
       // Recover even an icon whose final particle was evicted by the budget.
       if (reassemble) resetDesktopGravity();
+      const complete = icons.length > 0 && icons.every((icon) => iconStates.get(icon)?.disintegrated);
+      if (complete && !desktopVacuumComplete && pointerHeld) {
+        window.dispatchEvent(new CustomEvent("sol:desktop-icons-vacuumed", { detail: { count: icons.length } }));
+      }
+      desktopVacuumComplete = complete;
     }
 
     function resetDesktopGravity(force = false) {
@@ -835,7 +847,9 @@
             : screenSaverActive
               ? 0.56
               : 0;
-        fieldPresence += (fieldTarget - fieldPresence) * (fieldTarget > fieldPresence ? 0.085 : 0.028);
+        // The final swallowed icon latches the shell: snap fully on next frame.
+        if (musicScreensaverHold) fieldPresence = 1;
+        else fieldPresence += (fieldTarget - fieldPresence) * (fieldTarget > fieldPresence ? 0.085 : 0.028);
         if (mediaFieldDrive > 0) {
           pointerMotionGlow = Math.max(pointerMotionGlow, mediaFieldDrive * (mobileLike ? 0.28 : 0.14));
         }

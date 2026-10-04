@@ -401,3 +401,7 @@ It starts as:
 - a plausible audio visualizer
 
 Then the site lets those systems contaminate each other until the browser window stops feeling like a window and starts feeling like a viewport.
+
+### Final-icon activation repair (October 3, 2026)
+
+The renderer emits the automatic activation event only after every participating desktop icon has actually disintegrated. Merely hiding or shrinking icons does not activate it. The last icon triggers the same hold-playlist activation path as the manual ✦ control in the SOL orb popup; the full field snaps on at the next rendered frame. Blocked autoplay leaves the field active and retries on interaction. Dismissal restores the icons. Original hold recordings are unchanged.
