@@ -1239,6 +1239,9 @@
       getCurrentLevel() {
         return clamp01(getAmplitudeRms());
       },
+      getAudioState() {
+        return ac?.state || null;
+      },
       getCurrentBands() {
         return getBands();
       },
