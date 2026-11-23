@@ -1,8 +1,11 @@
 /* Loaded only in the generated GitHub Pages desktop, never in live source. */
 window.SOL_STATIC_ARCHIVE = true;
-// Reserve space for the archive navigation instead of covering the first icon row.
+// Keep the archive navigation clear of desktop icons and maximized window controls.
 const archiveLayout = document.createElement('style');
-archiveLayout.textContent = '.desktop { top: 42px !important; }';
+archiveLayout.textContent = `
+  .desktop { top: 42px !important; }
+  .win95-window.maximized { top: 42px !important; height: calc(100% - 74px) !important; }
+`;
 document.head.appendChild(archiveLayout);
 window.solOpenLiveService = function (path) {
   window.open(new URL(path, 'https://sol.system42.one').href, '_blank', 'noopener,noreferrer');
