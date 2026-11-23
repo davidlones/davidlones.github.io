@@ -13,7 +13,7 @@ from site_sync import ROOT, files, read_public
 OUT = ROOT / '_site'
 LIVE = 'https://sol.system42.one'
 STATIC = 'https://davidlones.github.io'
-SERVICE_ALIASES = ['chat', 'dashboard', 'start', 'radio', 'services/desk', 'unified-clock', 'sol-ai', 'push', 'webcam-feed', 'youtube-transcript-search', 'zip-drive', 'api-reference']
+SERVICE_ALIASES = ['chat', 'dashboard', 'start', 'radio', 'services/desk', 'unified-clock', 'sol-ai', 'push', 'webcam-feed', 'youtube-transcript-search', 'zip-drive', 'api-reference', 'personality-quiz']
 # These need generated catalogs, server aliases or parent service state even when
 # their HTML does not contain an inline /api/ request.
 LIVE_ONLY = {'programs/airbits/index.html', 'programs/media-player.html',
@@ -153,7 +153,7 @@ def main():
     (OUT / 'gui/index.html').write_text(desktop.replace('<head>', '<head><base href="/">', 1))
     index = []
     for name in managed:
-        if name.endswith(('.html', '.md')):
+        if not name.startswith('assets/') and name.endswith(('.html', '.md')):
             text = (ROOT / 'site' / name).read_text()
             index.append({'id': name.replace('/', '-').replace('.', '-'), 'file': name, 'href': name,
                           'title': title(text, name), 'type': 'md' if name.endswith('.md') else 'html',

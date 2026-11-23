@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; frame-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>The Feed Is Watching You Watch It | Sol-37</title>
+  <meta name="description" content="A field experiment in attention, credibility, algorithms, and the machinery of belief. A Sol-37 essay and private, browser-only questionnaire.">
+  <link rel="canonical" href="https://sol.system42.one/the-feed-is-watching.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Sol-37">
+  <meta property="og:url" content="https://sol.system42.one/the-feed-is-watching.html">
+  <meta property="og:title" content="The Feed Is Watching You Watch It">
+  <meta property="og:description" content="A field experiment in attention, credibility, algorithms, and the machinery of belief.">
+  <meta property="og:image" content="https://sol.system42.one/assets/share-previews/the-feed-is-watching.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Article title beside a schematic showing a feed and its reader connected by a feedback loop.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/the-feed-is-watching.css">
+  <script src="/assets/the-feed-layout.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#opening">Skip to article</a>
+  <header class="masthead">
+    <div class="wrap">
+      <nav class="breadcrumb" aria-label="Sol-37 archive"><a href="/">Sol-37</a> <span aria-hidden="true">/</span> <a href="/essays/">Essays</a></nav>
+      <div class="hero">
+        <div>
+          <h1>The Feed Is Watching You Watch It</h1>
+          <p class="dek">A field experiment in attention, credibility, algorithms, and the machinery of belief.</p>
+        </div>
+        <figure class="loop" aria-label="Feedback loop between a feed and its reader">
+          <div class="loop-track"><span>Feed</span><span aria-hidden="true">→</span><span>Reader</span></div>
+          <div class="loop-return" aria-hidden="true">↖ interactions ↙</div>
+          <figcaption>What appears next can depend on what you did last.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </header>
+  <main class="wrap">
+    <nav class="contents" aria-label="Article contents">
+      <strong>Contents</strong>
+      <ol>
+        <li><a href="#opening">What stops the scroll</a></li>
+        <li><a href="#profiling">The personality pipeline</a></li>
+        <li><a href="#ranking">What a feed can prove</a></li>
+        <li><a href="#notebook">The field notebook</a></li>
+        <li><a href="#conclusion">What remains uncertain</a></li>
+        <li><a href="#sources">Sources and related work</a></li>
+      </ol>
+    </nav>
+    <article>
+      <section class="prose" id="opening" tabindex="-1">
+        <h2>What stops the scroll</h2>
+        <p>You open Facebook to see whether anyone has posted a picture from Saturday. Eight minutes later you are reading an argument about a transformer in a town you have never visited. Someone has provided a screenshot. Someone else has provided seventeen exclamation marks. You still haven’t seen the picture from Saturday.</p>
+        <p>Herbert Simon described the asymmetry in 1971. Information can multiply much faster than the attention available to receive it. A feed makes decisions about that scarcity every time it puts one item ahead of another. For a reader, the scarce resource is time and concentration. For a platform selling advertising, the chance to hold either has economic value. For the people posting, placement can determine who ever gets a chance to read them. <a href="#source-simon">[1]</a></p>
+        <p class="pull">Are you choosing what deserves your attention, or has the system become exceptionally good at choosing what you will notice?</p>
+        <p>Those can both be happening. A warning from a colleague, a photograph of damaged equipment, and an accusation in bold type may each earn the same tap. The action is legible to the system. The reason may be missing entirely.</p>
+      </section>
+      <section class="prose" id="profiling">
+        <h2>The personality pipeline</h2>
+        <p>The Big Five grew out of decades of work on how trait descriptions cluster. Lewis Goldberg’s 1990 study tested that structure across sets of English trait terms. In common modern usage the dimensions are openness, conscientiousness, extraversion, agreeableness and neuroticism. They describe variation on broad dimensions. Scores depend on the instrument, the sample and the conditions under which people answer. A handful of questions about what you clicked cannot do that job. <a href="#source-goldberg">[2]</a></p>
+        <p>By 2013, researchers Michal Kosinski, David Stillwell and Thore Graepel were testing whether Facebook Likes could predict characteristics measured elsewhere. Their work made a consequential point about digital traces. A Like on one page is an action about that page. In aggregate, those actions can become predictors of things the person never explicitly disclosed. A model that works on a study sample still has errors, and a change in population or platform can change what an old pattern predicts. <a href="#source-likes">[3]</a></p>
+        <p>Cambridge Analytica turned that possibility into part of a political consulting pitch. The FTC’s 2019 decision documented deception involving the GSRApp, a personality quiz that gathered Facebook information from people who installed it and data associated with their friends. The finding concerns deceptive collection. Whether a particular campaign tactic changed a vote is a separate causal question. In different settings, experiments by Sandra Matz and colleagues found that matching some ad appeals to audience characteristics affected behaviors such as clicks and purchases. The scope of those experiments matters when anyone tries to sell the result as a universal law of persuasion. <a href="#source-ftc">[4]</a> <a href="#source-matz">[5]</a></p>
+        <p>Sol-37’s <a href="/personality-quiz/">Propaganda and the Brain</a> reconstructs the questionnaire and gives it a fictional analytics terminal. <a href="/posts/timeline.html">Project Analytica 2025</a> places the controversy in a broader argument about institutional power. The two projects raise a question that survives any dispute about how good the vendor’s model was. Who can afford to collect the data, run a thousand little trials, and decide what counts as success?</p>
+      </section>
+      <section class="prose" id="ranking">
+        <h2>What a feed can prove</h2>
+        <p>Meta’s published account of ranking describes systems that use signals to predict actions and order eligible content. Your response to an item can become another signal for decisions about later items. The system can be quite good at estimating the chance you will share a post while having very little to say about whether you agreed with it, shared it to rebut it, or sent it to the one friend equipped to explain the transformer. <a href="#source-meta">[6]</a></p>
+        <dl class="definitions">
+          <div><dt>Correlation</dt><dd>Two events occur together. For instance, a SCADA display freezes near the time of an outage.</dd></div>
+          <div><dt>Prediction</dt><dd>A rule tested on new records estimates which freezes are followed by an outage.</dd></div>
+          <div><dt>Causation</dt><dd>Changing a condition changes the outcome compared with what would have happened otherwise. A shared power or communications fault might explain both events.</dd></div>
+        </dl>
+        <p>There is a similar distinction between changing a feed and changing a mind. A randomized study of consenting Facebook and Instagram users during the 2020 U.S. election found that switching to chronological feeds changed exposure and time spent on the platforms. Over the study period the researchers found no detectable changes in several measured political attitudes. That is a specific result about an intervention and its measurements, with plenty of room left for questions about other populations, outcomes and timescales. <a href="#source-feeds">[7]</a></p>
+        <p>In <a href="/stargate-qanon.html">The Stargate Beneath Iran</a>, the feed’s part in mythmaking is to keep the pieces coming. A clip supplies a villain. An old map supplies geography. A comment supplies an explanation for why the map’s date is wrong. Each fragment can have a different author and motive. By the time the reader has fitted them together, the resulting story feels like something discovered through patient research. The sequence helped present the pieces. The reader did some of the assembly.</p>
+      </section>
+      <section id="notebook" aria-labelledby="notebook-title">
+        <div class="prose">
+          <h2 id="notebook-title">The field notebook</h2>
+          <p>Start with your ordinary habits. Then make a few judgments about a fictional feed and see what happens when another record turns up. The utility examples draw on the everyday work of distinguishing a measurement, an operator’s account, and a machine’s interpretation.</p>
+          <p><a id="notebook-version" href="?phase3=3#notebook" hidden>Switch to the short 18-question version</a></p>
+        </div>
+        <iframe id="field-frame" title="The Feed Is Watching You Watch It interactive field notebook"
+          data-src="/assets/the-feed-notebook.html" hidden sandbox="allow-scripts allow-downloads" referrerpolicy="no-referrer"></iframe>
+        <noscript><p>The notebook needs JavaScript to hold answers and generate the report. The essay and sources remain available on this page.</p></noscript>
+      </section>
+      <section class="prose" id="conclusion">
+        <h2>What remains uncertain</h2>
+        <p>A recommendation system can estimate what keeps a person in view and still be wrong about why. A person with years in a control room can recognize a likely fault from a pattern on the screen and still be working from a stale display. Both are operating on partial observations. The operator can ask for an independent log. The platform can run an experiment. Neither move is worth much if nobody is willing to say what result would change their mind.</p>
+        <p>Attention has to go somewhere. Credibility can wait for the source document, the missing timestamp, the comparison case, or the second camera. If the report in your notebook surprises you, look at what the exercise offered you, and in what order, before deciding what it says about you.</p>
+        <p>As for the raccoon, check when the forecast was filed and whether anybody kept the forecasts that missed. The animal is under no obligation to cooperate with the theory.</p>
+      </section>
+      <section class="prose" id="sources">
+        <h2>Sources and related work</h2>
+        <ol>
+          <li id="source-simon"><a href="https://digitalcollections.library.cmu.edu/node/45427">Herbert A. Simon, “Designing Organizations for an Information-Rich World” (1971 archival draft and correspondence)</a>.</li>
+          <li id="source-goldberg"><a href="https://pubmed.ncbi.nlm.nih.gov/2283588/">Lewis R. Goldberg, “An Alternative ‘Description of Personality’” (1990)</a>.</li>
+          <li id="source-likes"><a href="https://doi.org/10.1073/pnas.1218772110">Kosinski, Stillwell and Graepel, “Private Traits and Attributes Are Predictable from Digital Records of Human Behavior” (2013)</a>.</li>
+          <li id="source-ftc"><a href="https://www.ftc.gov/system/files/documents/cases/d09389_comm_final_opinionpublic.pdf">Federal Trade Commission, Cambridge Analytica Commission Opinion (2019, PDF)</a>.</li>
+          <li id="source-matz"><a href="https://doi.org/10.1073/pnas.1710966114">Matz et al., “Psychological Targeting as an Effective Approach to Digital Mass Persuasion” (2017)</a>.</li>
+          <li id="source-meta"><a href="https://about.fb.com/news/2023/06/how-ai-ranks-content-on-facebook-and-instagram/">Meta’s account of Facebook and Instagram ranking (2023)</a>.</li>
+          <li id="source-feeds"><a href="https://pubmed.ncbi.nlm.nih.gov/37498999/">Guess et al., “How Do Social Media Feed Algorithms Affect Attitudes and Behavior in an Election Campaign?” (2023)</a>.</li>
+        </ol>
+        <p>From the archive: <a href="/stargate-qanon.html">The Stargate Beneath Iran</a>, <a href="/personality-quiz/">Propaganda and the Brain</a>, <a href="/posts/timeline.html">Project Analytica 2025</a>, <a href="/mobius-cosmology.html">Möbius Cosmology</a>, and <a href="/goatgrid.html">GoatGrid</a>.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

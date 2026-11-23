@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+  <title>Interactive field notebook | Sol-37</title>
+  <link rel="stylesheet" href="/assets/the-feed-is-watching.css">
+  <script src="/assets/the-feed-notebook.js" defer></script>
+</head>
+<body class="notebook-page">
+  <main id="notebook-shell" class="notebook-shell">
+    <section id="consent">
+      <p class="terminal-label">SOL-37 / FIELD NOTEBOOK</p>
+      <h1>Before you begin</h1>
+      <p>This voluntary educational exercise uses fictional posts and thought experiments. The report describes your own responses and has no psychological or diagnostic scores.</p>
+      <p>Answers stay in this open notebook’s memory. Reloading or restarting clears the working copy. There is no account, social-media sign-in, tracking, or submission. Downloads happen only if you choose to export. You can leave any answer blank.</p>
+      <noscript><p>Enable JavaScript to start the notebook.</p></noscript>
+      <button id="begin" type="button" hidden>Begin the notebook</button>
+    </section>
+    <section id="run" hidden>
+      <header class="notebook-header">
+        <p class="terminal-label" id="phase"></p>
+        <h2 id="progress" tabindex="-1"></h2>
+      </header>
+      <p id="phase-note"></p>
+      <div id="stimulus"></div>
+      <fieldset id="question">
+        <legend id="prompt" tabindex="-1"></legend>
+        <div id="choices" class="choices"></div>
+        <label for="response" id="response-label">Additional context (optional)</label>
+        <textarea id="response" rows="3" maxlength="1200" autocomplete="off"></textarea>
+      </fieldset>
+      <div class="actions">
+        <button id="back" type="button">Back</button>
+        <button id="next" type="button" class="primary">Next</button>
+        <button id="restart" type="button">Restart</button>
+      </div>
+    </section>
+    <section id="debrief" hidden>
+      <p class="terminal-label">SOL-37 / DEBRIEF</p>
+      <h1 id="debrief-title" tabindex="-1">Illustrative reasoning report</h1>
+      <p>The notebook changed its own presentation. It started with familiar habits, moved to a shuffled feed and an evidence reveal, then presented increasingly unusual systems. Those shifts changed what was available to judge and what the questions made salient.</p>
+      <p>A change in confidence here could come from evidence, wording, order, familiarity, or your interpretation of the exercise. The notebook cannot isolate those effects. It records what you said under these conditions.</p>
+      <label for="reflection">Did the shifts in framing, subject matter, or complexity influence how you interpreted the questions? (optional)</label>
+      <textarea id="reflection" rows="3" maxlength="1200" autocomplete="off"></textarea>
+      <dl id="report" class="report"></dl>
+      <details id="review">
+        <summary>Review all your responses</summary>
+        <ol id="answers"></ol>
+      </details>
+      <details>
+        <summary>How this report is assembled</summary>
+        <p>The report copies selected labels and written responses for the questions listed in each section. It preserves the pre-reveal workplace rating alongside the post-reveal rating on the same descriptive scale. Blanks stay blank. It records stimulus order and identifies any edit to the initial rating after evidence became visible. There are no inferred traits, aggregate scores, or right answers.</p>
+      </details>
+      <div class="actions">
+        <button id="edit" type="button">Back to questions</button>
+        <button id="json" type="button">Export JSON</button>
+        <button id="plain" type="button">Export text</button>
+        <button id="restart-report" type="button">Restart</button>
+      </div>
+    </section>
+    <section id="confirm" hidden aria-labelledby="confirm-title">
+      <h2 id="confirm-title" tabindex="-1">Clear this run and start again?</h2>
+      <p>This clears the notebook’s working copy, including the debrief. Your downloaded copies are yours to keep.</p>
+      <div class="actions">
+        <button id="cancel" type="button">Keep working</button>
+        <button id="clear" type="button">Clear responses</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
