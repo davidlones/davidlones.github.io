@@ -148,6 +148,7 @@ function renderQuestion() {
   $('notebook-shell').dataset.phase = phases.indexOf(phase) + 1;
   $('phase').textContent = phase.title;
   $('phase-note').textContent = phase.note;
+  $('causal-sketch').hidden = number !== 20;
   $('progress').textContent = 'Question ' + number + ' of ' + active.length;
   $('prompt').textContent = question.prompt;
   if (question.stimulus === 'evidence' && !sawEvidence) {

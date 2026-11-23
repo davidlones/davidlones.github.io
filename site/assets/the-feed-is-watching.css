@@ -67,6 +67,7 @@ dd { margin: .18em 0 0; }
   border-top: 4px solid #7fc1ab;
   background: #142126;
   overflow-wrap: anywhere;
+  transition: border-color 160ms ease;
 }
 .notebook-shell[data-phase="1"] { background: #182429; }
 .notebook-shell[data-phase="2"] { background: #101c1f; }
@@ -94,6 +95,10 @@ dd { margin: .18em 0 0; }
   box-shadow: 0 .28rem 0 -.05rem #523f68, 0 .48rem 0 -.07rem #ba9cdc;
   transform: rotate(-24deg);
 }
+.causal-sketch { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1rem; margin-bottom: 1rem; border: 1px solid #776a88; padding: .55rem 1rem; background: #231e30; }
+.causal-sketch svg { width: min(100%, 13rem); height: auto; fill: none; stroke: #ddc8f4; stroke-width: 2; }
+.causal-sketch svg circle { fill: #ddc8f4; }
+.causal-sketch figcaption { flex: 1 1 14rem; color: #e0cdf5; font-size: .9rem; }
 #stimulus:empty { display: none; }
 #stimulus { margin-bottom: 1rem; }
 .fictional-feed { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: .65rem; }
