@@ -313,7 +313,7 @@ reset();
 // The article can size the isolated notebook without receiving its contents.
 if (window.parent !== window) {
   const shell = $('notebook-shell');
-  new ResizeObserver(() => {
-    window.parent.postMessage(Math.ceil(shell.getBoundingClientRect().height), '*');
-  }).observe(shell);
+  const postHeight = () => window.parent.postMessage(Math.ceil(shell.getBoundingClientRect().height), '*');
+  new ResizeObserver(postHeight).observe(shell);
+  postHeight();
 }
