@@ -410,6 +410,15 @@
           The taskbar counter now opens a visitor-focused analytics page first. It still preserves the raw Sol-37 operations monitor,
           but leads with the last 24 hours so unique visitors, crawlers, and API polling stop blending into one misleading total.
         </p>
+        <details>
+          <summary>Listing the Unlisted · unlisted analytics offshoot</summary>
+          <p class="subtitle">The workstation hub manages temporary websites, shared files, and unlisted tools. Paste its read-only link to open its live sessions and transfer analytics here.</p>
+          <form id="unlisted-hub-form">
+            <label>Unlisted hub URL <input id="unlisted-hub-url" type="url" placeholder="Paste the link from the local admin console" required style="width:min(100%,32rem)"></label>
+            <button type="submit">Open read-only hub</button>
+            <span id="unlisted-hub-error" role="status"></span>
+          </form>
+        </details>
       </div>
     </div>
 
@@ -891,5 +900,17 @@
       loadMetrics().catch(() => {});
     }, 30000);
   </script>
+<script>
+document.getElementById('unlisted-hub-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+  try {
+    const url = new URL(document.getElementById('unlisted-hub-url').value);
+    if (url.origin !== 'https://sol.system42.one' || !/^\/\.unlisted\/file-share\/[A-Za-z0-9_-]{24,80}\/$/.test(url.pathname) || url.username || url.password) throw new Error('Paste a SOL-37 hub link copied from the admin console.');
+    window.location.assign(url.href);
+  } catch (error) {
+    document.getElementById('unlisted-hub-error').textContent = error.message;
+  }
+});
+</script>
 </body>
 </html>

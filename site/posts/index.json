@@ -1,5 +1,8 @@
 {
   "posts": [
+    {"id":"the-feed-is-watching","title":"The Feed Is Watching You Watch It","date":"2026-11-23","file":"the-feed-is-watching.html"},
+    {"id":"stargate-qanon","title":"The Stargate Beneath Iran","date":"2026-07-28","file":"stargate-qanon.html"},
+    {"id":"propaganda-and-the-brain","title":"Propaganda and the Brain","file":"personality-quiz/","type":"html"},
     {"id":"random-first-learned-environment","title":"Random: The First Learned Environment","date":"2026-08-15","file":"posts/random-the-first-learned-environment.md"},
     {"id":"screensaver-readme","title":"Sol-37 Screensaver README","date":"2026-04-26","file":"SCREENSAVER_README.md"},
     {"id":"place-without-where","title":"The Place Without Where","date":"2026-04-16","file":"posts/the_place_without_where.html"},

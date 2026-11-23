@@ -10,19 +10,19 @@
 <link rel="canonical" href="https://sol.system42.one/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sol-37">
-<meta property="og:url" content="https://sol.system42.one/?v=stargate-20261017">
-<meta property="og:title" content="The Stargate Beneath Iran — Sol-37">
-<meta property="og:description" content="Featured commentary on QAnon, conspirituality, and algorithmic myth, with a documentary highlight reel. Published July 28 and updated August 5, 2026.">
-<meta property="og:image" content="https://sol.system42.one/assets/sol37-og-featured-root-stargate-20261017.png">
-<meta property="og:image:secure_url" content="https://sol.system42.one/assets/sol37-og-featured-root-stargate-20261017.png">
+<meta property="og:url" content="https://sol.system42.one/?v=the-feed-is-watching">
+<meta property="og:title" content="The Feed Is Watching You Watch It — Sol-37">
+<meta property="og:description" content="A field experiment in attention, credibility, algorithms, and the machinery of belief.">
+<meta property="og:image" content="https://sol.system42.one/assets/share-previews/the-feed-is-watching.png">
+<meta property="og:image:secure_url" content="https://sol.system42.one/assets/share-previews/the-feed-is-watching.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Sol-37 root featured window showing the current maximized featured surface.">
+<meta property="og:image:alt" content="Article title beside a schematic showing a feed and its reader connected by a feedback loop.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="The Stargate Beneath Iran — Sol-37">
-<meta name="twitter:description" content="Featured commentary on QAnon, conspirituality, and algorithmic myth, with a documentary highlight reel. Published July 28 and updated August 5, 2026.">
-<meta name="twitter:image" content="https://sol.system42.one/assets/sol37-og-featured-root-stargate-20261017.png">
-<meta name="twitter:image:alt" content="Sol-37 root featured window showing the current maximized featured surface.">
+<meta name="twitter:title" content="The Feed Is Watching You Watch It — Sol-37">
+<meta name="twitter:description" content="A field experiment in attention, credibility, algorithms, and the machinery of belief.">
+<meta name="twitter:image" content="https://sol.system42.one/assets/share-previews/the-feed-is-watching.png">
+<meta name="twitter:image:alt" content="Article title beside a schematic showing a feed and its reader connected by a feedback loop.">
 <meta name="color-scheme" content="light">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20260420b">
 <link rel="alternate icon" href="/favicon.ico?v=20260420b">
@@ -1161,6 +1161,7 @@
   .list { list-style: none; margin: 0; padding: 0; }
   .list li { padding: 6px 8px; border-bottom: 1px dashed #c0c0c0; cursor: pointer; font-size: 13px; }
   .list li:hover, .list li.active { background: #000080; color: #fff; }
+  #posts-list button { width: 100%; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
   .viewer { padding: 10px; font-size: 14px; line-height: 1.35; background: #fff; }
   .viewer h1, .viewer h2, .viewer h3 { margin: .4em 0; }
   .viewer pre { background: #f2f2f2; padding: 6px; overflow: auto; }
@@ -1990,6 +1991,7 @@
     <a href="/packets/parker-county/">Parker County Packet</a>
     <a href="/essays/">Sol-37 essays index</a>
     <a href="/visual-essays/">Sol-37 visual essays index</a>
+    <a href="/the-feed-is-watching.html">The Feed Is Watching You Watch It</a>
     <a href="/stargate-qanon.html">The Stargate Beneath Iran: QAnon, conspirituality, and algorithmic myth</a>
     <a href="/goatgrid.html">GoatGrid: caprine-assisted radio infrastructure proposal and white paper</a>
     <a href="/documents/">Sol-37 documents index</a>
@@ -2058,9 +2060,9 @@
       <img alt="Comic Salon and IRC Bridge" src="/assets/irc-cloudflair-desktop.svg">
       <span>Comic Salon</span>
     </a>
-    <a class="icon" style="left:346px; top:244px;" href="#" aria-label="Open The Stargate Beneath Iran" data-link="stargate-qanon.html" data-link-title="The Stargate Beneath Iran" data-desktop-group="system" data-desktop-order="1.7" data-tinylytics-event="desktop.open" data-tinylytics-event-value="stargate-qanon">
-      <img alt="The Stargate Beneath Iran" src="/assets/share-previews/stargate-qanon.png">
-      <span>Stargate Iran</span>
+    <a class="icon" style="left:346px; top:244px;" href="#" aria-label="Open The Feed Is Watching You Watch It" data-link="the-feed-is-watching.html" data-link-title="The Feed Is Watching You Watch It" data-desktop-group="system" data-desktop-order="1.7" data-tinylytics-event="desktop.open" data-tinylytics-event-value="the-feed-is-watching">
+      <img alt="" src="/assets/share-previews/the-feed-is-watching.png">
+      <span>The Feed Is Watching</span>
     </a>
     <a class="icon" style="left:346px; top:358px;" href="#" aria-label="Open GoatGrid proposal and white paper" data-link="goatgrid.html" data-link-title="GoatGrid — Goats as Infrastructure" data-desktop-group="system" data-desktop-order="1.8" data-tinylytics-event="desktop.open" data-tinylytics-event-value="goatgrid">
       <img alt="GoatGrid" src="/assets/share-previews/goatgrid.png">
@@ -2377,7 +2379,7 @@
         </aside>
         <main class="panel viewer" id="post-viewer">
           <h2>Welcome</h2>
-          <p>This blog merges markdown and text from <code>./posts/index.json</code>, live <code>www/**/*.{md,txt}</code> files via <code>site-index.json</code>, repo docs under <code>random/docs/**/*.{md,txt}</code>, and <code>~/knowledge</code> via <code>knowledge-index.json</code>.</p>
+          <p>This blog includes HTML articles, Markdown and text from <code>./posts/index.json</code>, live <code>www/**/*.{md,txt}</code> files via <code>site-index.json</code>, repo docs under <code>random/docs/**/*.{md,txt}</code>, and <code>~/knowledge</code> via <code>knowledge-index.json</code>.</p>
         </main>
       </div>
     </div>
@@ -2432,9 +2434,9 @@
             <strong>Media Player</strong>
             <span>Jump into audio and video without hunting across icons.</span>
           </button>
-          <button class="start-card" type="button" data-link="stargate-qanon.html" data-link-title="The Stargate Beneath Iran" data-tinylytics-event="menu.open" data-tinylytics-event-value="stargate-qanon">
-            <strong>The Stargate Beneath Iran</strong>
-            <span>Read the media archaeology and watch the 24-minute Antisocial Network highlight reel.</span>
+          <button class="start-card" type="button" data-link="the-feed-is-watching.html" data-link-title="The Feed Is Watching You Watch It" data-tinylytics-event="menu.open" data-tinylytics-event-value="the-feed-is-watching">
+            <strong>The Feed Is Watching You Watch It</strong>
+            <span>A field experiment in attention, credibility, algorithms, and the machinery of belief.</span>
           </button>
           <button class="start-card" type="button" data-link="goatgrid.html" data-link-title="GoatGrid — Goats as Infrastructure" data-tinylytics-event="menu.open" data-tinylytics-event-value="goatgrid">
             <strong>GoatGrid</strong>
@@ -2862,8 +2864,8 @@
   const WIN_MARGIN_BOTTOM = 32;
   const MAXIMIZE_POPOUT_WINDOW_MS = 4000;
   const ROOT_FEATURED_POST = {
-    href: 'stargate-qanon.html',
-    title: 'The Stargate Beneath Iran'
+    href: 'the-feed-is-watching.html',
+    title: 'The Feed Is Watching You Watch It'
   };
   const SECONDARY_FEATURE_POST = {
     href: 'neoriris-clock-tower.html',
@@ -7818,8 +7820,11 @@
   function renderPostsList(){
     postsListEl.innerHTML = '';
     MD_POSTS.sort((a,b)=> (b.date||'').localeCompare(a.date||''));
-    MD_POSTS.forEach(p=>{
+    const blogEntries = [...HTML_POSTS, ...MD_POSTS].sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+    blogEntries.forEach(p=>{
       const li = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
       const sourceLabel = p.source === 'knowledge'
         ? ' · knowledge'
         : p.source === 'docs'
@@ -7827,11 +7832,15 @@
         : p.source === 'www'
           ? ' · www'
           : '';
-      li.textContent = `${p.title}${p.date? ' — '+p.date:''}${sourceLabel}`;
+      button.textContent = `${p.title}${p.date? ' — '+p.date:''}${sourceLabel}`;
       li.dataset.id = p.id;
       li.setAttribute('data-tinylytics-event', 'post.open');
       li.setAttribute('data-tinylytics-event-value', p.id);
-      li.addEventListener('click', ()=> openPost(p.id));
+      li.addEventListener('click', () => {
+        if (p.type === 'html') openHtmlDocumentWindow(p);
+        else openPost(p.id);
+      });
+      li.appendChild(button);
       postsListEl.appendChild(li);
     });
   }
