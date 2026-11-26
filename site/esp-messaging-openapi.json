@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "SOL Universal Node public messaging",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "description": "Account-free LCD messaging, explicit Knowledge dispatch, firmware receipts and public device history."
   },
   "servers": [
@@ -11,7 +11,7 @@
     }
   ],
   "externalDocs": {
-    "url": "https://sol.system42.one/api-reference.md#public-esp-messaging"
+    "url": "https://sol.system42.one/esp-messaging.html"
   },
   "paths": {
     "/unified-clock/esp/api/messages": {
@@ -1166,6 +1166,425 @@
           }
         ]
       }
+    },
+    "/esp-messaging/prepare": {
+      "get": {
+        "operationId": "preparePublicEspHtml",
+        "description": "Prepare a message with sender and message or a single exact addressed query. No device command is sent.",
+        "parameters": [
+          {
+            "name": "sender",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "message",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "duration",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ack",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "HTML preparation",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Automated preview rejected",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/esp-messaging/review": {
+      "get": {
+        "operationId": "reviewPublicEspHtml",
+        "description": "Read a prepared message with an HTML confirmation form. The request itself is inert.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "HTML review",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Expired or unknown token",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/esp-messaging/send": {
+      "post": {
+        "operationId": "confirmPublicEspHtml",
+        "description": "Deliberately send a previously prepared message.",
+        "parameters": [],
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "Repeated submission receipt",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New submission receipt",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Delivery pending",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid confirmation",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin or preview rejected",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Expired token",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Firmware rejection",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Delivery unconfirmed",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "confirm"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{32}$"
+                  },
+                  "confirm": {
+                    "const": "send"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/esp-messaging/receipt/{submissionId}": {
+      "get": {
+        "operationId": "getPublicEspHtmlReceipt",
+        "description": "Read server and firmware states plus any matched display lifecycle event.",
+        "parameters": [
+          {
+            "name": "submissionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "HTML receipt",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown receipt",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge/query": {
+      "get": {
+        "operationId": "handleAddressedKnowledgeEspQuery",
+        "description": "A full @esp/pocket-display FROM Handle: message prepares only. A separate full @esp/pocket-display CONFIRM TOKEN intentionally sends. Ordinary informational queries return normal JSON search results.",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "HTML preparation, replay receipt or ordinary JSON search",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "New confirmation receipt",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Delivery pending",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid addressed query",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Automated access rejected",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Expired token",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Firmware rejection",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Delivery unconfirmed",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1531,6 +1950,13 @@
                 "type": "null"
               }
             ]
+          },
+          "receiptHtmlUrl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "display": {
+            "$ref": "#/components/schemas/DisplayLifecycle"
           }
         },
         "required": [
@@ -1687,6 +2113,38 @@
                 "rgb.set"
               ]
             }
+          }
+        }
+      },
+      "DisplayLifecycle": {
+        "type": "object",
+        "required": [
+          "status",
+          "recipientAcknowledgment"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "unconfirmed",
+              "dismissed",
+              "expired"
+            ]
+          },
+          "recipientAcknowledgment": {
+            "enum": [
+              "unconfirmed",
+              "acknowledged",
+              "not_acknowledged",
+              "not_requested"
+            ]
+          },
+          "recordedAt": {
+            "type": [
+              "string",
+              "number",
+              "null"
+            ],
+            "description": "Host timestamp of the matched device event."
           }
         }
       }
