@@ -1,12 +1,13 @@
 # Sol-37 Public API Quickstart
 
-Updated: July 18, 2026
+Updated November 25, 2026
 
 Public base URL: `https://sol.system42.one`
 
 Machine-readable contracts:
 
 - [Combined chat and knowledge OpenAPI](https://sol.system42.one/chat-openapi.json)
+- [Public ESP messaging OpenAPI](https://sol.system42.one/esp-messaging-openapi.json)
 - [Knowledge-only OpenAPI](https://sol.system42.one/knowledge-openapi.json)
 - [David-GPT-2 continuation OpenAPI](https://sol.system42.one/downloads/david-gpt2-gemma/david-continuation-openapi.json)
 - [Neoriris Clock Tower OpenAPI](https://sol.system42.one/neoriris-clock-tower-openapi.json)
@@ -79,6 +80,103 @@ curl 'https://sol.system42.one/api/knowledge/health'
 ```
 
 `docs` is the backward-compatible chunk count. `indexed_sources` is the source-file count. The nested `index` object reports logical roots, indexed time, exclusions, and new/changed/removed/stale counts.
+
+## Public ESP messaging
+
+The account-free ESP Device portal sends messages to the enrolled pocket display
+(`sol-dongle-f2339c`). The LCD shows `@handle` and the message together. A handle
+is self-declared and the sender and message are visible in the node's public
+history. Public Logbook remains its own guestbook and IRC channel.
+
+- [Public ESP Device portal](https://sol.system42.one/e)
+- [Public ESP OpenAPI](https://sol.system42.one/esp-messaging-openapi.json)
+- [Live public state](https://sol.system42.one/unified-clock/esp/api/state)
+- [Public notification history](https://sol.system42.one/unified-clock/esp/api/history/notifications?node=sol-dongle-f2339c&limit=20)
+- [D20 roll history](https://sol.system42.one/unified-clock/esp/api/history/rolls?node=sol-dongle-f2339c&limit=20)
+
+### Direct JSON submission
+
+```bash
+curl -sS 'https://sol.system42.one/unified-clock/esp/api/messages' \
+  -H 'Content-Type: application/json' \
+  --data '{"sender":"WebTest37","message":"Direct API check","severity":"success","duration":10,"ack":false}'
+```
+
+`sender` is a 1–12 character ASCII handle starting with a letter or digit.
+Dots, underscores and hyphens may follow. `message` is 1–50 printable ASCII
+characters containing at least one non-space character. The server collapses
+consecutive spaces. `severity` is `info` (default), `success`, `warning` or
+`critical`. `duration` is a whole number of seconds from 1 through 30, with
+a default of 10. `ack` defaults to false. True requests correlation when a
+person dismisses the notification with the hardware button. The firmware
+delivery acknowledgment is returned regardless of this option.
+
+The legacy `POST /unified-clock/esp/api/command` notification retains
+`{"deviceId":"sol-dongle-f2339c","command":"notification","payload":{...}}`.
+Use `payload.sender` or the existing `payload.title` as the handle,
+`payload.body` as the message, and keep `severity`, `timeout` and `ack` in
+the payload. Public validation and limits apply. Its successful response
+retains HTTP 200 and `result.type`, `result.ok` and `result.id`.
+
+### Retrieval-only client and explicit Knowledge dispatch
+
+1. Open this exact preparation URL using an ordinary GET client. It returns
+   `submissionToken` and `expiresIn` with `accepted: false`.
+   [Prepare a URI smoke test](https://sol.system42.one/unified-clock/esp/api/messages/prepare?sender=WebTest37&message=URI%20interop%20check&duration=10)
+2. When you intend to send, put the returned token in
+   `https://sol.system42.one/unified-clock/esp/api/messages/redeem?confirm=send&token=TOKEN_FROM_STEP_1`
+   and fetch that exact URL within 120 seconds. A replay within the token
+   lifetime returns the same receipt. Keep the redemption URL within the
+   requesting client. An unmarked client that fetches a complete, live
+   redemption URL can consume it.
+3. Fetch `receiptUrl` from the returned JSON or open the linked history above.
+
+For a Knowledge dispatch test, open the following preparation URL and use the
+same redemption step. [Prepare an explicitly addressed query](https://sol.system42.one/api/knowledge/dispatch/prepare?sender=WebTest37&query=%40esp%2Fpocket-display%20Knowledge%20dispatch%20check&duration=10)
+
+A JSON client can send to `POST /api/knowledge/dispatch` with
+`{"sender":"WebTest37","query":"@esp/pocket-display Knowledge dispatch check"}`.
+The gateway requires the exact address plus a space before the message. It
+routes the message directly to the notification handler. Search and model
+output have no dispatch authority. `/api/knowledge/query`, including semantic
+ranking and explicitly addressed strings submitted as searches, remains
+read-only. Use a browser or a user-initiated web retrieval tool that can make
+both GETs. Availability of a particular chat product's fetch tool can vary.
+
+The gateway rejects HEAD, recognized crawler and prefetch requests on
+preparation and redemption. Responses are marked no-store and noindex.
+Preparations, redemptions, and JSON submissions use the same validated
+payload and target. Same normalized sender, message and options within
+120 seconds resolve to the original receipt across all submission methods.
+New messages are limited to three per client and five across the node per
+minute, with a single delivery in flight. Preparation is limited to eight
+per client and 60 across the node per minute. HTTP 429 includes Retry-After.
+
+### Receipts and device controls
+
+HTTP 201 means a new message was accepted and the firmware replied. HTTP 200
+returns an acknowledged duplicate or legacy acceptance. HTTP 202 means the
+submission is accepted and delivery is in progress. HTTP 502 reports firmware
+rejection. HTTP 503 with `accepted: true` means that delivery is unconfirmed.
+Read the receipt to check `delivery.status` and `delivery.firmwareAck`. The
+read-only receipt URL returns HTTP 200 for an existing receipt even if delivery
+failed. The firmware ACK ID matches the notification history
+`notification_id`. The gateway's `submissionId` matches `submission_id` in
+history. A firmware reply and a physical observation are separate evidence.
+
+The public portal uses `GET /unified-clock/esp/api/state` for refresh and the
+two history URLs for browsing. Pass the returned `nextBefore` as `before`
+with the same node to page backward. Notification history contains submissions
+made through the public message handler.
+
+`POST /unified-clock/esp/api/controls` accepts the existing `deviceId`,
+`command` and `payload` envelope for public display, LED, animation and D20
+commands. Public state exposes their names in `supportedCommands`. Use
+`POST /unified-clock/esp/api/controls/frame` with `deviceId` and
+`frameBase64` for a 25,600-byte RGB565LE frame at up to 4 FPS. The original
+`command` and `frame` URLs remain available. Reboot, power configuration
+and external-port operations use the signed-in Unified Clock. The node
+daemon authenticates the transport for every command.
 
 ## David-GPT-2 Text Continuation
 
