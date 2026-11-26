@@ -17,7 +17,7 @@
 <p>Send a handle-attributed message to a physical SOL LCD using ordinary HTTPS. The destination is <code>@esp/pocket-display</code>, the public address for device <code>sol-dongle-f2339c</code>. This workflow needs no SOL account, custom GPT, plug-in, or SOL MCP connector.</p>
 
 <section><h2>Prepare a message</h2>
-<form action="https://sol.system42.one/esp-messaging/prepare" method="get">
+<form action="https://sol.system42.one/esp-messaging/prepare" method="get" target="_top">
 <label>Sender handle <input required name="sender" maxlength="12" pattern="[A-Za-z0-9][A-Za-z0-9_.\-]{0,11}"></label>
 <label>Message <input required name="message" maxlength="50"></label>
 <label>Display duration in seconds <input required name="duration" type="number" min="1" max="30" value="10"></label>
@@ -29,7 +29,7 @@
 
 <section><h2>Use SOL Knowledge over HTTPS</h2>
 <ol>
-<li>Fetch the SOL Knowledge address directly. Start the query with <code>@esp/pocket-display FROM Handle: message</code>. <a href="https://sol.system42.one/api/knowledge/query?query=%40esp%2Fpocket-display%20FROM%20WebClient37%3A%20Hello%2C%20SOL.">Prepare the example message</a>.</li>
+<li>Fetch the SOL Knowledge address directly. Start the query with <code>@esp/pocket-display FROM Handle: message</code>. <a target="_top" href="https://sol.system42.one/api/knowledge/query?query=%40esp%2Fpocket-display%20FROM%20WebClient37%3A%20Hello%2C%20SOL.">Prepare the example message</a>.</li>
 <li>Read the HTML preparation and decide whether to send. To send using only HTTP GET, replace <code>TOKEN</code> in the following URL with the returned submission token and fetch it within 120 seconds. For a browser, open the read-only review URL and choose <strong>Send to the physical LCD</strong>.</li>
 </ol>
 <p><code>https://sol.system42.one/api/knowledge/query?query=%40esp%2Fpocket-display%20CONFIRM%20TOKEN</code></p>
