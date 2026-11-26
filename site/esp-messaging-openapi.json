@@ -1,0 +1,1695 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SOL Universal Node public messaging",
+    "version": "1.0.0",
+    "description": "Account-free LCD messaging, explicit Knowledge dispatch, firmware receipts and public device history."
+  },
+  "servers": [
+    {
+      "url": "https://sol.system42.one"
+    }
+  ],
+  "externalDocs": {
+    "url": "https://sol.system42.one/api-reference.md#public-esp-messaging"
+  },
+  "paths": {
+    "/unified-clock/esp/api/messages": {
+      "post": {
+        "operationId": "submitPublicEspMessage",
+        "summary": "Send an account-free LCD message",
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "Previously acknowledged or legacy acknowledgment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Accepted and acknowledged by firmware",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted, awaiting firmware result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Accepted, rejected by firmware",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Accepted, firmware delivery unconfirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Submission limit reached, retry later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Message"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/unified-clock/esp/api/command": {
+      "post": {
+        "operationId": "submitLegacyEspNotification",
+        "summary": "Send via the legacy notification envelope",
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "Previously acknowledged or legacy acknowledgment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted, awaiting firmware result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Accepted, rejected by firmware",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Accepted, firmware delivery unconfirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Submission limit reached, retry later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signed-in operator control required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown device, history or receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegacyCommand"
+              }
+            }
+          }
+        },
+        "description": "A legacy title supplies the handle when sender is absent. Signed-in device operation schemas are documented with Unified Clock."
+      }
+    },
+    "/unified-clock/esp/api/messages/prepare": {
+      "get": {
+        "operationId": "preparePublicEspMessage",
+        "summary": "Prepare a single-use LCD submission token",
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "Prepared, no LCD command issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prepared"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "GET required for retrieval workflow",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Submission limit reached, retry later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sender",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+              "description": "Self-declared public handle."
+            }
+          },
+          {
+            "name": "message",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[ -~]{1,50}$",
+              "maxLength": 50,
+              "description": "Printable ASCII with at least one non-space character."
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "info",
+                "success",
+                "warning",
+                "critical"
+              ],
+              "default": "info"
+            }
+          },
+          {
+            "name": "duration",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 10
+            }
+          },
+          {
+            "name": "ack",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "description": "Correlate the on-device button dismissal when available."
+            }
+          }
+        ],
+        "description": "Creates a token valid for 120 seconds. This request does not send to the LCD."
+      }
+    },
+    "/unified-clock/esp/api/messages/redeem": {
+      "get": {
+        "operationId": "redeemPublicEspSubmission",
+        "summary": "Intentionally send a prepared message",
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "Previously acknowledged or legacy acknowledgment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Accepted and acknowledged by firmware",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted, awaiting firmware result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Accepted, rejected by firmware",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Accepted, firmware delivery unconfirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "GET required for retrieval workflow",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "Expired or unknown token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Submission limit reached, retry later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{32}$"
+            }
+          },
+          {
+            "name": "confirm",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "const": "send"
+            }
+          }
+        ],
+        "description": "Side-effecting GET for ordinary retrieval clients. Call only on explicit request. Never publish or prefetch a live token. Replay within its lifetime returns the original receipt."
+      }
+    },
+    "/unified-clock/esp/api/messages/receipt": {
+      "get": {
+        "operationId": "getPublicEspReceipt",
+        "summary": "Read a public delivery receipt",
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "Receipt with delivery status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown device, history or receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/unified-clock/esp/api/controls": {
+      "post": {
+        "operationId": "controlPublicEspDevice",
+        "summary": "Use a public display, LED, animation or D20 control",
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "Command response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signed-in operator control required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown device, history or receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Control"
+              }
+            }
+          }
+        },
+        "description": "The legacy command endpoint also accepts these controls. Public notifications use the messages endpoint."
+      }
+    },
+    "/unified-clock/esp/api/controls/frame": {
+      "post": {
+        "operationId": "castPublicEspFrame",
+        "summary": "Send one 160 by 80 RGB565LE frame",
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "Frame response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown device, history or receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Frame"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/unified-clock/esp/api/state": {
+      "get": {
+        "operationId": "getPublicEspState",
+        "summary": "Read live public node state and summary",
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "Connection, power, D20 summary and latest public message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicState"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/knowledge/dispatch": {
+      "post": {
+        "operationId": "dispatchExplicitEspQuery",
+        "summary": "Send an explicitly addressed query to the LCD",
+        "security": [],
+        "x-openai-isConsequential": true,
+        "responses": {
+          "200": {
+            "description": "Previously acknowledged or legacy acknowledgment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Accepted and acknowledged by firmware",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Accepted, awaiting firmware result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Accepted, rejected by firmware",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Accepted, firmware delivery unconfirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Receipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "JSON required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Submission limit reached, retry later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressedQuery"
+              }
+            }
+          }
+        },
+        "description": "Use the exact @esp/pocket-display prefix and a space. The gateway dispatches before retrieval or model inference. Knowledge search remains read-only."
+      }
+    },
+    "/api/knowledge/dispatch/prepare": {
+      "get": {
+        "operationId": "prepareExplicitEspQuery",
+        "summary": "Prepare a token for an explicitly addressed query",
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "Prepared, no LCD command issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Prepared"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cross-origin request or automated preview rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "GET required for retrieval workflow",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Submission limit reached, retry later",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sender",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+              "description": "Self-declared public handle."
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^@esp/pocket-display [ -~]{1,50}$"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "info",
+                "success",
+                "warning",
+                "critical"
+              ],
+              "default": "info"
+            }
+          },
+          {
+            "name": "duration",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 10
+            }
+          },
+          {
+            "name": "ack",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "description": "Correlate the on-device button dismissal when available."
+            }
+          }
+        ]
+      }
+    },
+    "/unified-clock/esp/api/history/notifications": {
+      "get": {
+        "operationId": "getPublicEspNotifications",
+        "summary": "Read the node's notifications history",
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "Device-scoped page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NotificationEvent"
+                      }
+                    },
+                    "nextBefore": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "events",
+                    "nextBefore"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown device, history or receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "node",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "sol-dongle-f2339c"
+              ]
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 250,
+              "default": 50
+            }
+          }
+        ]
+      }
+    },
+    "/unified-clock/esp/api/history/rolls": {
+      "get": {
+        "operationId": "getPublicEspRolls",
+        "summary": "Read the node's rolls history",
+        "security": [],
+        "x-openai-isConsequential": false,
+        "responses": {
+          "200": {
+            "description": "Device-scoped page",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "nextBefore": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "events",
+                    "nextBefore"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload, parameters or cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown device, history or receipt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "node",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "sol-dongle-f2339c"
+              ]
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Message": {
+        "type": "object",
+        "properties": {
+          "sender": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+            "description": "Self-declared public handle."
+          },
+          "message": {
+            "type": "string",
+            "pattern": "^[ -~]{1,50}$",
+            "maxLength": 50,
+            "description": "Printable ASCII with at least one non-space character."
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "success",
+              "warning",
+              "critical"
+            ],
+            "default": "info"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 10
+          },
+          "ack": {
+            "type": "boolean",
+            "default": false,
+            "description": "Correlate the on-device button dismissal when available."
+          }
+        },
+        "required": [
+          "sender",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "AddressedQuery": {
+        "type": "object",
+        "properties": {
+          "sender": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+            "description": "Self-declared public handle."
+          },
+          "query": {
+            "type": "string",
+            "pattern": "^@esp/pocket-display [ -~]{1,50}$"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "info",
+              "success",
+              "warning",
+              "critical"
+            ],
+            "default": "info"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 10
+          },
+          "ack": {
+            "type": "boolean",
+            "default": false,
+            "description": "Correlate the on-device button dismissal when available."
+          }
+        },
+        "required": [
+          "sender",
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "LegacyCommand": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "enum": [
+              "sol-dongle-f2339c"
+            ]
+          },
+          "command": {
+            "const": "notification"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {
+              "sender": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+                "description": "Self-declared public handle."
+              },
+              "title": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+                "description": "Self-declared public handle."
+              },
+              "body": {
+                "type": "string",
+                "pattern": "^[ -~]{1,50}$",
+                "maxLength": 50,
+                "description": "Printable ASCII with at least one non-space character."
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30,
+                "default": 10
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "success",
+                  "warning",
+                  "critical"
+                ],
+                "default": "info"
+              },
+              "ack": {
+                "type": "boolean",
+                "default": false,
+                "description": "Correlate the on-device button dismissal when available."
+              }
+            },
+            "required": [
+              "body"
+            ],
+            "additionalProperties": false,
+            "anyOf": [
+              {
+                "required": [
+                  "sender"
+                ]
+              },
+              {
+                "required": [
+                  "title"
+                ]
+              }
+            ]
+          }
+        },
+        "required": [
+          "deviceId",
+          "command",
+          "payload"
+        ]
+      },
+      "Control": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "enum": [
+              "sol-dongle-f2339c"
+            ]
+          },
+          "command": {
+            "type": "string",
+            "enum": [
+              "animation.play",
+              "animation.status",
+              "animation.stop",
+              "dice.confirm",
+              "dice.forget",
+              "dice.pair",
+              "dice.reconnect",
+              "dice.release",
+              "dice.select",
+              "dice.status",
+              "display.clear",
+              "display.control_qr",
+              "display.lines",
+              "display.progress",
+              "display.sleep",
+              "display.status",
+              "display.wake",
+              "rgb.blink",
+              "rgb.off",
+              "rgb.set"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Existing per-command Unified Clock payload."
+          }
+        },
+        "required": [
+          "deviceId",
+          "command"
+        ]
+      },
+      "Frame": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "enum": [
+              "sol-dongle-f2339c"
+            ]
+          },
+          "frameBase64": {
+            "type": "string",
+            "contentEncoding": "base64",
+            "minLength": 34136,
+            "maxLength": 34136,
+            "description": "Exactly 25,600 bytes of 160 by 80 RGB565LE."
+          }
+        },
+        "required": [
+          "deviceId",
+          "frameBase64"
+        ],
+        "additionalProperties": false
+      },
+      "Prepared": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "accepted": {
+            "const": false
+          },
+          "submissionToken": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{32}$"
+          },
+          "expiresIn": {
+            "const": 120
+          }
+        },
+        "required": [
+          "ok",
+          "accepted",
+          "submissionToken",
+          "expiresIn"
+        ]
+      },
+      "FirmwareAck": {
+        "type": "object",
+        "properties": {
+          "v": {
+            "type": "integer"
+          },
+          "type": {
+            "enum": [
+              "ack",
+              "error"
+            ]
+          },
+          "id": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "id",
+          "ok"
+        ]
+      },
+      "Delivery": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "acknowledged",
+              "pending",
+              "rejected",
+              "unknown"
+            ]
+          },
+          "firmwareAck": {
+            "$ref": "#/components/schemas/FirmwareAck"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "Receipt": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "accepted": {
+            "const": true
+          },
+          "submissionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "deviceId": {
+            "type": "string",
+            "enum": [
+              "sol-dongle-f2339c"
+            ]
+          },
+          "sender": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+                "description": "Self-declared public handle."
+              },
+              "authenticated": {
+                "const": false
+              }
+            },
+            "required": [
+              "handle",
+              "authenticated"
+            ]
+          },
+          "command": {
+            "const": "notification"
+          },
+          "source": {
+            "enum": [
+              "post",
+              "legacy",
+              "uri",
+              "semantic"
+            ]
+          },
+          "duplicate": {
+            "type": "boolean"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          },
+          "receiptUrl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FirmwareAck"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "accepted",
+          "submissionId",
+          "deviceId",
+          "sender",
+          "command",
+          "duplicate",
+          "delivery",
+          "receiptUrl"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "accepted": {
+            "const": false
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "NotificationEvent": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer"
+          },
+          "event": {
+            "pattern": "^(public\\.message\\.|command\\.ack$)"
+          },
+          "time": {
+            "type": "number"
+          },
+          "device_id": {
+            "type": "string",
+            "enum": [
+              "sol-dongle-f2339c"
+            ]
+          },
+          "notification_id": {
+            "type": "string"
+          },
+          "submission_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "delivery": {
+            "$ref": "#/components/schemas/Delivery"
+          },
+          "notification": {
+            "type": "object",
+            "properties": {
+              "sender": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,11}$",
+                "description": "Self-declared public handle."
+              },
+              "senderAuthenticated": {
+                "const": false
+              },
+              "body": {
+                "type": "string",
+                "pattern": "^[ -~]{1,50}$",
+                "maxLength": 50,
+                "description": "Printable ASCII with at least one non-space character."
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "success",
+                  "warning",
+                  "critical"
+                ],
+                "default": "info"
+              },
+              "timeout": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30,
+                "default": 10
+              },
+              "ack": {
+                "type": "boolean",
+                "default": false,
+                "description": "Correlate the on-device button dismissal when available."
+              }
+            }
+          }
+        },
+        "required": [
+          "offset",
+          "event",
+          "time",
+          "device_id",
+          "notification_id",
+          "submission_id",
+          "delivery",
+          "notification"
+        ]
+      },
+      "PublicState": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "diceSummaries": {
+            "type": "object"
+          },
+          "powerProfiles": {
+            "type": "object"
+          },
+          "supportedCommands": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "animation.play",
+                "animation.status",
+                "animation.stop",
+                "dice.confirm",
+                "dice.forget",
+                "dice.pair",
+                "dice.reconnect",
+                "dice.release",
+                "dice.select",
+                "dice.status",
+                "display.clear",
+                "display.control_qr",
+                "display.lines",
+                "display.progress",
+                "display.sleep",
+                "display.status",
+                "display.wake",
+                "notification",
+                "rgb.blink",
+                "rgb.off",
+                "rgb.set"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
