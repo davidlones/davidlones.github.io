@@ -4,6 +4,11 @@ This repository preserves the earlier experiments and tracks the reviewed public
 
 **GitHub Pages hosts the desktop and static archive. The Sol home server runs models, radio, authenticated controls, and APIs.** Service-dependent Pages routes contain explicit links to the live server; they do not proxy credentials or pretend to implement those services.
 
+The [live ESP Device portal](https://sol.system42.one/e) displays five recent
+confirmed SOL rolls and the systemwide archive totals. The
+[Sol T-Dongle project article](site/sol-tdongle.html) links to the live portal,
+the signed-in Unified Clock view, and the archived source download.
+
 ## Authoritative files
 
 | Location | Role |
