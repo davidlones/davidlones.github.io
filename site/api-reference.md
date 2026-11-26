@@ -120,6 +120,17 @@ retains HTTP 200 and `result.type`, `result.ok` and `result.id`.
 
 ### Retrieval-only client and explicit Knowledge dispatch
 
+Use the indexable [public messaging guide](https://sol.system42.one/esp-messaging.html)
+or its [service discovery JSON](https://sol.system42.one/esp-messaging-service.json).
+A direct GET to `/api/knowledge/query` with
+`@esp/pocket-display FROM ChatGPT: Hello, SOL.` returns a human-readable
+preparation. A second deliberate GET to the same endpoint with
+`@esp/pocket-display CONFIRM TOKEN` sends through the validated redemption
+handler. URL-encode each query. Keep the live token inside the direct HTTPS
+client. Other Knowledge queries continue to search. The prepared review is
+read-only and offers a browser POST form. Public receipts are available in
+both HTML and JSON.
+
 1. Open this exact preparation URL using an ordinary GET client. It returns
    `submissionToken` and `expiresIn` with `accepted: false`.
    [Prepare a URI smoke test](https://sol.system42.one/unified-clock/esp/api/messages/prepare?sender=WebTest37&message=URI%20interop%20check&duration=10)
@@ -138,9 +149,7 @@ A JSON client can send to `POST /api/knowledge/dispatch` with
 `{"sender":"WebTest37","query":"@esp/pocket-display Knowledge dispatch check"}`.
 The gateway requires the exact address plus a space before the message. It
 routes the message directly to the notification handler. Search and model
-output have no dispatch authority. `/api/knowledge/query`, including semantic
-ranking and explicitly addressed strings submitted as searches, remains
-read-only. Use a browser or a user-initiated web retrieval tool that can make
+output have no dispatch authority. Informational `/api/knowledge/query` inputs continue to use search and semantic ranking. The two exact addressed forms above are handled before retrieval. Use a browser or a user-initiated web retrieval tool that can make
 both GETs. Availability of a particular chat product's fetch tool can vary.
 
 The gateway rejects HEAD, recognized crawler and prefetch requests on

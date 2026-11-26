@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SOL Public ESP Messaging | SOL-37</title>
+<meta name="description" content="Send an account-free message to the SOL Universal Node LCD using a browser or the public SOL Knowledge query API.">
+<link rel="canonical" href="https://sol.system42.one/esp-messaging.html">
+<link rel="alternate" type="application/json" href="/esp-messaging-service.json">
+<style>
+:root{color-scheme:dark;font:1rem/1.55 system-ui;background:#101a20;color:#e8f4f5}main{max-width:48rem;margin:6vh auto;padding:0 1.25rem}a{color:#86e4df}h1{line-height:1.15}section{margin:2rem 0}code{overflow-wrap:anywhere}label{display:block;margin:.75rem 0}input,button{font:inherit}input:not([type=checkbox]){display:block;box-sizing:border-box;width:100%;max-width:31rem;padding:.5rem}button{min-height:44px;padding:.4rem 1rem}li{margin:.45rem 0}
+</style>
+</head>
+<body><main>
+<nav><a href="/">SOL-37</a> · <a href="https://sol.system42.one/e">ESP Device</a> · <a href="/programs/logbook.html">Public Logbook</a></nav>
+<h1>SOL Public ESP Messaging</h1>
+<p>Send a handle-attributed message to a physical SOL LCD using ordinary HTTPS. The destination is <code>@esp/pocket-display</code>, the public address for device <code>sol-dongle-f2339c</code>. This workflow needs no SOL account, custom GPT, plug-in, or SOL MCP connector.</p>
+
+<section><h2>Prepare a message</h2>
+<form action="https://sol.system42.one/esp-messaging/prepare" method="get">
+<label>Sender handle <input required name="sender" maxlength="12" pattern="[A-Za-z0-9][A-Za-z0-9_.\-]{0,11}"></label>
+<label>Message <input required name="message" maxlength="50"></label>
+<label>Display duration in seconds <input required name="duration" type="number" min="1" max="30" value="10"></label>
+<label><input type="checkbox" name="ack" value="true"> Request acknowledgment by button dismissal</label>
+<button type="submit">Prepare and review</button>
+</form>
+<p>The handle is self-declared. Use 1–12 ASCII letters, digits, periods, underscores or hyphens, starting with a letter or digit. The message must contain 1–50 printable ASCII characters and at least one non-space character. Sender and message appear in device history after acceptance.</p>
+</section>
+
+<section><h2>Use SOL Knowledge over HTTPS</h2>
+<ol>
+<li>Fetch the SOL Knowledge address directly. Start the query with <code>@esp/pocket-display FROM Handle: message</code>. <a href="https://sol.system42.one/api/knowledge/query?query=%40esp%2Fpocket-display%20FROM%20WebClient37%3A%20Hello%2C%20SOL.">Prepare the example message</a>.</li>
+<li>Read the HTML preparation and decide whether to send. To send using only HTTP GET, replace <code>TOKEN</code> in the following URL with the returned submission token and fetch it within 120 seconds. For a browser, open the read-only review URL and choose <strong>Send to the physical LCD</strong>.</li>
+</ol>
+<p><code>https://sol.system42.one/api/knowledge/query?query=%40esp%2Fpocket-display%20CONFIRM%20TOKEN</code></p>
+<p>Keep the live confirmation URL inside the direct client. A third-party search engine’s search box does not forward your instruction to SOL. A search-only client can discover this page. Sending requires a client that can directly fetch the parameterized URL or submit the review form.</p>
+</section>
+
+<section><h2>Endpoints and receipts</h2>
+<ul>
+<li><code>GET /esp-messaging/prepare?sender=WebClient37&amp;message=Hello%2C%20SOL.</code> prepares an HTML review. <code>GET /esp-messaging/review?token=TOKEN</code> opens an inert review. <code>POST /esp-messaging/send</code> confirms a form with <code>token</code> and <code>confirm=send</code>.</li>
+<li><code>GET /api/knowledge/query</code> searches normally. The exact <code>FROM</code> and <code>CONFIRM</code> forms prepare and redeem respectively.</li>
+<li><code>POST /unified-clock/esp/api/messages</code>, legacy <code>POST /unified-clock/esp/api/command</code>, and <code>POST /api/knowledge/dispatch</code> accept JSON. The JSON preparation and redemption tools remain under <code>/unified-clock/esp/api/messages/</code>.</li>
+<li><code>GET /esp-messaging/receipt/SUBMISSION_ID</code> opens an HTML delivery receipt. <code>GET /unified-clock/esp/api/messages/receipt?id=SUBMISSION_ID</code> returns JSON.</li>
+</ul>
+<p>Prepared tokens expire after two minutes. An in-window replay returns the same receipt. Duplicate normalized messages and options within that window resolve to the original receipt. New submissions are limited to three per client and five per device per minute, with one delivery in flight. Preparation is limited to eight per client and 60 per device per minute.</p>
+<p>Server acceptance means SOL recorded the submission. A firmware ACK confirms the device handled the command. Physical LCD visibility requires a person or camera. On compatible firmware, the receipt reports expiration or button dismissal when the device sends the matching event. A short press while an acknowledgment-requested message is visible both dismisses it and acknowledges it.</p>
+<p>Public controls include display, LED, animation, media and D20 operations. Reboot, power configuration, and external-port administration require a signed-in Unified Clock session.</p>
+<p><a href="/api-reference.md#public-esp-messaging">API reference</a> · <a href="/esp-messaging-openapi.json">OpenAPI</a> · <a href="/esp-messaging-service.json">Service discovery JSON</a></p>
+</section>
+</main></body></html>

@@ -1,0 +1,26 @@
+{
+  "service": "SOL Universal Node public messaging",
+  "version": "2",
+  "origin": "https://sol.system42.one",
+  "discovery": "/esp-messaging.html",
+  "openapi": "/esp-messaging-openapi.json",
+  "devices": [
+    {
+      "id": "sol-dongle-f2339c",
+      "alias": "pocket-display",
+      "address": "@esp/pocket-display",
+      "publicPortal": "/e"
+    }
+  ],
+  "authentication": "none for public messages",
+  "tokenLifetimeSeconds": 120,
+  "knowledge": {
+    "method": "GET",
+    "path": "/api/knowledge/query",
+    "parameter": "query",
+    "prepareTemplate": "@esp/pocket-display FROM {sender}: {message}",
+    "confirmTemplate": "@esp/pocket-display CONFIRM {submissionToken}"
+  },
+  "htmlReceipt": "/esp-messaging/receipt/{submissionId}",
+  "jsonReceipt": "/unified-clock/esp/api/messages/receipt?id={submissionId}"
+}
