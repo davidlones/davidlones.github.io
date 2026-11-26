@@ -213,6 +213,7 @@
     <a href="/">SOL-37 / HARDWARE LAB</a>
     <nav aria-label="Page sections">
       <a href="#features">Features</a>
+      <a href="#pixels">Pixels D20</a>
       <a href="#evidence">Evidence</a>
       <a href="#download">Download</a>
     </nav>
@@ -225,12 +226,13 @@
         <h1>A pocket-sized <span>Sol node.</span></h1>
         <p class="lede">A thumb-drive-shaped development board rebuilt as an authenticated wireless display, cast target, physical-event source, bounded LCD/LED animation player, and electrically safe universal GPIO node for the main Sol system.</p>
         <div class="actions">
-          <a class="button" href="/downloads/sol-tdongle/sol-tdongle-universal-node-0.7.3.zip" download>Download source 0.7.3</a>
+          <a class="button" href="https://sol.system42.one/e" target="_blank" rel="noopener">Open live device controls</a>
+          <a class="button secondary" href="#download">Source release 0.7.3</a>
           <a class="button secondary" href="#evidence">See physical evidence</a>
         </div>
-        <p class="release-note">ZIP 2,057,795 bytes / SHA-256 823c1078b6852b694c0e379c377e545332246dac8543a00f6073886e4f17503d</p>
+        <p class="release-note">Live firmware <code>0.9.0-entropy.rc10.1</code> · November 25, 2026</p>
       </div>
-      <aside class="device-card" aria-label="Current device status representation">
+      <aside class="device-card" aria-label="Example device screen from the 0.7.3 release">
         <div class="screen">
           <strong>SOL ONLINE</strong>
           10.0.1.143<br>
@@ -239,7 +241,7 @@
           SAMSUNG 20K
         </div>
         <div class="device-meta">
-          <div><span>Firmware</span><b>0.7.3</b></div>
+          <div><span>Example firmware</span><b>0.7.3</b></div>
           <div><span>Display</span><b>160 x 80</b></div>
           <div><span>Transport</span><b>AUTH WS</b></div>
           <div><span>External</span><b>SAFE GPIO</b></div>
@@ -268,8 +270,22 @@
           <article class="capability"><span class="number">03 / FEEDBACK</span><h3>Local confirmation</h3><p>Button and GPIO activity receives immediate on-device feedback, then fades back to the default status screen. Desktop and private phone responses stay synchronized.</p></article>
           <article class="capability"><span class="number">04 / ANIMATION</span><h3>Local timelines</h3><p>Up to 24 bounded steps can coordinate LCD status, lines, progress, QR, and APA102 color without network-timed jitter. The declarative format cannot run code or touch GPIO.</p></article>
           <article class="capability"><span class="number">05 / GPIO</span><h3>Safe by default</h3><p>GPIO43 and GPIO44 begin high-impedance, then apply a validated internal-pull-up button profile. Read, watch, pulse, PWM, UART, I2C, failsafe, and port.safe remain permission-gated.</p></article>
-          <article class="capability"><span class="number">06 / NETWORK</span><h3>Appliance behavior</h3><p>Six remembered networks, primary-profile grace, DHCP, mDNS, authenticated outbound WebSocket, reconnect backoff, event buffering, telemetry, and OTA survive ordinary power cycles.</p></article>
+          <article class="capability"><span class="number">06 / NETWORK</span><h3>Appliance behavior</h3><p>Up to 12 saved Wi-Fi profiles, primary-profile grace, DHCP, mDNS, authenticated outbound WebSocket, reconnect backoff, event buffering, telemetry, and OTA survive ordinary power cycles.</p></article>
           <article class="capability"><span class="number">07 / CONTROL</span><h3>Unified Clock surface</h3><p>The Unified Clock supplies display, LED patterns, timeline editing, GPIO, media, power-profile, response, and safety controls without exposing node credentials to browser JavaScript.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="pixels" class="rule">
+      <div class="shell">
+        <div class="section-head">
+          <h2>Pixels D20 roll archive</h2>
+          <p>The dongle and Unified Clock show the latest five confirmed SOL rolls, newest first, with the all-time count, sum and average. Roll history and the latest message or prompt follow the selected node. The Pixels panel shows the last reported internal journal, microSD and pending-copy status alongside the existing power monitor.</p>
+          <p>If SOL becomes unreachable while the die is linked over Bluetooth, the dongle keeps updating its Home display and labels those provisional statistics <code>LOCAL</code>. It sends queued rolls after reconnecting. The web widgets update as SOL records those rolls.</p>
+          <div class="actions">
+            <a class="button" href="https://sol.system42.one/e" target="_blank" rel="noopener">Public ESP Device</a>
+            <a class="button secondary" href="https://sol.system42.one/unified-clock/app/#esp" target="_blank" rel="noopener">Signed-in ESP Device</a>
+          </div>
         </div>
       </div>
     </section>
@@ -369,7 +385,7 @@
     <section id="download" class="rule">
       <div class="shell release">
         <div>
-          <p class="eyebrow">Public source release</p>
+          <p class="eyebrow">Public source archive · 0.7.3</p>
           <h2>Build the whole node.</h2>
           <p>The archive contains the ESP32-S3 firmware, authenticated Linux daemon, protocol documentation, host integration, service units, tests, deployment scripts, selected physical evidence, and a generic 0.7.3 firmware binary.</p>
           <div class="actions">
@@ -399,7 +415,7 @@
   </main>
 
   <footer>
-    <div class="shell"><span>Sol T-Dongle Universal Node / firmware 0.7.3</span><span><a href="/projects/">Projects</a> / <a href="/">Return to Sol-37 desktop</a></span></div>
+    <div class="shell"><span>Sol T-Dongle Universal Node</span><span><a href="/projects/">Projects</a> / <a href="/">Return to Sol-37 desktop</a></span></div>
   </footer>
 </body>
 </html>
