@@ -230,7 +230,7 @@ function showEdition(item, data) {
 }
 
 async function fetchJson(path) {
-  const response = await fetch(root + path, { cache: 'no-store', signal: AbortSignal.timeout(20000) });
+  const response = await fetch(root + path, { cache: 'no-cache', signal: AbortSignal.timeout(90000) });
   if (!response.ok) throw new Error('File unavailable');
   return response.json();
 }
