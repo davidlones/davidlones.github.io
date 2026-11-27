@@ -9,6 +9,9 @@ const title = document.querySelector('#screenplay-title');
 const source = document.querySelector('#source');
 const download = document.querySelector('#download');
 const followLabel = document.querySelector('#follow-label');
+const credits = document.querySelector('#production-credits');
+const creditsButton = document.querySelector('#play-credits');
+const replayButton = document.querySelector('#replay-screenplay');
 const root = '/elliotts-tower/';
 const prelude = { id: picker.value, title: title.textContent, source: source.href };
 
@@ -17,6 +20,9 @@ let byWord = new Map();
 let active = null;
 let frame = 0;
 let stopRecording;
+let edition;
+let creditsSelected = false;
+let pendingSeek;
 let catalog = new Map([[prelude.id, prelude]]);
 let displayed;
 let revision;
@@ -24,6 +30,7 @@ let requestId = 0;
 let loading = false;
 
 function updateHighlight(scroll = true) {
+  if (creditsSelected) return;
   const time = audio.currentTime * 1000;
   let low = 0;
   let high = cues.length;
@@ -56,16 +63,38 @@ function tick() {
 }
 
 function seek(cue) {
+  if (creditsSelected) {
+    const resume = !audio.paused;
+    restoreScreenplay();
+    pendingSeek = cue;
+    if (resume) audio.play().catch(() => {});
+    return;
+  }
   audio.currentTime = (cue[1] + 1) / 1000;
   updateHighlight();
 }
 
-audio.addEventListener('play', () => { if (!frame) tick(); });
+audio.addEventListener('loadedmetadata', () => {
+  if (!pendingSeek) return;
+  const cue = pendingSeek;
+  pendingSeek = undefined;
+  seek(cue);
+});
+audio.addEventListener('play', () => {
+  if (creditsSelected) {
+    if (picker.value === displayed) status.textContent = '';
+  } else if (!frame) tick();
+});
 for (const event of ['seeking', 'seeked', 'pause', 'ended', 'timeupdate']) {
   audio.addEventListener(event, () => updateHighlight());
 }
+audio.addEventListener('ended', () => {
+  if (picker.value === displayed) playCredits();
+});
 audio.addEventListener('error', () => {
-  if (!audio.hidden) status.textContent = 'Audio could not load. Try the MP3 download.';
+  if (!audio.hidden) status.textContent = creditsSelected
+    ? 'The credits audio could not load.'
+    : 'Audio could not load. Try the MP3 download.';
 });
 transcript.addEventListener('click', event => {
   if (event.target.closest('a') || !window.getSelection()?.isCollapsed) return;
@@ -82,7 +111,55 @@ chapters.addEventListener('change', () => {
   chapters.value = '';
 });
 follow.addEventListener('change', () => {
-  if (follow.checked && active) active[0].scrollIntoView({ block: 'center' });
+  if (!follow.checked) return;
+  if (creditsSelected) credits.scrollIntoView({ block: 'start' });
+  else if (active) active[0].scrollIntoView({ block: 'center' });
+});
+
+function releaseRecording() {
+  stopRecording?.();
+  stopRecording = undefined;
+  pendingSeek = undefined;
+  cancelAnimationFrame(frame);
+  frame = 0;
+  active?.forEach(span => span.classList.remove('current'));
+  active = null;
+}
+
+function restoreScreenplay() {
+  const rate = audio.playbackRate;
+  releaseRecording();
+  creditsSelected = false;
+  replayButton.hidden = true;
+  status.textContent = '';
+  audio.setAttribute('aria-label', edition.label);
+  setRecording(edition.stream, edition.audio);
+  audio.playbackRate = rate;
+}
+
+function playCredits(manual = false) {
+  if (!edition?.audio || !credits.dataset.audio || (creditsSelected && !manual)) return;
+  if (!creditsSelected) {
+    const rate = audio.playbackRate;
+    releaseRecording();
+    creditsSelected = true;
+    replayButton.hidden = false;
+    audio.setAttribute('aria-label', 'Production credits read by Early');
+    audio.src = credits.dataset.audio;
+    audio.playbackRate = rate;
+    if (follow.checked) credits.scrollIntoView({ block: 'start' });
+  }
+  audio.play().catch(error => {
+    if (creditsSelected && error.name === 'NotAllowedError') {
+      status.textContent = 'Press Play to hear the production credits.';
+    }
+  });
+}
+
+creditsButton.addEventListener('click', () => playCredits(true));
+replayButton.addEventListener('click', () => {
+  restoreScreenplay();
+  audio.play().catch(() => {});
 });
 
 function setRecording(track, downloadUrl) {
@@ -195,11 +272,10 @@ function showEdition(item, data) {
   }
 
   audio.pause();
-  stopRecording?.();
-  stopRecording = undefined;
-  cancelAnimationFrame(frame);
-  frame = 0;
-  active = null;
+  releaseRecording();
+  creditsSelected = false;
+  replayButton.hidden = true;
+  edition = { audio: data.audio, stream: data.stream, label: item.title + ' read by ' + (data.narrator ?? 'Early') };
   words.length = 0;
   words.push(...nextWords);
   cues = data.cues ?? [];
@@ -213,8 +289,9 @@ function showEdition(item, data) {
 
   audio.hidden = followLabel.hidden = download.hidden = !hasAudio;
   follow.disabled = !hasAudio;
+  creditsButton.disabled = !hasAudio || !credits.dataset.audio;
   if (hasAudio) {
-    audio.setAttribute('aria-label', item.title + ' read by ' + (data.narrator ?? 'Early'));
+    audio.setAttribute('aria-label', edition.label);
     download.href = data.audio;
     download.download = item.title + '.mp3';
     setRecording(data.stream, data.audio);
