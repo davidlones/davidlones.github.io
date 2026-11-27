@@ -17,7 +17,7 @@ SERVICE_ALIASES = ['chat', 'dashboard', 'start', 'radio', 'services/desk', 'unif
 # These need generated catalogs, server aliases or parent service state even when
 # their HTML does not contain an inline /api/ request.
 LIVE_ONLY = {'programs/airbits/index.html', 'programs/media-player.html',
-             'programs/dosbox.html', 'programs/orb-assistant.html',
+             'programs/dosbox.html', 'programs/orb-assistant.html', 'elliotts-tower/index.html',
              'programs/unified-clock.html', 'featured-facebook-post.html'}
 GUARDS = ['hydrateAssistantHistory', 'initializeAssistantBroadcastPolling',
           'initializePublicPushNotifications', 'refreshSecondaryFeatureMinecraftStatus',
