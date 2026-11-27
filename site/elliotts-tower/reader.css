@@ -35,7 +35,7 @@ header p { margin: .5rem 0 0; color: var(--gold); font: 1.28rem Georgia, serif; 
 .controls { display: grid; gap: .5rem; padding: .7rem 0; }
 audio { width: 100%; display: block; height: 2.5rem; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1rem; font-size: .82rem; }
-.actions select { max-width: min(100%, 16rem); }
+.actions select { width: min(42vw, 16rem); min-width: 0; }
 .actions select, .actions button { background: #233633; border: 1px solid #647a70; border-radius: .3rem; padding: .2rem .5rem; }
 .actions label { display: inline-flex; align-items: center; gap: .25rem; }
 .actions input { accent-color: var(--gold); }
@@ -43,7 +43,7 @@ audio { width: 100%; display: block; height: 2.5rem; }
 .status:empty { display: none; }
 article { width: min(100%, 45rem); margin: auto; padding: 1.4rem 0 6rem; font: clamp(1.06rem, 2.4vw, 1.25rem)/1.7 Georgia, serif; overflow-wrap: anywhere; }
 article :is(h1,h2,h3) { line-height: 1.24; margin: 1.5em 0 .55em; }
-article h1 { color: var(--gold); font-size: 1.55em; }
+article h1 { color: var(--gold); font-size: 1.55em; scroll-margin-top: 10rem; }
 article h1:first-child { margin-top: 0; }
 article h2 { font-size: 1.22em; }
 article h3 { font-size: 1em; }
