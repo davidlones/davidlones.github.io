@@ -1241,7 +1241,7 @@
       const clean = dedupeText(text);
       if (!clean) return "";
       const lowered = clean.toLowerCase();
-      const target = String(query || "").trim().toLowerCase();
+      const target = String(query || "").trim().replace(/^"(.+)"$/, "$1").toLowerCase();
       if (!target) return clean.slice(0, 220);
       const index = lowered.indexOf(target);
       if (index === -1) return clean.slice(0, 220);
@@ -1265,8 +1265,9 @@
     }
 
     function buildSemanticItem(result, query) {
-      const archiveHref = result.section_url?.startsWith(location.origin + "/screenplay-logs/")
-        ? result.section_url.slice(location.origin.length) : "";
+      const archiveUrl = result.section_url ? new URL(result.section_url, location.href) : null;
+      const archiveHref = archiveUrl?.origin === "https://sol.system42.one" && archiveUrl.pathname.startsWith("/screenplay-logs/")
+        ? archiveUrl.pathname + archiveUrl.hash : "";
       const href = normalizeHref(archiveHref || result.media_url || knowledgePathToHref(result.path));
       if (!href) return null;
       const existing = catalogItems.find((item) => item.href === href);
@@ -1345,7 +1346,7 @@
         label: collectionLabel(id),
         pathLabel: id === "screenplays" ? "S:\\" : `C:\\SOL37\\WWW\\[${collectionLabel(id).toUpperCase()}]\\`,
         items: id === "screenplays"
-          ? (collectionMap.get(id) || []).filter(item => !screenplaySeries || item.series === screenplaySeries)
+          ? (collectionMap.get(id) || []).filter(item => item.href !== "screenplay-logs/" && (!screenplaySeries || item.series === screenplaySeries))
             .sort((a, b) => (a.pin - b.pin) || a.title.localeCompare(b.title))
           : sortItems(collectionMap.get(id) || [])
       }));
