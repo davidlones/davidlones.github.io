@@ -76,7 +76,7 @@ transcript.addEventListener('click', event => {
 chapters.addEventListener('change', () => {
   const index = Number(chapters.value);
   if (!chapters.value) return;
-  const cue = byWord.get(index);
+  const cue = byWord.get(index) ?? cues.find(([word]) => word >= index);
   if (cue) seek(cue);
   document.getElementById(`chapter-${index}`)?.scrollIntoView({ block: 'start' });
   chapters.value = '';
@@ -214,8 +214,9 @@ function showEdition(item, data) {
   audio.hidden = followLabel.hidden = download.hidden = !hasAudio;
   follow.disabled = !hasAudio;
   if (hasAudio) {
-    audio.setAttribute('aria-label', item.title + ' read by Early');
+    audio.setAttribute('aria-label', item.title + ' read by ' + (data.narrator ?? 'Early'));
     download.href = data.audio;
+    download.download = item.title + '.mp3';
     setRecording(data.stream, data.audio);
   } else {
     audio.removeAttribute('src');
@@ -225,7 +226,7 @@ function showEdition(item, data) {
   chapters.length = 1;
   for (const [index, title] of data.chapters) chapters.add(new Option(title, index));
   chapters.disabled = !data.chapters.length;
-  status.textContent = hasAudio ? '' : 'Transcript only';
+  status.textContent = hasAudio ? '' : 'Narration is being prepared.';
   updateHighlight(false);
 }
 
@@ -243,8 +244,9 @@ async function loadEdition(item, refresh = false) {
     const isPrelude = item.id === prelude.id;
     const data = await fetchJson(isPrelude ? 'edition.json' : `screenplays/${item.id}.json`);
     if (id !== requestId) return;
-    if (refresh && (data.sourceSha256 === revision ||
-        isPrelude && (!audio.paused || audio.currentTime > 0 && !audio.ended))) return;
+    const sameEdition = data.sourceSha256 === revision && (!audio.hidden || !data.audio);
+    const inProgress = !audio.hidden && (!audio.paused || audio.currentTime > 0 && !audio.ended);
+    if (refresh && (sameEdition || inProgress)) return;
     showEdition(item, data);
     if (!refresh && displayed && displayed !== item.id) window.scrollTo(0, 0);
     displayed = item.id;
@@ -279,7 +281,7 @@ async function refreshCatalog() {
       title.textContent = item.title;
       source.href = item.source;
       transcript.setAttribute('aria-label', item.title + ' transcript');
-      if (selected === prelude.id || item.revision !== revision) loadEdition(item, true);
+      if (selected === prelude.id || item.revision !== revision || audio.hidden) loadEdition(item, true);
     }
   } catch {
     if (!loading && displayed === prelude.id) loadEdition(prelude, true);
