@@ -8,6 +8,7 @@ const revisionNotice = document.querySelector('#revision-notice');
 let archivedEditions = new Map();
 let requestedScreenplay = new URLSearchParams(location.search).get('screenplay');
 const picker = document.querySelector('#screenplay');
+const voicePicker = document.querySelector('#voice');
 const title = document.querySelector('#screenplay-title');
 const source = document.querySelector('#source');
 const download = document.querySelector('#download');
@@ -28,6 +29,8 @@ let creditsSelected = false;
 let pendingSeek;
 let catalog = new Map([[prelude.id, prelude]]);
 let displayed;
+let displayedVoice;
+let displayedAudio;
 let revision;
 let requestId = 0;
 let loading = false;
@@ -261,7 +264,7 @@ function setRecording(track, downloadUrl) {
   audio.src = url;
 }
 
-function showEdition(item, data) {
+function showEdition(item, data, voiceName) {
   const hasAudio = Boolean(data.audio);
   const content = document.createElement('template');
   content.innerHTML = data.html;
@@ -296,7 +299,7 @@ function showEdition(item, data) {
   if (hasAudio) {
     audio.setAttribute('aria-label', edition.label);
     download.href = data.audio;
-    download.download = item.title + '.mp3';
+    download.download = item.title + ' — ' + voiceName + '.mp3';
     setRecording(data.stream, data.audio);
   } else {
     audio.removeAttribute('src');
@@ -306,12 +309,13 @@ function showEdition(item, data) {
   chapters.length = 1;
   for (const [index, title] of data.chapters) chapters.add(new Option(title, index));
   chapters.disabled = !data.chapters.length;
-  status.textContent = hasAudio ? '' : 'Narration is being prepared.';
+  status.textContent = hasAudio ? '' : voiceName + ' narration is being prepared.';
   updateHighlight(false);
 }
 
-async function fetchJson(path) {
+async function fetchJson(path, optional = false) {
   const response = await fetch(root + path, { cache: 'no-cache', signal: AbortSignal.timeout(90000) });
+  if (optional && response.status === 404) return null;
   if (!response.ok) throw new Error('File unavailable');
   return response.json();
 }
@@ -334,23 +338,40 @@ function showSourceRevision(item, recordedHash) {
 async function loadEdition(item, refresh = false) {
   const id = ++requestId;
   loading = true;
+  const voice = voicePicker.value;
+  const voiceName = voicePicker.selectedOptions[0].text;
   if (!refresh) status.textContent = 'Loading screenplay…';
   try {
     const isPrelude = item.id === prelude.id;
-    const data = await fetchJson(isPrelude ? 'edition.json' : `screenplays/${item.id}.json`);
+    const earlyPath = isPrelude ? 'edition.json' : `screenplays/${item.id}.json`;
+    let data;
+    if (voice === 'sol-gpt') {
+      const alternate = await fetchJson(`screenplays/${item.id}.sol-gpt.json`, true);
+      if (alternate) {
+        data = alternate;
+      } else {
+        const {audio, stream, cues, ...transcriptData} = await fetchJson(earlyPath);
+        data = transcriptData;
+      }
+    } else {
+      data = await fetchJson(earlyPath);
+    }
     if (id !== requestId) return;
     showSourceRevision(item, refresh ? revision : data.sourceSha256);
-    const sameEdition = data.sourceSha256 === revision && (!audio.hidden || !data.audio);
+    const sameEdition = data.sourceSha256 === revision && data.audio === displayedAudio;
     const inProgress = !audio.hidden && (!audio.paused || audio.currentTime > 0 && !audio.ended);
     if (refresh && (sameEdition || inProgress)) return;
-    showEdition(item, data);
+    showEdition(item, data, voiceName);
     if (!refresh && displayed && displayed !== item.id) window.scrollTo(0, 0);
     displayed = item.id;
+    displayedVoice = voice;
+    displayedAudio = data.audio;
     revision = data.sourceSha256;
     showSourceRevision(item, revision);
   } catch {
     if (id !== requestId || refresh) return;
     picker.value = catalog.has(displayed) ? displayed : prelude.id;
+    voicePicker.value = displayedVoice ?? 'early';
     status.textContent = 'This screenplay could not load. Try again or open its source in Drive.';
     if (!displayed) source.href = item.source;
   } finally {
@@ -388,7 +409,9 @@ async function refreshCatalog() {
       showSourceRevision(item, revision);
       source.href = item.source;
       transcript.setAttribute('aria-label', item.title + ' transcript');
-      if (selected === prelude.id || item.revision !== revision || audio.hidden) loadEdition(item, true);
+      if (voicePicker.value === 'sol-gpt' || selected === prelude.id || item.revision !== revision || audio.hidden) {
+        loadEdition(item, true);
+      }
     }
   } catch {
     if (!loading && displayed === prelude.id) loadEdition(prelude, true);
@@ -396,6 +419,9 @@ async function refreshCatalog() {
 }
 
 picker.addEventListener('change', () => {
+  loadEdition(catalog.get(picker.value));
+});
+voicePicker.addEventListener('change', () => {
   loadEdition(catalog.get(picker.value));
 });
 loadEdition(prelude);
