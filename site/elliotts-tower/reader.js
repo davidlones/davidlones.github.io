@@ -6,7 +6,8 @@ const follow = document.querySelector('#follow');
 const status = document.querySelector('#status');
 const revisionNotice = document.querySelector('#revision-notice');
 let archivedEditions = new Map();
-const requestedScreenplay = new URLSearchParams(location.search).get('screenplay');
+const requested = new URLSearchParams(location.search);
+const requestedScreenplay = requested.get('screenplay');
 const picker = document.querySelector('#screenplay');
 const voicePicker = document.querySelector('#voice');
 const title = document.querySelector('#screenplay-title');
@@ -17,6 +18,9 @@ const credits = document.querySelector('#production-credits');
 const creditsButton = document.querySelector('#play-credits');
 const replayButton = document.querySelector('#replay-screenplay');
 const retryButton = document.querySelector('#retry-edition');
+const shareButton = document.querySelector('#share-screenplay');
+const shareStatus = document.querySelector('#share-status');
+const canonical = document.querySelector('link[rel="canonical"]').href;
 const root = '/elliotts-tower/';
 const prelude = { id: picker.value, title: title.textContent, source: source.href };
 
@@ -37,6 +41,7 @@ let voiceNotice = '';
 let revision;
 let editionRequest;
 let loading = false;
+let shareConfirmation;
 
 function updateHighlight(scroll = true) {
   if (creditsSelected) return;
@@ -462,7 +467,7 @@ async function refreshCatalog() {
     catalog = next;
     picker.disabled = next.size < 2;
     if (picker.value !== selected) {
-      loadSelection();
+      selectAndLoad();
     } else if (displayed === selected) {
       const item = next.get(selected);
       if (item.title) {
@@ -485,14 +490,52 @@ function loadSelection() {
   return loadEdition(catalog.get(picker.value));
 }
 
+function setSelectionParams(url) {
+  url.searchParams.set('screenplay', picker.value);
+  url.searchParams.set('voice', voicePicker.value);
+  return url;
+}
+
+function clearShareConfirmation() {
+  clearTimeout(shareConfirmation);
+  shareStatus.textContent = '';
+}
+
+function selectAndLoad() {
+  clearShareConfirmation();
+  try {
+    history.replaceState(history.state, '', setSelectionParams(new URL(location.href)));
+  } catch {
+    // Embedded browsers may restrict address-bar updates.
+  }
+  return loadSelection();
+}
+
+async function copyShareLink() {
+  const link = setSelectionParams(new URL(canonical)).href;
+  try {
+    await navigator.clipboard.writeText(link);
+    clearShareConfirmation();
+    shareStatus.textContent = 'Link copied';
+    shareConfirmation = setTimeout(clearShareConfirmation, 2200);
+  } catch {
+    window.prompt('Copy screenplay share link', link);
+  }
+}
+
 function refreshReader() {
   void refreshCatalog();
   void refreshArchiveMetadata();
 }
 
-picker.addEventListener('change', loadSelection);
-voicePicker.addEventListener('change', loadSelection);
+picker.addEventListener('change', selectAndLoad);
+voicePicker.addEventListener('change', selectAndLoad);
 retryButton.addEventListener('click', loadSelection);
+shareButton.addEventListener('click', copyShareLink);
+const requestedVoice = requested.get('voice');
+if (Array.from(voicePicker.options).some(option => option.value === requestedVoice)) {
+  voicePicker.value = requestedVoice;
+}
 if (requestedScreenplay !== prelude.id && /^[A-Za-z0-9_-]{10,128}$/.test(requestedScreenplay ?? '')) {
   const item = { id: requestedScreenplay, source: `https://drive.google.com/open?id=${requestedScreenplay}` };
   catalog.set(item.id, item);
