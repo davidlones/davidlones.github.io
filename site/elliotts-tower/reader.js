@@ -77,14 +77,12 @@ function setRecording(track, downloadUrl) {
     audio.src = downloadUrl;
     return;
   }
-  if (audio.canPlayType('application/vnd.apple.mpegurl')) {
-    audio.src = track.path + 'audio.m3u8';
-    return;
-  }
-  const Media = window.MediaSource || window.ManagedMediaSource;
+  const Media = window.ManagedMediaSource || window.MediaSource;
   const mime = 'audio/mp4; codecs="mp4a.40.2"';
   if (!Media?.isTypeSupported(mime)) {
-    audio.src = downloadUrl;
+    audio.src = audio.canPlayType('application/vnd.apple.mpegurl')
+      ? track.path + 'audio.m3u8'
+      : downloadUrl;
     return;
   }
 
