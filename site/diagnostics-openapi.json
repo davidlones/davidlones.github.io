@@ -28,7 +28,8 @@
             "type": "string",
             "enum": [
               "json",
-              "text"
+              "text",
+              "html"
             ],
             "default": "json"
           }
@@ -80,6 +81,11 @@
                 }
               },
               "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/html": {
                 "schema": {
                   "type": "string"
                 }

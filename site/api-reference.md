@@ -15,6 +15,8 @@ Machine-readable contracts:
 
 ## Live retrieval diagnostics
 
+[Open the HTML retrieval diagnostics](https://sol.system42.one/retrieval-diagnostics.html) to compare the same input as HTML, plain text and JSON.
+
 Use GET or HEAD on `/api/diagnostics/echo`. Each execution generates a request ID and UTC timestamp. GET returns the decoded query and parameters. The default representation is JSON. Select `format=text` for plain text. Only `q` and `format` are accepted once each. Use harmless text. Addressing syntax on the echo route is inert. A repeated ID can identify a previously retrieved representation. Search clients may reuse content despite the server’s no-store policy.
 
 - [Echo spaces and punctuation](https://sol.system42.one/api/diagnostics/echo?q=Hello%2C+SOL%21)
@@ -31,7 +33,7 @@ Use GET or HEAD on `/api/diagnostics/echo`. Each execution generates a request I
 
 A successful search result can contain an earlier response. On November 26, a web retrieval client followed published links and received three fresh echo responses. Reopening one link returned the earlier request ID. Directly opening a new query URL through the same client produced no corresponding echo execution. A client can verify a fresh read by comparing the returned ID and server time with a second observation.
 
-The Knowledge query searches indexed documents. For the latest recorded Pixels rolls or notifications, use the node-scoped archive links above and read the timestamps on the returned events. The node parameter is required. Use the Chat GET operation with `persist=0` for an unpersisted conversational turn. Model execution may exceed a retrieval client's timeout.
+The Knowledge query searches indexed documents. Questions asking for the latest recorded D20 rolls consult the public node archive. Each live result identifies its source and the time of the recorded event. The node-scoped archive links above also provide roll and notification history. The node parameter is required. Use the Chat GET operation with `persist=0` for an unpersisted conversational turn. Model execution may exceed a retrieval client's timeout.
 
 ## Chat
 
