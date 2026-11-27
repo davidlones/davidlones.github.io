@@ -25,8 +25,8 @@ Use GET or HEAD on `/api/diagnostics/echo`. Each execution generates a request I
 - [Chat health](https://sol.system42.one/api/chat/health)
 - [Public system health](https://sol.system42.one/api/state/health)
 - [Continuation health](https://sol.system42.one/api/david-continuation/health)
-- [Latest D20 archive entry](https://sol.system42.one/unified-clock/esp/api/history/rolls?limit=1)
-- [Public notification archive](https://sol.system42.one/unified-clock/esp/api/history/notifications?limit=1)
+- [Latest D20 archive entry](https://sol.system42.one/unified-clock/esp/api/history/rolls?node=sol-dongle-f2339c&limit=1)
+- [Public notification archive](https://sol.system42.one/unified-clock/esp/api/history/notifications?node=sol-dongle-f2339c&limit=1)
 - [Diagnostic OpenAPI](https://sol.system42.one/diagnostics-openapi.json)
 
 ## Chat
