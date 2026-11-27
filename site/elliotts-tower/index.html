@@ -6,7 +6,7 @@
   <meta name="description" content="Read and listen to the Elliott’s Tower screenplay collection with synchronized word highlighting.">
   <link rel="canonical" href="https://sol.system42.one/elliotts-tower/">
   <link rel="stylesheet" href="/elliotts-tower/reader.css?v=spoken-credits">
-  <script src="/elliotts-tower/reader.js?v=archive-revisions" defer></script>
+  <script src="/elliotts-tower/reader.js?v=voice-selector" defer></script>
   <title>Elliott’s Tower — The Complete Prelude | SOL-37</title>
 </head>
 <body>
@@ -27,6 +27,10 @@
     <div class="shell controls">
       <audio controls preload="metadata" aria-label="The Complete Prelude read by Early"></audio>
       <div class="actions">
+        <label>Voice <select id="voice">
+          <option value="early">Early</option>
+          <option value="sol-gpt">SOL–GPT</option>
+        </select></label>
         <label id="follow-label"><input id="follow" type="checkbox" checked disabled> Follow narration</label>
         <label>Jump to <select id="chapters" disabled><option value="">Choose a section</option></select></label>
         <button id="replay-screenplay" type="button" hidden>Replay screenplay</button>
@@ -43,7 +47,7 @@
     <section id="production-credits" aria-labelledby="credits-heading" data-audio="/audio/elliotts-tower-production-credits-fc48aa3ac33eef.mp3">
       <h2 id="credits-heading">Production credits</h2>
       <h3>Voice and synthesis</h3>
-      <p>These credits are read by Early on SOL-37. Cloud editions use ElevenLabs Early through Eleven Speak. Local Early runs on Resemble AI’s Chatterbox Nano.</p>
+      <p>These credits are read by Early on SOL-37. Early and SOL–GPT use ElevenLabs through Eleven Speak, with local editions produced by Resemble AI’s Chatterbox Nano.</p>
       <h3>Local voice corpus</h3>
       <p>Existing Early recordings and their transcripts form a private voice corpus. A short reference clip guides each local reading. Chatterbox uses the original model weights and adds the PerTh watermark to its audio.</p>
       <h3>Reader and playback</h3>
