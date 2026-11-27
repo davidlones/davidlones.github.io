@@ -1,0 +1,108 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SOL public retrieval diagnostics",
+    "version": "1"
+  },
+  "servers": [
+    {
+      "url": "https://sol.system42.one"
+    }
+  ],
+  "paths": {
+    "/api/diagnostics/echo": {
+      "parameters": [
+        {
+          "name": "q",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "format",
+          "in": "query",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "json",
+              "text"
+            ],
+            "default": "json"
+          }
+        }
+      ],
+      "get": {
+        "operationId": "echoDiagnostic",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Fresh diagnostic response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "query",
+                    "request_id",
+                    "server_utc",
+                    "method",
+                    "version",
+                    "parameters"
+                  ],
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    },
+                    "request_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "server_utc": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "method": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "parameters": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters"
+          }
+        }
+      },
+      "head": {
+        "operationId": "inspectDiagnostic",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Diagnostic headers including X-Request-ID"
+          },
+          "400": {
+            "description": "Invalid parameters"
+          }
+        }
+      }
+    }
+  }
+}

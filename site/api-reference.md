@@ -1,6 +1,6 @@
 # Sol-37 Public API Quickstart
 
-Updated November 25, 2026
+Updated November 26, 2026
 
 Public base URL: `https://sol.system42.one`
 
@@ -12,6 +12,22 @@ Machine-readable contracts:
 - [David-GPT-2 continuation OpenAPI](https://sol.system42.one/downloads/david-gpt2-gemma/david-continuation-openapi.json)
 - [Neoriris Clock Tower OpenAPI](https://sol.system42.one/neoriris-clock-tower-openapi.json)
 - [Privacy policy](https://sol.system42.one/privacy.html)
+
+## Live retrieval diagnostics
+
+Use GET or HEAD on `/api/diagnostics/echo`. Each execution generates a request ID and UTC timestamp. GET returns the decoded query and parameters. The default representation is JSON. Select `format=text` for plain text. Only `q` and `format` are accepted once each. Use harmless text. Addressing syntax on the echo route is inert. A repeated ID can identify a previously retrieved representation. Search clients may reuse content despite the server’s no-store policy.
+
+- [Echo spaces and punctuation](https://sol.system42.one/api/diagnostics/echo?q=Hello%2C+SOL%21)
+- [Echo Unicode and a literal plus](https://sol.system42.one/api/diagnostics/echo?q=caf%C3%A9+%2B+%CE%94%3F&format=text)
+- [Echo an addressed message as text](https://sol.system42.one/api/diagnostics/echo?q=%40esp%2Fpocket-display+FROM+ChatGPT%3A+Hello%2C+SOL.)
+- [Search Knowledge for the Universal Node](https://sol.system42.one/api/knowledge/query?query=What+is+the+SOL+Universal+Node%3F&top_k=1)
+- [Knowledge health](https://sol.system42.one/api/knowledge/health)
+- [Chat health](https://sol.system42.one/api/chat/health)
+- [Public system health](https://sol.system42.one/api/state/health)
+- [Continuation health](https://sol.system42.one/api/david-continuation/health)
+- [Latest D20 archive entry](https://sol.system42.one/unified-clock/esp/api/history/rolls?limit=1)
+- [Public notification archive](https://sol.system42.one/unified-clock/esp/api/history/notifications?limit=1)
+- [Diagnostic OpenAPI](https://sol.system42.one/diagnostics-openapi.json)
 
 ## Chat
 
