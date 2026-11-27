@@ -1617,6 +1617,7 @@
       items.forEach((section) => {
         const btn = document.createElement("button");
         btn.type = "button";
+        if (section.shortId === "screenplays") btn.dataset.drive = "screenplays";
         btn.className = section.id === activeSection ? "active" : "";
         btn.innerHTML = `<span class="folder-small" aria-hidden="true"></span><span>${escapeHtml(section.label)}</span><span class="count">${section.items.length}</span>`;
         btn.addEventListener("click", () => {
@@ -1652,7 +1653,7 @@
       contentPath.textContent = pathText;
       addressInput.value = pathText;
       if (searchQuery) {
-        contentMeta.textContent = `${count} match${count === 1 ? "" : "es"} across the full root`;
+        contentMeta.textContent = `${count} match${count === 1 ? "" : "es"} across ${screenplayDrive ? "the Screenplay Drive" : "the full root"}`;
       } else if (section) {
         contentMeta.textContent = `${count} item${count === 1 ? "" : "s"} in this ${section.kind === "directory" ? "directory" : "collection"}`;
       } else {
@@ -1663,6 +1664,7 @@
     function selectItem(item, section) {
       if (!item) return;
       selectedHref = item.href;
+      document.getElementById("open-screenplay-player").hidden = !item.player;
       refreshContextText(section, currentItems().length);
       setStatus(searchQuery ? `Search: ${searchQuery} · ${currentItems().length} match${currentItems().length === 1 ? "" : "es"}` : `${item.title} selected · ${currentItems().length} object${currentItems().length === 1 ? "" : "s"}`);
     }
@@ -1766,6 +1768,10 @@
       }
 
       const normalized = normalizeAddress(value);
+      if (normalized === "s:" || normalized === "screenplays") {
+        tree.querySelector("button[data-drive=screenplays]")?.click();
+        return;
+      }
       const sectionMatch = sections.find((section) => sectionAliases(section).has(normalized));
       if (sectionMatch) {
         searchQuery = "";
