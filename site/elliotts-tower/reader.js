@@ -6,7 +6,7 @@ const follow = document.querySelector('#follow');
 const status = document.querySelector('#status');
 const revisionNotice = document.querySelector('#revision-notice');
 let archivedEditions = new Map();
-let requestedScreenplay = new URLSearchParams(location.search).get('screenplay');
+const requestedScreenplay = new URLSearchParams(location.search).get('screenplay');
 const picker = document.querySelector('#screenplay');
 const voicePicker = document.querySelector('#voice');
 const title = document.querySelector('#screenplay-title');
@@ -16,6 +16,7 @@ const followLabel = document.querySelector('#follow-label');
 const credits = document.querySelector('#production-credits');
 const creditsButton = document.querySelector('#play-credits');
 const replayButton = document.querySelector('#replay-screenplay');
+const retryButton = document.querySelector('#retry-edition');
 const root = '/elliotts-tower/';
 const prelude = { id: picker.value, title: title.textContent, source: source.href };
 
@@ -24,6 +25,7 @@ let byWord = new Map();
 let active = null;
 let frame = 0;
 let stopRecording;
+let fallbackRecording;
 let edition;
 let creditsSelected = false;
 let pendingSeek;
@@ -31,8 +33,9 @@ let catalog = new Map([[prelude.id, prelude]]);
 let displayed;
 let displayedVoice;
 let displayedAudio;
+let voiceNotice = '';
 let revision;
-let requestId = 0;
+let editionRequest;
 let loading = false;
 
 function updateHighlight(scroll = true) {
@@ -98,6 +101,10 @@ audio.addEventListener('ended', () => {
   if (picker.value === displayed) playCredits();
 });
 audio.addEventListener('error', () => {
+  if (fallbackRecording) {
+    fallbackRecording();
+    return;
+  }
   if (!audio.hidden) status.textContent = creditsSelected
     ? 'The credits audio could not load.'
     : 'Audio could not load. Try the MP3 download.';
@@ -125,6 +132,7 @@ follow.addEventListener('change', () => {
 function releaseRecording() {
   stopRecording?.();
   stopRecording = undefined;
+  fallbackRecording = undefined;
   pendingSeek = undefined;
   cancelAnimationFrame(frame);
   frame = 0;
@@ -137,7 +145,7 @@ function restoreScreenplay() {
   releaseRecording();
   creditsSelected = false;
   replayButton.hidden = true;
-  status.textContent = '';
+  status.textContent = voiceNotice;
   audio.setAttribute('aria-label', edition.label);
   setRecording(edition.stream, edition.audio);
   audio.playbackRate = rate;
@@ -176,9 +184,15 @@ function setRecording(track, downloadUrl) {
   const Media = window.ManagedMediaSource || window.MediaSource;
   const mime = 'audio/mp4; codecs="mp4a.40.2"';
   if (!Media?.isTypeSupported(mime)) {
-    audio.src = audio.canPlayType('application/vnd.apple.mpegurl')
-      ? track.path + 'audio.m3u8'
-      : downloadUrl;
+    if (audio.canPlayType('application/vnd.apple.mpegurl')) {
+      fallbackRecording = () => {
+        fallbackRecording = undefined;
+        audio.src = downloadUrl;
+      };
+      audio.src = track.path + 'audio.m3u8';
+    } else {
+      audio.src = downloadUrl;
+    }
     return;
   }
 
@@ -202,10 +216,11 @@ function setRecording(track, downloadUrl) {
   }
 
   function useDownload() {
-    if (closed) return;
+    if (fallbackRecording !== useDownload) return;
     const time = audio.currentTime;
     const resume = !audio.paused;
     detach();
+    fallbackRecording = undefined;
     audio.src = downloadUrl;
     const restore = () => {
       audio.currentTime = time;
@@ -232,10 +247,10 @@ function setRecording(track, downloadUrl) {
     pending = true;
     try {
       const name = 'part' + String(segment).padStart(4, '0') + '.mp4';
-      const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]);
-      const response = await fetch(track.path + name, { signal });
-      if (!response.ok) throw new Error('Audio segment unavailable');
-      const bytes = await response.arrayBuffer();
+      const bytes = await fetchWithTimeout(track.path + name, 12000, controller.signal, response => {
+        if (!response.ok) throw new Error('Audio segment unavailable');
+        return response.arrayBuffer();
+      });
       if (!closed) buffer.appendBuffer(bytes);
     } catch {
       useDownload();
@@ -260,11 +275,12 @@ function setRecording(track, downloadUrl) {
   media.addEventListener('sourceclose', detach, { once: true });
   for (const event of events) audio.addEventListener(event, fillBuffer);
   stopRecording = detach;
+  fallbackRecording = useDownload;
   audio.disableRemotePlayback = true;
   audio.src = url;
 }
 
-function showEdition(item, data, voiceName) {
+function showEdition(item, data, voiceName, notice) {
   const hasAudio = Boolean(data.audio);
   const content = document.createElement('template');
   content.innerHTML = data.html;
@@ -281,7 +297,8 @@ function showEdition(item, data, voiceName) {
   releaseRecording();
   creditsSelected = false;
   replayButton.hidden = true;
-  edition = { audio: data.audio, stream: data.stream, label: item.title + ' read by ' + (data.narrator ?? 'Early') };
+  const screenplayTitle = item.title || content.content.querySelector('h1,h2')?.textContent.trim() || 'Screenplay';
+  edition = { audio: data.audio, stream: data.stream, label: screenplayTitle + ' read by ' + (data.narrator ?? voiceName) };
   words.length = 0;
   words.push(...nextWords);
   cues = data.cues ?? [];
@@ -289,8 +306,8 @@ function showEdition(item, data, voiceName) {
   for (const [index] of cues) words[index].forEach(span => { span.dataset.timed = ''; });
   transcript.replaceChildren(content.content);
   transcript.toggleAttribute('data-synced', hasAudio);
-  transcript.setAttribute('aria-label', item.title + ' transcript');
-  title.textContent = item.title;
+  transcript.setAttribute('aria-label', screenplayTitle + ' transcript');
+  title.textContent = screenplayTitle;
   source.href = item.source;
 
   audio.hidden = followLabel.hidden = download.hidden = !hasAudio;
@@ -299,7 +316,7 @@ function showEdition(item, data, voiceName) {
   if (hasAudio) {
     audio.setAttribute('aria-label', edition.label);
     download.href = data.audio;
-    download.download = item.title + ' — ' + voiceName + '.mp3';
+    download.download = screenplayTitle + ' — ' + voiceName + '.mp3';
     setRecording(data.stream, data.audio);
   } else {
     audio.removeAttribute('src');
@@ -309,15 +326,32 @@ function showEdition(item, data, voiceName) {
   chapters.length = 1;
   for (const [index, title] of data.chapters) chapters.add(new Option(title, index));
   chapters.disabled = !data.chapters.length;
-  status.textContent = hasAudio ? '' : voiceName + ' narration is being prepared.';
+  voiceNotice = notice;
+  status.textContent = notice;
   updateHighlight(false);
 }
 
-async function fetchJson(path, optional = false) {
-  const response = await fetch(root + path, { cache: 'no-cache', signal: AbortSignal.timeout(90000) });
-  if (optional && response.status === 404) return null;
-  if (!response.ok) throw new Error('File unavailable');
-  return response.json();
+async function fetchWithTimeout(path, timeout, signal, read = response => response) {
+  const controller = new AbortController();
+  const cancel = () => controller.abort();
+  if (signal?.aborted) cancel();
+  signal?.addEventListener('abort', cancel, { once: true });
+  const timer = setTimeout(cancel, timeout);
+  try {
+    const response = await fetch(path, { signal: controller.signal });
+    return await read(response);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener('abort', cancel);
+  }
+}
+
+function fetchJson(path, { signal, optional = false, timeout = 30000 } = {}) {
+  return fetchWithTimeout(path, timeout, signal, response => {
+    if (optional && response.status === 404) return null;
+    if (!response.ok) throw new Error('File unavailable');
+    return response.json();
+  });
 }
 
 function showSourceRevision(item, recordedHash) {
@@ -336,94 +370,136 @@ function showSourceRevision(item, recordedHash) {
 }
 
 async function loadEdition(item, refresh = false) {
-  const id = ++requestId;
+  editionRequest?.abort();
+  const request = new AbortController();
+  editionRequest = request;
   loading = true;
+  const { signal } = request;
   const voice = voicePicker.value;
-  const voiceName = voicePicker.selectedOptions[0].text;
-  if (!refresh) status.textContent = 'Loading screenplay…';
+  if (!refresh) {
+    retryButton.hidden = true;
+    status.textContent = 'Loading screenplay…';
+  }
   try {
-    const isPrelude = item.id === prelude.id;
-    const earlyPath = isPrelude ? 'edition.json' : `screenplays/${item.id}.json`;
+    const earlyPath = item.id === prelude.id ? 'edition.json' : `screenplays/${item.id}.json`;
     let data;
+    let voiceName = voice === 'early' ? 'Early' : 'SOL–GPT';
+    let notice = '';
     if (voice === 'sol-gpt') {
-      const alternate = await fetchJson(`screenplays/${item.id}.sol-gpt.json`, true);
-      if (alternate) {
-        data = alternate;
-      } else {
-        const {audio, stream, cues, ...transcriptData} = await fetchJson(earlyPath);
-        data = transcriptData;
+      try {
+        data = await fetchJson(root + `screenplays/${item.id}.sol-gpt.json`, { signal, optional: true });
+        if (!data) notice = 'SOL–GPT narration is being prepared. Early is available below.';
+      } catch (error) {
+        if (signal.aborted) return;
+        notice = 'SOL–GPT could not load. Early is available below.';
       }
-    } else {
-      data = await fetchJson(earlyPath);
+      if (!data) {
+        if (displayed === item.id && displayedVoice === 'early' && edition?.audio) {
+          voiceNotice = notice;
+          status.textContent = notice;
+          retryButton.hidden = false;
+          return;
+        }
+        voiceName = 'Early';
+      }
     }
-    if (id !== requestId) return;
-    showSourceRevision(item, refresh ? revision : data.sourceSha256);
-    const sameEdition = data.sourceSha256 === revision && data.audio === displayedAudio;
+    data ??= await fetchJson(root + earlyPath, { signal });
+    if (signal.aborted) return;
+    const sameEdition = displayed === item.id && data.sourceSha256 === revision && data.audio === displayedAudio;
     const inProgress = !audio.hidden && (!audio.paused || audio.currentTime > 0 && !audio.ended);
-    if (refresh && (sameEdition || inProgress)) return;
-    showEdition(item, data, voiceName);
+    if (refresh && (sameEdition || inProgress)) {
+      if (sameEdition && voiceNotice !== notice) {
+        voiceNotice = notice;
+        status.textContent = notice;
+      } else if (inProgress && !notice && voiceNotice) {
+        voiceNotice = 'SOL–GPT is ready. Choose Retry loading to switch voices.';
+        status.textContent = voiceNotice;
+        retryButton.hidden = false;
+      }
+      return;
+    }
+    showEdition(catalog.get(item.id) ?? item, data, voiceName, notice);
+    retryButton.hidden = !notice;
     if (!refresh && displayed && displayed !== item.id) window.scrollTo(0, 0);
     displayed = item.id;
-    displayedVoice = voice;
+    displayedVoice = voiceName === 'Early' ? 'early' : 'sol-gpt';
     displayedAudio = data.audio;
     revision = data.sourceSha256;
     showSourceRevision(item, revision);
   } catch {
-    if (id !== requestId || refresh) return;
-    picker.value = catalog.has(displayed) ? displayed : prelude.id;
-    voicePicker.value = displayedVoice ?? 'early';
+    if (signal.aborted || refresh) return;
     status.textContent = 'This screenplay could not load. Try again or open its source in Drive.';
+    retryButton.hidden = false;
     if (!displayed) source.href = item.source;
   } finally {
-    if (id === requestId) loading = false;
+    if (editionRequest === request) loading = false;
+  }
+}
+
+async function refreshArchiveMetadata() {
+  try {
+    const archived = await fetchJson('/screenplay-logs/editions.json', { timeout: 15000 });
+    archivedEditions = new Map(archived.map(item => [item.id, item]));
+    if (displayed) showSourceRevision({ id: displayed }, revision);
+  } catch {
+    // The screenplay catalog and recordings can load independently of this metadata.
   }
 }
 
 async function refreshCatalog() {
   try {
-    const [entries, archived] = await Promise.all([
-      fetchJson('screenplays/index.json'),
-      fetch('/screenplay-logs/editions.json', {cache: 'no-store', signal: AbortSignal.timeout(10000)})
-        .then(response => response.ok ? response.json() : []).catch(() => []),
-    ]);
-    archivedEditions = new Map(archived.map(item => [item.id, item]));
+    const entries = await fetchJson(root + 'screenplays/index.json');
     const selected = picker.value;
     const next = new Map([[prelude.id, prelude], ...entries.map(item => [item.id, item])]);
-    const options = [picker.options[0], ...entries.map(item => new Option(item.title, item.id))];
+    const pending = catalog.get(selected);
+    if (!next.has(selected) && pending && !pending.title) next.set(selected, pending);
+    const options = Array.from(next.values(), item => new Option(item.title || 'Requested screenplay', item.id));
     if (options.length !== picker.length ||
         options.some((option, i) => option.value !== picker.options[i].value || option.text !== picker.options[i].text)) {
       picker.replaceChildren(...options);
       picker.value = next.has(selected) ? selected : prelude.id;
     }
     catalog = next;
-    picker.disabled = entries.length === 0;
-    if (requestedScreenplay && next.has(requestedScreenplay)) {
-      picker.value = requestedScreenplay;
-      requestedScreenplay = null;
-      void loadEdition(next.get(picker.value));
-    } else if (!next.has(selected)) {
-      loadEdition(prelude);
-    } else if (!loading && displayed === selected) {
+    picker.disabled = next.size < 2;
+    if (picker.value !== selected) {
+      loadSelection();
+    } else if (displayed === selected) {
       const item = next.get(selected);
-      title.textContent = item.title;
-      showSourceRevision(item, revision);
-      source.href = item.source;
-      transcript.setAttribute('aria-label', item.title + ' transcript');
-      if (voicePicker.value === 'sol-gpt' || selected === prelude.id || item.revision !== revision || audio.hidden) {
-        loadEdition(item, true);
+      if (item.title) {
+        title.textContent = item.title;
+        transcript.setAttribute('aria-label', item.title + ' transcript');
       }
+      source.href = item.source;
+      if (!loading && (voicePicker.value === 'sol-gpt' || selected === prelude.id || item.revision !== revision)) {
+        void loadEdition(item, true);
+      }
+    } else if (!loading) {
+      void loadEdition(next.get(picker.value));
     }
   } catch {
-    if (!loading && displayed === prelude.id) loadEdition(prelude, true);
+    picker.disabled = catalog.size < 2;
   }
 }
 
-picker.addEventListener('change', () => {
-  loadEdition(catalog.get(picker.value));
-});
-voicePicker.addEventListener('change', () => {
-  loadEdition(catalog.get(picker.value));
-});
-loadEdition(prelude);
-refreshCatalog();
-setInterval(refreshCatalog, 60000);
+function loadSelection() {
+  return loadEdition(catalog.get(picker.value));
+}
+
+function refreshReader() {
+  void refreshCatalog();
+  void refreshArchiveMetadata();
+}
+
+picker.addEventListener('change', loadSelection);
+voicePicker.addEventListener('change', loadSelection);
+retryButton.addEventListener('click', loadSelection);
+if (requestedScreenplay !== prelude.id && /^[A-Za-z0-9_-]{10,128}$/.test(requestedScreenplay ?? '')) {
+  const item = { id: requestedScreenplay, source: `https://drive.google.com/open?id=${requestedScreenplay}` };
+  catalog.set(item.id, item);
+  picker.add(new Option('Requested screenplay', item.id));
+  picker.value = item.id;
+  picker.disabled = false;
+}
+void loadSelection().finally(refreshArchiveMetadata);
+void refreshCatalog();
+setInterval(refreshReader, 60000);
