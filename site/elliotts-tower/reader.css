@@ -25,6 +25,8 @@ header h1 {
   letter-spacing: -.045em;
 }
 header p { margin: .5rem 0 0; color: var(--gold); font: 1.28rem Georgia, serif; }
+.screenplay-picker { display: grid; gap: .3rem; width: min(100%, 33rem); margin-top: 1rem; font-size: .88rem; }
+.screenplay-picker select { width: 100%; min-width: 0; }
 .transport {
   position: sticky;
   top: 0;
@@ -36,8 +38,9 @@ header p { margin: .5rem 0 0; color: var(--gold); font: 1.28rem Georgia, serif; 
 audio { width: 100%; display: block; height: 2.5rem; }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem 1rem; font-size: .82rem; }
 .actions select { width: min(42vw, 16rem); min-width: 0; }
-.actions select, .actions button { background: #233633; border: 1px solid #647a70; border-radius: .3rem; padding: .2rem .5rem; }
+.screenplay-picker select, .actions select, .actions button { background: #233633; border: 1px solid #647a70; border-radius: .3rem; padding: .2rem .5rem; }
 .actions label { display: inline-flex; align-items: center; gap: .25rem; }
+[hidden] { display: none !important; }
 .actions input { accent-color: var(--gold); }
 .status { margin: 0; color: var(--muted); font-size: .82rem; }
 .status:empty { display: none; }
