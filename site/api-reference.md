@@ -29,6 +29,10 @@ Use GET or HEAD on `/api/diagnostics/echo`. Each execution generates a request I
 - [Public notification archive](https://sol.system42.one/unified-clock/esp/api/history/notifications?node=sol-dongle-f2339c&limit=1)
 - [Diagnostic OpenAPI](https://sol.system42.one/diagnostics-openapi.json)
 
+A successful search result can contain an earlier response. On November 26, a web retrieval client followed published links and received three fresh echo responses. Reopening one link returned the earlier request ID. Directly opening a new query URL through the same client produced no corresponding echo execution. A client can verify a fresh read by comparing the returned ID and server time with a second observation.
+
+The Knowledge query searches indexed documents. For the latest recorded Pixels rolls or notifications, use the node-scoped archive links above and read the timestamps on the returned events. The node parameter is required. Use the Chat GET operation with `persist=0` for an unpersisted conversational turn. Model execution may exceed a retrieval client's timeout.
+
 ## Chat
 
 Check readiness:
@@ -261,6 +265,12 @@ curl 'https://sol.system42.one/api/neoriris-clock-tower/status'
 ```
 
 Discovery, health, and status are public. `POST /api/neoriris-clock-tower/authorize` requires a recognized online player to complete a short-lived code delivered in Minecraft. `POST /api/neoriris-clock-tower/set` then requires the issued bearer or `X-Neoriris-Access-Token` token. The write route validates modes, actions, and seven-bit patterns before sending controls to the server.
+
+## Service-specific contracts
+
+The [Continuation API console](https://sol.system42.one/api/david-continuation/docs) and [Civic Telemetry API console](https://sol.system42.one/api/crime/docs) each load a schema under their own public prefix. A browser can execute the read-only health operation in either console.
+
+`GET /push/api/activity?limit=1` returns an object with `activity` and the effective `limit`. The default limit is 40, with a range of 1–200. The [public push status resource](https://sol.system42.one/push/api/status) describes subscription configuration.
 
 ## Other Public Surfaces
 
