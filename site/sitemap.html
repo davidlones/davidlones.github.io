@@ -830,6 +830,7 @@
         <button class="tool" type="button" data-action="copy-name">Copy</button>
         <button class="tool" type="button" data-action="copy-path">Copy Path</button>
         <button class="tool" type="button" data-action="open-selected">Open</button>
+        <button class="tool" type="button" data-action="open-screenplay-player" id="open-screenplay-player" hidden>Play narration</button>
         <button class="tool" type="button" data-action="download-selected">Download</button>
       </div>
       <div class="toolbar-sep" aria-hidden="true"></div>
@@ -843,6 +844,7 @@
       <div class="search-wrap">
         <span class="field-label">Search:</span>
         <input class="search-input" id="search-input" type="search" placeholder="search root files + contents" spellcheck="false" />
+        <select id="series-filter" aria-label="Filter screenplay series" hidden><option value="">All series</option></select>
       </div>
     </div>
 
@@ -900,8 +902,9 @@
     const SEARCH_SEMANTIC_LIMIT = 8;
     const MEDIA_EXTENSIONS = new Set(["mp3", "wav", "ogg", "flac", "m4a", "mp4", "m4v", "mov", "webm", "jpg", "jpeg", "png", "gif", "svg", "ico", "zip"]);
     const ROOT_ENTRY_PATHS = new Set(["/", "index.html", "windows98-clippy-showcase.html", "sol.html", "radio_stack_showcase.html", "sol37/index.html", "programs/logbook.html", "programs/media-player.html", "site-server.html", "site-metrics.html"]);
-    const COLLECTION_ORDER = ["entry", "root", "posts", "programs", "assets", "support"];
+    const COLLECTION_ORDER = ["screenplays", "entry", "root", "posts", "programs", "assets", "support"];
     const COLLECTION_LABELS = {
+      screenplays: "Screenplay Drive",
       entry: "Main Entry Points",
       root: "Root Pages",
       posts: "Posts and Notes",
@@ -1029,6 +1032,11 @@
     const contentMeta = document.getElementById("content-meta");
     const addressInput = document.getElementById("address-input");
     const searchInput = document.getElementById("search-input");
+    const seriesFilter = document.getElementById("series-filter");
+    const initialParams = new URLSearchParams(window.location.search);
+    let screenplayDrive = initialParams.get("drive") === "screenplays" || initialParams.has("series");
+    let screenplaySeries = initialParams.get("series") || "";
+    let indexedManifest = [];
     const windowRoot = document.querySelector(".window");
     const menus = Array.from(document.querySelectorAll(".menu"));
     const dialogBackdrop = document.getElementById("dialog-backdrop");
@@ -1172,6 +1180,7 @@
       const href = normalizeHref(entry.href);
       const dir = entry.dir || "/";
       const ext = String(entry.ext || "").toLowerCase();
+      if (href.startsWith("screenplay-logs/")) return "screenplays";
       if (ROOT_ENTRY_PATHS.has(href)) return "entry";
       if (href.startsWith("posts/") || href.startsWith("sol37/posts/")) return "posts";
       if (href.startsWith("programs/") || href.startsWith("bin/sim/examples/")) return "programs";
@@ -1186,6 +1195,7 @@
     }
 
     function pathForSection(section) {
+      if (section?.shortId === "screenplays") return "S:\\";
       if (!section) return "C:\\SOL37\\WWW\\";
       if (section.kind === "collection") return `C:\\SOL37\\WWW\\[${section.label.toUpperCase()}]\\`;
       return windowsPathForDirectory(section.dir);
@@ -1210,8 +1220,14 @@
         ext,
         size: Number.isFinite(base.size) ? base.size : null,
         title: base.title || titleFromIndexEntry({ ...base, href }),
+        series: base.series || "",
+        pin: base.narration?.pin ?? Infinity,
+        player: base.narration?.player,
+        modified: base.modified_at || base.source_modified_at,
         type: base.type || extToType(ext),
-        detail: base.detail || detailFromIndexEntry({ ...base, dir, ext }, collectionId),
+        detail: base.detail || (collectionId === "screenplays" && base.id
+          ? [base.series, base.modified_at?.slice(0, 10), "Google Drive", base.narration ? "Narrated edition" : ""].filter(Boolean).join(" · ")
+          : detailFromIndexEntry({ ...base, dir, ext }, collectionId)),
         collectionId,
         collectionLabel: collectionLabel(collectionId)
       };
@@ -1249,7 +1265,9 @@
     }
 
     function buildSemanticItem(result, query) {
-      const href = normalizeHref(result.media_url || knowledgePathToHref(result.path));
+      const archiveHref = result.section_url?.startsWith(location.origin + "/screenplay-logs/")
+        ? result.section_url.slice(location.origin.length) : "";
+      const href = normalizeHref(archiveHref || result.media_url || knowledgePathToHref(result.path));
       if (!href) return null;
       const existing = catalogItems.find((item) => item.href === href);
       const snippet = snippetFromText(result.text, query);
@@ -1272,9 +1290,12 @@
           href,
           dir,
           ext,
-          title: href.split("/").pop() || href,
+          title: result.title || href.split("/").pop() || href,
+          series: result.series,
+          source_modified_at: result.source_modified_at,
           type: extToType(ext),
-          detail: snippet ? `${result.modality === "visual" ? "Visual frame" : "Semantic"} match${scorePct !== null ? ` · ${scorePct}%` : ""}${Number.isFinite(result.frame_timestamp) ? ` · ${Math.round(result.frame_timestamp)}s` : ""} · ${snippet}` : "Semantic search result",
+          detail: archiveHref ? [result.section_title, result.source_modified_at?.slice(0, 10), "Google Drive", snippet].filter(Boolean).join(" · ")
+            : snippet ? `Semantic match · ${snippet}` : "Semantic search result",
           sectionId: collectionId,
         },
         collectionId,
@@ -1296,9 +1317,10 @@
 
       manifest.forEach((entry) => {
         if (!entry?.href) return;
-        const href = normalizeHref(entry.href);
+        const href = entry.href.startsWith("screenplay-logs/") && entry.canonical_url
+          ? normalizeHref(new URL(entry.canonical_url).pathname) : normalizeHref(entry.href);
         const known = metadataByHref.get(href);
-        itemMap.set(href, buildCatalogItem({ ...entry, ...(known || {}) }, known?.sectionId));
+        itemMap.set(href, buildCatalogItem({ ...entry, href, ...(known || {}) }, known?.sectionId));
       });
 
       catalogItems = sortItems(Array.from(itemMap.values()));
@@ -1321,8 +1343,11 @@
         shortId: id,
         kind: "collection",
         label: collectionLabel(id),
-        pathLabel: `C:\\SOL37\\WWW\\[${collectionLabel(id).toUpperCase()}]\\`,
-        items: sortItems(collectionMap.get(id) || [])
+        pathLabel: id === "screenplays" ? "S:\\" : `C:\\SOL37\\WWW\\[${collectionLabel(id).toUpperCase()}]\\`,
+        items: id === "screenplays"
+          ? (collectionMap.get(id) || []).filter(item => !screenplaySeries || item.series === screenplaySeries)
+            .sort((a, b) => (a.pin - b.pin) || a.title.localeCompare(b.title))
+          : sortItems(collectionMap.get(id) || [])
       }));
 
       directorySections = Array.from(directoryMap.entries())
@@ -1342,6 +1367,10 @@
         }));
 
       sections = [...collectionSections, ...directorySections];
+      const labels = [...new Set(catalogItems.map(item => item.series).filter(Boolean))].sort();
+      seriesFilter.replaceChildren(new Option("All series", ""), ...labels.map(label => new Option(label, label)));
+      seriesFilter.value = screenplaySeries;
+      seriesFilter.hidden = !screenplayDrive;
     }
 
     async function loadIndexedSections() {
@@ -1350,6 +1379,7 @@
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const manifest = await response.json();
         if (!Array.isArray(manifest)) throw new Error("site-index.json is not an array");
+        indexedManifest = manifest;
         buildSections(manifest);
       } catch (error) {
         buildSections([]);
@@ -1540,6 +1570,12 @@
       const url = new URL(KNOWLEDGE_SEARCH_URL, window.location.href);
       url.searchParams.set("query", query);
       url.searchParams.set("top_k", String(SEARCH_SEMANTIC_LIMIT));
+      if (screenplayDrive) url.searchParams.set("path", "screenplay-logs/");
+      if (screenplaySeries) url.searchParams.set("series", screenplaySeries);
+      if (/^".+"$/.test(query)) {
+        url.searchParams.set("query", query.slice(1, -1));
+        url.searchParams.set("exact", "true");
+      }
       const response = await fetch(url.toString(), { cache: "no-store" });
       if (!response.ok) {
         throw new Error(`semantic search failed: HTTP ${response.status}`);
@@ -1552,7 +1588,7 @@
 
     async function performSearch(query, token) {
       const lowered = query.toLowerCase();
-      const localMatches = sortItems(catalogItems.filter((item) => itemMetaHaystack(item).includes(lowered)));
+      const localMatches = sortItems(catalogItems.filter((item) => (!screenplayDrive || item.collectionId === "screenplays") && (!screenplaySeries || item.series === screenplaySeries) && itemMetaHaystack(item).includes(lowered)));
       let semanticMatches = [];
       try {
         semanticMatches = await searchKnowledge(query, token) || [];
@@ -1583,7 +1619,18 @@
         btn.type = "button";
         btn.className = section.id === activeSection ? "active" : "";
         btn.innerHTML = `<span class="folder-small" aria-hidden="true"></span><span>${escapeHtml(section.label)}</span><span class="count">${section.items.length}</span>`;
-        btn.addEventListener("click", () => setSection(section.id));
+        btn.addEventListener("click", () => {
+          if (section.shortId === "screenplays" || screenplayDrive) {
+            screenplayDrive = section.shortId === "screenplays";
+            if (!screenplayDrive) screenplaySeries = "";
+            searchQuery = "";
+            searchToken++;
+            searchInput.value = "";
+            buildSections(indexedManifest);
+            syncSearchUrl("");
+          }
+          setSection(section.id);
+        });
         tree.appendChild(btn);
       });
     }
@@ -1629,6 +1676,7 @@
     }
 
     function renderList() {
+      document.getElementById("open-screenplay-player").hidden = !currentItem()?.player;
       const section = currentSection();
       const items = currentItems();
       const selectedItem = items.find((item) => item.href === selectedHref) || items[0] || null;
@@ -1775,6 +1823,10 @@
     function syncSearchUrl(query) {
       try {
         const url = new URL(window.location.href);
+        if (screenplayDrive) url.searchParams.set("drive", "screenplays");
+        else url.searchParams.delete("drive");
+        if (screenplaySeries) url.searchParams.set("series", screenplaySeries);
+        else url.searchParams.delete("series");
         if (query) {
           url.searchParams.set("q", query);
         } else {
@@ -1832,6 +1884,9 @@
       switch (action) {
         case "open-selected":
           openItem(item);
+          break;
+        case "open-screenplay-player":
+          if (item?.player) openHref(item.player, item.title);
           break;
         case "open-selected-tab":
           openItem(item, { external: true });
@@ -2017,7 +2072,16 @@
       }
     });
 
+    seriesFilter.addEventListener("change", () => {
+      screenplaySeries = seriesFilter.value;
+      buildSections(indexedManifest);
+      syncSearchUrl(searchQuery);
+      if (searchQuery) void applySearch(searchQuery);
+      else setSection(sectionIdForCollection("screenplays"), { skipHistory: true });
+    });
+
     loadIndexedSections().then(() => {
+      if (screenplayDrive) setSection(sectionIdForCollection("screenplays"), { skipHistory: true });
       renderTree();
       renderList();
       const params = new URLSearchParams(window.location.search);

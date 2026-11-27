@@ -1974,11 +1974,13 @@
   .taskbar      { z-index: 1000; }
   .start-menu   { z-index: 1001; }
 </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://sol.system42.one/#website","name":"SOL-37","url":"https://sol.system42.one/","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://sol.system42.one/sitemap.html?q={search_term_string}"},"query-input":"required name=search_term_string"}}</script>
 </head>
 <body>
   <nav class="crawl-spine" aria-label="Crawler-visible site links">
     <a href="/">Sol-37 shell</a>
     <a href="/sitemap.html">Site map</a>
+    <a href="/screenplay-logs/">Screenplay Logs</a>
     <a href="/sitemap.xml">XML sitemap</a>
     <a href="/llms.txt">LLMs project map</a>
     <a href="/crawl-index.html">Crawl index</a>
@@ -2077,6 +2079,10 @@
     <a class="icon" style="left:456px; top:130px;" href="/elliotts-tower/" aria-label="Open Elliott’s Tower — The Complete Prelude" data-link="elliotts-tower/" data-link-title="Elliott’s Tower — The Complete Prelude" data-desktop-group="system" data-desktop-order="1.65">
       <img alt="" src="/elliotts-tower/desktop-icon.png">
       <span>Elliott’s Tower</span>
+    </a>
+    <a class="icon" style="left:456px; top:244px;" href="/sitemap.html?drive=screenplays" data-link="sitemap.html?drive=screenplays" data-link-title="Screenplay Drive" data-desktop-group="system" data-desktop-order="1.68" data-tinylytics-event="desktop.open" data-tinylytics-event-value="screenplay-drive">
+      <img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M11 7h26l8 23v10H3V30z' fill='%23c0c0c0' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M4 30h40M12 9 6 28h36' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M34 35h5' stroke='%23008000' stroke-width='3'/%3E%3C/svg%3E">
+      <span>Screenplay Drive</span>
     </a>
     <a class="icon" style="left:346px; top:244px;" href="#" aria-label="Open The Feed Is Watching You Watch It" data-link="the-feed-is-watching.html" data-link-title="The Feed Is Watching You Watch It" data-desktop-group="system" data-desktop-order="1.7" data-tinylytics-event="desktop.open" data-tinylytics-event-value="the-feed-is-watching">
       <img alt="" src="/assets/share-previews/the-feed-is-watching.png">
@@ -7442,7 +7448,6 @@
     const query = String(rawQuery || '')
       .replace(/\bsite:(?:https?:\/\/)?sol\.system42\.one\b/ig, '')
       .replace(/\binurl:(\S+)/ig, '$1')
-      .replace(/["']/g, '')
       .trim();
     if (!query) return '';
     const params = new URLSearchParams({ q: query });

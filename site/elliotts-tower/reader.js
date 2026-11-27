@@ -4,6 +4,9 @@ const words = [];
 const chapters = document.querySelector('#chapters');
 const follow = document.querySelector('#follow');
 const status = document.querySelector('#status');
+const revisionNotice = document.querySelector('#revision-notice');
+let archivedEditions = new Map();
+let requestedScreenplay = new URLSearchParams(location.search).get('screenplay');
 const picker = document.querySelector('#screenplay');
 const title = document.querySelector('#screenplay-title');
 const source = document.querySelector('#source');
@@ -313,6 +316,21 @@ async function fetchJson(path) {
   return response.json();
 }
 
+function showSourceRevision(item, recordedHash) {
+  const current = archivedEditions.get(item.id);
+  revisionNotice.replaceChildren();
+  if (!current || !recordedHash || current.sha256 === recordedHash) {
+    revisionNotice.hidden = true;
+    return;
+  }
+  revisionNotice.hidden = false;
+  revisionNotice.append('This transcript, audio, and word timing follow an earlier source revision. ');
+  const latest = document.createElement('a');
+  latest.href = current.canonical_url;
+  latest.textContent = 'Read the latest published text';
+  revisionNotice.append(latest);
+}
+
 async function loadEdition(item, refresh = false) {
   const id = ++requestId;
   loading = true;
@@ -321,6 +339,7 @@ async function loadEdition(item, refresh = false) {
     const isPrelude = item.id === prelude.id;
     const data = await fetchJson(isPrelude ? 'edition.json' : `screenplays/${item.id}.json`);
     if (id !== requestId) return;
+    showSourceRevision(item, refresh ? revision : data.sourceSha256);
     const sameEdition = data.sourceSha256 === revision && (!audio.hidden || !data.audio);
     const inProgress = !audio.hidden && (!audio.paused || audio.currentTime > 0 && !audio.ended);
     if (refresh && (sameEdition || inProgress)) return;
@@ -328,6 +347,7 @@ async function loadEdition(item, refresh = false) {
     if (!refresh && displayed && displayed !== item.id) window.scrollTo(0, 0);
     displayed = item.id;
     revision = data.sourceSha256;
+    showSourceRevision(item, revision);
   } catch {
     if (id !== requestId || refresh) return;
     picker.value = catalog.has(displayed) ? displayed : prelude.id;
@@ -340,7 +360,12 @@ async function loadEdition(item, refresh = false) {
 
 async function refreshCatalog() {
   try {
-    const entries = await fetchJson('screenplays/index.json');
+    const [entries, archived] = await Promise.all([
+      fetchJson('screenplays/index.json'),
+      fetch('/screenplay-logs/editions.json', {cache: 'no-store', signal: AbortSignal.timeout(10000)})
+        .then(response => response.ok ? response.json() : []).catch(() => []),
+    ]);
+    archivedEditions = new Map(archived.map(item => [item.id, item]));
     const selected = picker.value;
     const next = new Map([[prelude.id, prelude], ...entries.map(item => [item.id, item])]);
     const options = [picker.options[0], ...entries.map(item => new Option(item.title, item.id))];
@@ -351,11 +376,16 @@ async function refreshCatalog() {
     }
     catalog = next;
     picker.disabled = entries.length === 0;
-    if (!next.has(selected)) {
+    if (requestedScreenplay && next.has(requestedScreenplay)) {
+      picker.value = requestedScreenplay;
+      requestedScreenplay = null;
+      void loadEdition(next.get(picker.value));
+    } else if (!next.has(selected)) {
       loadEdition(prelude);
     } else if (!loading && displayed === selected) {
       const item = next.get(selected);
       title.textContent = item.title;
+      showSourceRevision(item, revision);
       source.href = item.source;
       transcript.setAttribute('aria-label', item.title + ' transcript');
       if (selected === prelude.id || item.revision !== revision || audio.hidden) loadEdition(item, true);
