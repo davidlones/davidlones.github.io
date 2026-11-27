@@ -15,7 +15,7 @@ Machine-readable contracts:
 
 ## Live retrieval diagnostics
 
-[Open the HTML retrieval diagnostics](https://sol.system42.one/retrieval-diagnostics.html) to compare the same input as HTML, plain text and JSON.
+[Open the HTML retrieval diagnostics](https://sol.system42.one/retrieval-diagnostics.html) to compare the same input as HTML, plain text and JSON. The [second diagnostic page revision](https://sol.system42.one/retrieval-diagnostics.html?revision=2) also compares previously fetched service URLs with labeled repeats.
 
 Use GET or HEAD on `/api/diagnostics/echo`. Each execution generates a request ID and UTC timestamp. GET returns the decoded query and parameters. The default representation is JSON. Select `format=text` for plain text. Only `q` and `format` are accepted once each. Use harmless text. Addressing syntax on the echo route is inert. A repeated ID can identify a previously retrieved representation. Search clients may reuse content despite the server’s no-store policy.
 
