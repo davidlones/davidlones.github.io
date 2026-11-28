@@ -5,6 +5,9 @@ const chapters = document.querySelector('#chapters');
 const follow = document.querySelector('#follow');
 const status = document.querySelector('#status');
 const revisionNotice = document.querySelector('#revision-notice');
+const narrationProgress = document.querySelector('#narration-progress');
+const narrationStatus = document.querySelector('#narration-status');
+const narrationBar = document.querySelector('#narration-bar');
 let archivedEditions = new Map();
 const requested = new URLSearchParams(location.search);
 const requestedScreenplay = requested.get('screenplay');
@@ -42,6 +45,34 @@ let revision;
 let editionRequest;
 let loading = false;
 let shareConfirmation;
+
+function showRenderProgress(item) {
+  const voice = voicePicker.value;
+  const render = item?.voices?.[voice];
+  narrationProgress.hidden = !render || render.phase === 'ready';
+  if (narrationProgress.hidden) return;
+  const labels = {
+    queued: 'Narration queued',
+    preparing: 'Preparing narration',
+    rendering: 'Generating narration',
+    aligning: 'Synchronizing narration with the screenplay',
+    packaging: 'Packing audio for playback',
+    publishing: 'Publishing narration',
+    failed: 'Narration render failed. Waiting for an automatic retry.',
+  };
+  const voiceName = voice === 'early' ? 'Early' : 'SOL–GPT';
+  const measured = render.phase === 'rendering' && render.total > 0;
+  const progress = measured ? ` (${render.completed} of ${render.total} sections)` : '';
+  const label = `${voiceName} · ${labels[render.phase] ?? labels.queued}${progress}`;
+  if (narrationStatus.textContent !== label) narrationStatus.textContent = label;
+  narrationBar.hidden = render.phase === 'failed';
+  if (measured) {
+    narrationBar.max = render.total;
+    narrationBar.value = render.completed;
+  } else {
+    narrationBar.removeAttribute('value');
+  }
+}
 
 function updateHighlight(scroll = true) {
   if (creditsSelected) return;
@@ -310,6 +341,7 @@ function showEdition(item, data, voiceName, notice) {
   byWord = new Map(cues.map(cue => [cue[0], cue]));
   for (const [index] of cues) words[index].forEach(span => { span.dataset.timed = ''; });
   transcript.replaceChildren(content.content);
+  transcript.toggleAttribute('data-pending', !hasAudio);
   transcript.toggleAttribute('data-synced', hasAudio);
   transcript.setAttribute('aria-label', screenplayTitle + ' transcript');
   title.textContent = screenplayTitle;
@@ -381,11 +413,30 @@ async function loadEdition(item, refresh = false) {
   loading = true;
   const { signal } = request;
   const voice = voicePicker.value;
+  showRenderProgress(item);
   if (!refresh) {
     retryButton.hidden = true;
     status.textContent = 'Loading screenplay…';
   }
   try {
+    if (item.voices && !item.voices[voice]?.available && !item.voices.early.available) {
+      if (displayed !== item.id || revision !== item.textRevision || displayedAudio) {
+        showEdition(item, {html: '', chapters: []}, '', '');
+        displayed = item.id;
+        displayedVoice = undefined;
+        displayedAudio = undefined;
+        revision = undefined;
+        revisionNotice.hidden = true;
+        const text = await fetchWithTimeout(item.text, 30000, signal, response => {
+          if (!response.ok) throw new Error('Screenplay text unavailable');
+          return response.text();
+        });
+        if (signal.aborted) return;
+        transcript.textContent = text;
+        revision = item.textRevision;
+      }
+      return;
+    }
     const earlyPath = item.id === prelude.id ? 'edition.json' : `screenplays/${item.id}.json`;
     let data;
     let voiceName = voice === 'early' ? 'Early' : 'SOL–GPT';
@@ -455,11 +506,15 @@ async function refreshCatalog() {
   try {
     const entries = await fetchJson(root + 'screenplays/index.json');
     const selected = picker.value;
-    const next = new Map(entries.map(item => [item.id, item.id === prelude.id ? prelude : item]));
+    const next = new Map(entries.map(item => [item.id, item.id === prelude.id ? {...item, ...prelude} : item]));
     if (!next.has(prelude.id)) next.set(prelude.id, prelude);
     const pending = catalog.get(selected);
     if (!next.has(selected) && pending && !pending.title) next.set(selected, pending);
-    const options = Array.from(next.values(), item => new Option(item.title || 'Requested screenplay', item.id));
+    const options = Array.from(next.values(), item => {
+      const label = item.title || 'Requested screenplay';
+      const pendingAudio = item.voices && !Object.values(item.voices).some(voice => voice.available);
+      return new Option(pendingAudio ? `${label} · Narration pending` : label, item.id);
+    });
     if (options.length !== picker.length ||
         options.some((option, i) => option.value !== picker.options[i].value || option.text !== picker.options[i].text)) {
       picker.replaceChildren(...options);
@@ -467,8 +522,12 @@ async function refreshCatalog() {
     }
     catalog = next;
     picker.disabled = next.size < 2;
+    showRenderProgress(next.get(picker.value));
     if (picker.value !== selected) {
       selectAndLoad();
+    } else if (pending && !pending.title && next.get(selected)?.voices &&
+               !Object.values(next.get(selected).voices).some(voice => voice.available)) {
+      void loadEdition(next.get(selected));
     } else if (displayed === selected) {
       const item = next.get(selected);
       if (item.title) {
@@ -476,7 +535,9 @@ async function refreshCatalog() {
         transcript.setAttribute('aria-label', item.title + ' transcript');
       }
       source.href = item.source;
-      if (!loading && (voicePicker.value === 'sol-gpt' || selected === prelude.id || item.revision !== revision)) {
+      if (!loading && (voicePicker.value === 'sol-gpt' || selected === prelude.id ||
+                       (item.voices?.early.available ?? true) && (!displayedAudio || item.revision !== revision) ||
+                       !displayedAudio && revision !== item.textRevision)) {
         void loadEdition(item, true);
       }
     } else if (!loading) {
@@ -547,3 +608,6 @@ if (requestedScreenplay !== prelude.id && /^[A-Za-z0-9_-]{10,128}$/.test(request
 void loadSelection().finally(refreshArchiveMetadata);
 void refreshCatalog();
 setInterval(refreshReader, 60000);
+setInterval(() => {
+  if (!narrationProgress.hidden) void refreshCatalog();
+}, 10000);
