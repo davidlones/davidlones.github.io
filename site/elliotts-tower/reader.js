@@ -455,7 +455,8 @@ async function refreshCatalog() {
   try {
     const entries = await fetchJson(root + 'screenplays/index.json');
     const selected = picker.value;
-    const next = new Map([[prelude.id, prelude], ...entries.map(item => [item.id, item])]);
+    const next = new Map(entries.map(item => [item.id, item.id === prelude.id ? prelude : item]));
+    if (!next.has(prelude.id)) next.set(prelude.id, prelude);
     const pending = catalog.get(selected);
     if (!next.has(selected) && pending && !pending.title) next.set(selected, pending);
     const options = Array.from(next.values(), item => new Option(item.title || 'Requested screenplay', item.id));
