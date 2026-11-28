@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Read and listen to the Elliott’s Tower screenplay collection with synchronized word highlighting.">
   <link rel="canonical" href="https://sol.system42.one/elliotts-tower/">
-  <link rel="stylesheet" href="/elliotts-tower/reader.css?v=spoken-credits">
-  <script src="/elliotts-tower/reader.js?v=drive-edit-order" defer></script>
+  <link rel="stylesheet" href="/elliotts-tower/reader.css?v=render-progress">
+  <script src="/elliotts-tower/reader.js?v=render-progress" defer></script>
   <title>Elliott’s Tower — The Complete Prelude | SOL-37</title>
 </head>
 <body>
@@ -39,6 +39,10 @@
         <button id="share-screenplay" type="button">Copy share link</button>
         <span id="share-status" role="status"></span>
         <a id="source" href="https://docs.google.com/document/d/1qNvO0wIHxeiNpFeGCGqRQ5Nm5fy15JgG/mobilebasic" target="_blank" rel="noopener">Source document</a>
+      </div>
+      <div id="narration-progress" hidden>
+        <label id="narration-status" for="narration-bar" role="status"></label>
+        <progress id="narration-bar"></progress>
       </div>
       <p id="revision-notice" class="status" hidden></p>
       <p id="status" class="status" role="status">Loading the Prelude…</p>

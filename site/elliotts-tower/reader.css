@@ -44,7 +44,10 @@ audio { width: 100%; display: block; height: 2.5rem; }
 .actions input { accent-color: var(--gold); }
 .status { margin: 0; color: var(--muted); font-size: .82rem; }
 .status:empty { display: none; }
+#narration-progress { display: grid; gap: .2rem; color: var(--muted); font-size: .82rem; }
+#narration-bar { width: min(100%, 20rem); height: .6rem; accent-color: var(--gold); }
 article { width: min(100%, 45rem); margin: auto; padding: 1.4rem 0 2rem; font: clamp(1.06rem, 2.4vw, 1.25rem)/1.7 Georgia, serif; overflow-wrap: anywhere; }
+article[data-pending] { white-space: pre-wrap; }
 article :is(h1,h2,h3) { line-height: 1.24; margin: 1.5em 0 .55em; }
 article h1 { color: var(--gold); font-size: 1.55em; scroll-margin-top: 10rem; }
 article h1:first-child { margin-top: 0; }
